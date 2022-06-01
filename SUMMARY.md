@@ -53,3 +53,5 @@
   * [執行緒](thread-safe/zhi-hang-xu.md)
   * [管道(channel)](thread-safe/channel.md)
   * [狀態共享](thread-safe/state-sharing.md)
+  * [crossbeam](thread-safe/crossbeam.md)
+  * [rayon](thread-safe/rayon.md)
