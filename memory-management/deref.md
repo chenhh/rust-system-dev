@@ -6,11 +6,11 @@
 
 <mark style="background-color:blue;">**解引用是通過引用找到記憶體塊真正的主人(引用存放的記憶體地位，取引用是將此記憶體地位之值取出)**</mark>，然後你可以跟主人借一些不同型別的引用，比如從`&mut T`借成`Pin<&mut T>`。
 
-這個主人可能被包了很多層，當你以為你找了主人，其實它只是個皮，所以會存在不斷解引用的情況，你可能需要加很多個`*`符號，當然很多個`*`符號不符合設計美感。
+這個主人可能被包了很多層，當你以為你找了主人，其實它只是個皮，所以會存在不斷解引用的情況，你可能需要加很多個`*`符號，當然很多個`*`符號不符合設計美感。
 
- <mark style="background-color:red;">**Rust語法規定，同一塊記憶體只能有一個可變引用，或者有多個不可變引用（共享不可變，可變不共享**</mark>**）**。**Rust之所以這麼規定，一個非常大的優點是避免了記憶體被多處修改的潛在隱患，避免了資源的複雜環境競爭，降低了程式的除錯難度(註：同時解決了多執行緒的同步問題)**。
+<mark style="background-color:red;">**Rust語法規定，同一塊記憶體只能有一個可變引用，或者有多個不可變引用（共享不可變，可變不共享**</mark>**）**。 **Rust之所以這麼規定，一個非常大的優點是避免了記憶體被多處修改的潛在隱患，避免了資源的複雜環境競爭，降低了程式的除錯難度(註：同時解決了多執行緒的同步問題)**。
 
-那麼，<mark style="background-color:orange;">程式編寫過程中必然會在不同的函式塊裡呼叫同一塊記憶體，所以引用的使用將會變得非常頻繁，我們犯的錯誤大多也在此</mark>。
+那麼，<mark style="background-color:orange;">程式編寫過程中必然會在不同的函式塊裡呼叫同一塊記憶體，所以引用的使用將會變得非常頻繁，我們犯的錯誤大多也在此</mark>。
 
 ```rust
 fn main() {
@@ -67,7 +67,7 @@ fn main() {
 
 ## 自訂解引用
 
-解引用操作可以被自訂。方法是，實現標準庫中的`std::ops::Deref`或者`std::ops::DerefMut`這兩個trait。`DerefMut`的唯一區別是返回的是`&mut`型引用都是類似的，因此不過多介紹了。
+解引用操作可以被自訂。方法是，實現標準庫中的`std::ops::Deref`或者`std::ops::DerefMut`這兩個trait。 `DerefMut`的唯一區別是返回的是`&mut`型引用都是類似的，因此不過多介紹了。
 
 ```rust
 pub trait Deref {
@@ -79,7 +79,7 @@ pub trait DerefMut: Deref {
 }
 ```
 
-這個trait有一個關聯類型Target，代表解引用之後的目標類型。比如，<mark style="background-color:red;">標準庫中實現了</mark><mark style="background-color:red;">`String`</mark><mark style="background-color:red;">向</mark><mark style="background-color:red;">`str`</mark><mark style="background-color:red;">的解引用轉換</mark>：
+這個trait有一個關聯類型Target，代表解引用之後的目標類型。 比如，<mark style="background-color:red;">標準庫中實現了</mark><mark style="background-color:red;">`String`</mark><mark style="background-color:red;">向</mark><mark style="background-color:red;">`str`</mark><mark style="background-color:red;">的解引用轉換</mark>：
 
 ```rust
 impl ops::Deref for String {
@@ -90,6 +90,8 @@ impl ops::Deref for String {
     }
 }
 ```
+
+## 標準庫的容器
 
 標準庫中有許多我們常見的類型實現了這個Deref操作符。比如`Vec<T>`、`String`、`Box<T>`、`Rc<T>`、`Arc<T>`等。它們都支援“解引用”操作。
 
@@ -195,4 +197,3 @@ let len = s.bytes();
 因為編譯器很聰明，它看到`&*`這兩個操作連在一起的時候，會直接把`&*s`運算式理解為`s.deref()`，這時候`p`只是`s`的一個借用而已。而如果把這兩個操作分開寫，會先執行`*s`把內部的資料move出來，再對這個臨時變數取引用，這時候`s`已經被移走了，生命週期已經結束。
 
 從這裡我們也可以看到，預設的“取引用”、“解引用”操作是互補抵消的關係，互為逆運算。但是，在Rust中，只允許自訂“解引用”，不允許自訂“取引用”。如果類型有自訂“解引用”，那麼對它執行“解引用”和“取引用”就不再是互補抵消的結果了。先`&`後`*`以及先`*`後`&`的結果是不同的。
-
