@@ -6,16 +6,35 @@
 
 ```rust
 pub enum Result<T, E> {
-    Ok(T),
-    Err(E),
+    Ok(T),    // Ok(value) 表示操作成功，並包裝操作返回的 value
+    Err(E),   // 表示操作失敗，並包裝 why，它（但願）能夠解釋失敗的原因
 }
 ```
 
-在變體`Err(E)`為`None`時，`Option`可以被看作`Result`的特例。
+在變體`Err(E)`為`None`時，`Option`可以被看作`Result`的特例。，`Err(E)`描述的是可能的錯誤而不是可能的不存在。
 
 `Result`的處理方法和`Option`類似，都可以使用`unwrap`和`expect方`法，也可以使用`map`和`and_then`方法，並且用法也都類似。
 
 如果你呼叫了 `Result::unwrap` 或 `Option::unwrap` ，`panic!`會分別在值為 Err 或 None 時發生，這用在程式碰到了無法回覆的錯誤。
+
+```rust
+// `is_ok` 和 `is_err` 判斷變數的結果為ok還是err
+assert!(good_result.is_ok() && !good_result.is_err());
+assert!(bad_result.is_err() && !bad_result.is_ok());
+
+// `map` 消耗 `Result` 並產生另一個Result
+let good_result: Result<i32, i32> = good_result.map(|i| i + 1);
+let bad_result: Result<i32, i32> = bad_result.map(|i| i - 1);
+
+// 使用 `and_then` 繼續計算
+let good_result: Result<bool, i32> = good_result.and_then(|i| Ok(i == 11));
+
+// 使用 `or_else` 處理該錯誤。
+let bad_result: Result<i32, i32> = bad_result.or_else(|i| Ok(i + 20));
+
+// 消費結果並用 `unwrap` 返回內容。
+let final_awesome_result = good_result.unwrap();
+```
 
 ## 用match處理各類錯誤
 
@@ -29,7 +48,7 @@ fn main() {
     let f = File::open("hello.txt");
 
     let f = match f {
-        // 第一層處理Result的兩個變體
+        // 第一層處理Result的Ok與Err
         Ok(file) => file,
         Err(error) => match error.kind() {
             // 第二層針對不同的error列舉處理
@@ -44,7 +63,7 @@ fn main() {
 }
 ```
 
-在處理Result時，我們還有一種處理方法，就是try!巨集。它會使代碼變得非常精簡，但是在發生錯誤時，會將錯誤返回，傳播到外部調用函數中，所以我們在使用之前要考慮清楚是否需要傳播錯誤。
+在處理`Result`時，我們還有一種處理方法，就是`try!`巨集(現在已被`?`運算子取代)。它會使代碼變得非常精簡，但是在發生錯誤時，會將錯誤返回，傳播到外部調用函數中，所以我們在使用之前要考慮清楚是否需要傳播錯誤。
 
 ```rust
 use std::fs::File;
@@ -54,7 +73,7 @@ fn main() {
 }
 ```
 
-try!使用起來雖然簡單，但也有一定的問題。像我們剛才提到的傳播錯誤，再就是有可能出現多層巢狀的情況。因此Rust引入了另一個語法糖來代替try!。它就是問號操作符“?”。
+`try!`使用起來雖然簡單，但也有一定的問題。像我們剛才提到的傳播錯誤，再就是有可能出現多層巢狀的情況。因此Rust引入了另一個語法糖來代替`try!`。它就是問號操作符“`?`”。
 
 ```rust
 use std::fs::File;
@@ -90,11 +109,20 @@ let p: Person = match serde_json::from_str(data) {
 
 因此unwrap隱含了panic!。雖然與更顯式的版本沒有差異，但是危險在於其隱含特性，因為有時這並不是你真正期望的行為。
 
+## try! 巨集
+
+在 `?` 運算子出現以前，相同的功能是使用 `try!` 巨集完成的。現在我們推薦使用 `?` 運算子，但是 在老代碼中仍然會看到 `try!`。
+
 ## ? - 故障時返回Err物件
 
 Rust 中的問號 ( ?) 運算子用作返回`Result<T,E>`或`Option<T>`型別函式的錯誤傳播替代方案。?運算子是一種快捷方式，因為它減少了立即返回或從型別或函式中?返回所需的程式碼量。
 
-<mark style="color:orange;">如果有個函式在它呼叫其它函式時發生了錯誤的情況，?算子它就把錯誤往上回傳</mark>。
+當發生`Err`時，可以採取兩種行動：
+
+1. `panic!`，不過我們已經決定要盡可能避免 panic 了。
+2. 返回它，因為 Err 就意味著它已經不能被處理了。
+
+? 幾乎就等於一個會返回 Err 而不是 panic 的 unwrap。<mark style="color:orange;">如果有個函式在它呼叫其它函式時發生了錯誤的情況，?算子它就把錯誤往上回傳</mark>。
 
 <mark style="color:blue;">註：因為Result的回傳值為OK或Err，而Option的回傳值為Some或None，均為二類回傳值，可將?算子視為C/C++中的三元運算子，成功時傳回OK/Some，失敗時傳回Err/None</mark>。
 
@@ -152,7 +180,36 @@ reader.read_to_string(&mut buf)?;
 let f = File::open("filename")?;
 ```
 
+```rust
+// 不使用?運算子的寫法
+fn write_info(info: &Info) -> io::Result<()> {
+    // 盡早返回錯誤
+    let mut file = match File::create("my_best_friends.txt") {
+           Err(e) => return Err(e),
+           Ok(f) => f,
+    };
+    if let Err(e) = file.write_all(format!("name: {}\n", info.name).as_bytes()) {
+        return Err(e)
+    }
+    if let Err(e) = file.write_all(format!("age: {}\n", info.age).as_bytes()) {
+        return Err(e)
+    }
+    if let Err(e) = file.write_all(format!("rating: {}\n", info.rating).as_bytes()) {
+        return Err(e)
+    }
+    Ok(())
+}
 
+// 使用?運算子的寫法
+fn write_info(info: &Info) -> io::Result<()> {
+    let mut file = File::create("my_best_friends.txt")?;
+    // 盡早返回錯誤
+    file.write_all(format!("name: {}\n", info.name).as_bytes())?;
+    file.write_all(format!("age: {}\n", info.age).as_bytes())?;
+    file.write_all(format!("rating: {}\n", info.rating).as_bytes())?;
+    Ok(())
+}
+```
 
 ## 錯誤資訊類型不一樣，如何轉換？
 
@@ -188,42 +245,3 @@ fn main(){
     println!("{:?}", bar()); // Err(MyErr { error_code: 1 })
 }
 ```
-
-## 返回值由Option 轉 Result
-
-`ok_or()` 可以把 Option 類型轉換為 Result。
-
-```rust
-fn foo() -> Option<i32> {
-    None
-}
-
-fn bar() -> Result<i32, String> {
-    foo().ok_or("error".to_string())?;
-    Ok(689)
-}
-
-fn main() {
-    println!("{:?}", bar()); //Err("error")
-}
-```
-
-## 返回值由Result轉Option
-
-如果想提前丟棄計算結果，可以用 `.ok()?` 方法。
-
-```rust
-fn foo() -> Result<i32, i32> {
-    Err(123)
-}
-
-fn bar() -> Option<i32> {
-    foo().ok()?;
-    Some(689)
-}
-
-fn main() {
-    println!("{:?}", bar()); //None
-}
-```
-

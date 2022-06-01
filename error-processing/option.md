@@ -266,7 +266,7 @@ fn foo() -> Option<i32> {
 }
 
 fn bar() -> Option<String>{
-    foo()?;
+    foo()?; // None時值回return, 不會執行下一步
     Some(String::from("hello world"))
 }
 
