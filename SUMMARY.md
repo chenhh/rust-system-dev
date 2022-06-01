@@ -1,8 +1,7 @@
 # Table of contents
 
 * [Rust系統程式](README.md)
-
-* [Rust簡介](introduction.md)
+  * [Rust簡介](readme/introduction.md)
 * [測試](testing.md)
   * [斷言(assert)](testing/duan-yan-assert.md)
 * [錯誤處理](error-processing/README.md)

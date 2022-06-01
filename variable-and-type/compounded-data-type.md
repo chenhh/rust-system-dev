@@ -334,7 +334,7 @@ enum Option<T> {
 
 由於它實在是太常用，標準庫將Option以及它的成員Some、None都加入到了Prelude中，使用者甚至不需要use語句聲明就可以直接使用。
 
-它表示的含義是“<mark style="background-color:red;"><mark style="color:red;">類型T的值要麼存在、要麼不存在<mark style="color:red;"></mark><mark style="background-color:red;">”</mark>。比如Option\<i32>表達的意思就是“可以是一個i32類型的值，或者沒有任何值”。
+它表示的含義是“<mark style="color:red;"><mark style="background-color:red;">類型T的值要麼存在、要麼不存在”。比如Option\<i32>表達的意思就是“可以是一個i32類型的值，或者沒有任何值”。<mark style="background-color:red;"></mark>
 
 從類型系統的角度來表達這個概念就意味著<mark style="color:blue;">編譯器需要檢查是否處理了所有應該處理的情況</mark>，這樣就可以避免在其他編程語言中非常常見的 bug。
 
