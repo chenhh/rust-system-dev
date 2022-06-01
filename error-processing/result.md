@@ -17,11 +17,23 @@ pub enum Result<T, E> {
 
 如果你呼叫了 `Result::unwrap` 或 `Option::unwrap` ，`panic!`會分別在值為 Err 或 None 時發生，這用在程式碰到了無法回覆的錯誤。
 
+## is\_ok, is\_err方法
+
 ```rust
+pub const fn is_ok(&self) -> bool {
+        // 以matches巨集判斷*self之值是否為Ok
+        matches!(*self, Ok(_))
+    }
+pub const fn is_err(&self) -> bool {
+        !self.is_ok()
+    }
+
 // `is_ok` 和 `is_err` 判斷變數的結果為ok還是err
 assert!(good_result.is_ok() && !good_result.is_err());
 assert!(bad_result.is_err() && !bad_result.is_ok());
+```
 
+```rust
 // `map` 消耗 `Result` 並產生另一個Result
 let good_result: Result<i32, i32> = good_result.map(|i| i + 1);
 let bad_result: Result<i32, i32> = bad_result.map(|i| i - 1);
