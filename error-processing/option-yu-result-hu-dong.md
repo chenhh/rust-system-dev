@@ -9,6 +9,20 @@ fn double_first(vec: Vec<&str>) -> i32 {
     let first = vec.first().unwrap(); //  返回一個 Option
     2 * first.parse::<i32>().unwrap() //  返回一個 Result<i32, ParseIntError>
 }
+
+fn main() {
+    let numbers = vec!["42", "93", "18"];
+    let empty: Vec<i32> = vec![];
+    let strings = vec!["tofu", "93", "18"];
+    
+    println!("The first doubled is {}", double_first(numbers));
+    
+    println!("The first doubled is {}", double_first(empty));
+    // 錯誤1：輸入 vector 為空
+    
+    println!("The first doubled is {}", double_first(strings));
+    // 錯誤2：此元素不能解析成數字
+}
 ```
 
 有時候我們不想再處理錯誤（比如使用 ? 的時候），但如果 Option 是 None 則繼續處理錯誤。一些組合運算元可以讓我們輕松地交換 Result 和 Option。
