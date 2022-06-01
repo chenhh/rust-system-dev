@@ -48,6 +48,7 @@
   * [第三方套件](crate-and-cargo/third-party-crate.md)
 * [路徑與IO](lu-jing-yu-io.md)
   * [開檔(open)](kai-dang-open.md)
+* [日期與時間](ri-qi-yu-shi-jian.md)
 * [執行緒安全](thread-safe/README.md)
   * [執行緒](thread-safe/zhi-hang-xu.md)
   * [管道(channel)](thread-safe/channel.md)
