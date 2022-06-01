@@ -40,7 +40,7 @@ impl Seq {
 }
 // 實現迭代器
 impl Iterator for Seq {
-    type Item = i32;
+    type Item = i32; // 關聯類型
     fn next(&mut self) -> Option<i32> {
         if self.current < 100 {
             self.current += 1;
@@ -60,7 +60,7 @@ fn main() {
 
 ## 迭代器的組合
 
-Rust標準庫有一個命名規範，從容器創造出迭代器一般有三種方法
+Rust標準庫有一個命名規範，從容器創造出迭代器一般有三種方法：
 
 * `iter()`創造一個Item是`&T`類型的迭代器；
 * `iter_mut()`創造一個Item是`&mut T`類型的迭代器；
@@ -117,9 +117,9 @@ fn main() {
 }
 ```
 
-。兩個版本相比較，迭代器的可讀性是不言而喻的。這種抽象相比于直接在傳統的迴圈內部寫各種邏輯是有優勢的，特別是如果我們想把迭代器改成並存執行是非常容易的事情。而傳統的寫法涉及細節太多，不太容易改成並存執行。
+兩個版本相比較，迭代器的可讀性是不言而喻的。這種抽象相比于直接在傳統的迴圈內部寫各種邏輯是有優勢的，特別是如果我們想把迭代器改成並存執行是非常容易的事情。而傳統的寫法涉及細節太多，不太容易改成並存執行。
 
-分析迭代器的實現原理我們也可以知道：<mark style="background-color:red;">**構造一個迭代器本身，是代價很小的行為，因為它只是初始化了一個物件，並不真正產生或消費資料**</mark>**。**不論迭代器內部嵌套了多少層，最終消費資料還是要通過調用next（）方法實現的。這個特點，也被稱為<mark style="background-color:red;">惰性求值（lazy evaluation）</mark>。
+分析迭代器的實現原理我們也可以知道：<mark style="background-color:red;">**構造一個迭代器本身，是代價很小的行為，因為它只是初始化了一個物件，並不真正產生或消費資料**</mark>。不論迭代器內部嵌套了多少層，最終消費資料還是要通過調用`next（）`方法實現的。這個特點，也被稱為<mark style="background-color:red;">惰性求值（lazy evaluation）</mark>。
 
 ```rust
 fn main() {
@@ -165,13 +165,13 @@ Rust裡面更簡潔、更自然地使用迭代器的方式是使用for迴圈。�
 use std::collections::HashMap;
 fn main() {
     let v = vec![1, 2, 3, 4, 5, 6, 7, 8, 9];
-    // borrow
+    // borrow of vec
     for i in &v {
         print!("{i}\t");
     }
     println!("");
     let map: HashMap<i32, char> = [(1, 'a'), (2, 'b'), (3, 'c')].iter().cloned().collect();
-    // borrow
+    // borrow of map
     for (k, v) in &map {
         println!("{k} : {v}");
     }
@@ -205,7 +205,7 @@ impl<'a, K: 'a, V: 'a> IntoIterator for &'a mut BTreeMap<K, V> {
 
 對於一個容器類型，標準庫裡面對它impl了三次IntoIterator。當Self類型為BTreeMap的時候，Item類型為（K，V），這意味著，每次next()方法都是把內部的元素move出來了；當Self類型為\&BTreeMap的時候，Item類型為（\&K，\&V），每次next()方法返回的是借用；當Self類型為\&mut BTreeMap的時候，Item類型為（\&K，\&mut V），每次next()方法返回的key是唯讀的，value是可讀寫的。
 
-Rust的for\<item>in\<container>{\<body>}語法結構就是一個語法糖。這個語法的原理其實就是調用**`<container>.into_iter()`**方法來獲得迭代器，然後不斷迴圈調用迭代器的`next()`方法，將返回值解包，賦值給\<item>，然後調用\<body>語句塊。
+Rust的for\<item>in\<container>{\<body>}語法結構就是一個語法糖。這個語法的原理其實就是調用\*\*`<container>.into_iter()`\*\*方法來獲得迭代器，然後不斷迴圈調用迭代器的`next()`方法，將返回值解包，賦值給\<item>，然後調用\<body>語句塊。
 
 在使用for迴圈的時候，我們可以自主選擇三種使用方式：
 
@@ -222,4 +222,3 @@ for item in &mut container{}
 ```
 
 Rust的IntoIterator trait實際上就是for語法的擴展介面。如果我們需要讓各種自訂容器也能在for迴圈中使用，那就可以借鑒標準庫中的寫法，自行實現這個trait即可。
-
