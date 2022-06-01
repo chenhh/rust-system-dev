@@ -1,6 +1,30 @@
 # 執行緒
 
+[Module std::thread](https://doc.rust-lang.org/std/thread/) ([中文](https://rustwiki.org/zh-CN/std/thread/index.html))
+
+## 執行緒模型
+
+一個正在執行的 Rust 程式由一組原生作業系統執行緒組成​​，每個執行緒都有自己的堆疊和本地狀態。執行緒可以被命名，並為底層同步提供一些內置支援。
+
+執行緒之間的通訊可以通過通道、Rust 的訊息傳遞類型、以及 其他形式的執行緒同步和共享記憶體資料結構來完成。 特別是，可以使用原子引用計數容器 Arc 在執行緒之間輕松共享保證執行緒安全的類型。
+
 ## 建立執行緒
+
+可以使用 thread::spawn 函數來生成一個新執行緒。
+
+`join` 方法返回一個 `thread::Result`，其中包含由新建執行緒生成的最終值的 `Ok`，或者如果執行緒 `panicked`，則返回給 `panic!` 的調用值的 `Err`。
+
+<mark style="background-color:red;">請注意，生成新執行緒的執行緒與生成的執行緒之間沒有 parent/child 關係。特別是，除非生成執行緒是主執行緒，否則新建執行緒可能會也可能不會比生成執行緒的生命週期長</mark>。
+
+```rust
+use std::thread;
+
+let thread_join_handle = thread::spawn(move || {
+    // 待處理的工作
+});
+// 在此等待thread完成
+let res = thread_join_handle.join(); 
+```
 
 ```rust
 use std::thread;
@@ -47,7 +71,7 @@ fn main() {
         // 等待執行緒。
         let _ = child.join();
     }
-}u
+}
 ```
 
 ## 使用 join 等待所有執行緒結束
@@ -75,6 +99,16 @@ fn main() {
     handle.join().unwrap();
     println!("all threads complete");
 }
+```
+
+## 通過 Builder 類型在執行緒生成之前進行配置
+
+```rust
+use std::thread;
+
+thread::Builder::new().name("thread1".to_string()).spawn(move || {
+    println!("Hello, world!");
+});
 ```
 
 ## 應用：map-reduce
