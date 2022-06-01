@@ -27,6 +27,26 @@ let vec = vec![0; 5];
 assert_eq!(vec, [0, 0, 0, 0, 0]);
 ```
 
+### String變Vec
+
+```rust
+fn main() {
+    let s1 = String::from("hello world");
+    let v1 = Vec::from(s1);
+
+    // move
+    for b in v1 {
+        println!("{} ", b as char);    // h e l l o w o r l d
+    }
+    // borrow
+    for b in &v1 {
+        print!("{} ", *b as char);
+    }
+    
+}
+
+```
+
 ## 插入、彈出、索引
 
 ```rust
