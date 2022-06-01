@@ -15,8 +15,6 @@
 
 ![rust語義樹](<../.gitbook/assets/rust-min (1).jpg>)
 
-![rust語義樹](../.gitbook/assets/rust-min.jpg)
-
 語義樹，主要是想表達下面幾層意思：
 
 1. 所有權是有好多個概念系統性組成的一個整體概念。
