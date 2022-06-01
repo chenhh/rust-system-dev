@@ -13,15 +13,15 @@
 * 當然，送出去(move)的東西如果別人不還你的話是拿不回來。
 * 但借出去(borrow)的就只是暫時的給別人使用而已。
 
-![rust語義樹](../../.gitbook/assets/rust-min.jpg)
+![rust語義樹](<../.gitbook/assets/rust-min (1).jpg>)
+
+![rust語義樹](../.gitbook/assets/rust-min.jpg)
 
 語義樹，主要是想表達下面幾層意思：
 
 1. 所有權是有好多個概念系統性組成的一個整體概念。
 2. let繫結，繫結了什麼？變數 + 作用域 + 資料（記憶體）。
 3. move、lifetime、RAII都是和作用域相關的，所以想理解它們就先要理解作用域。
-
-
 
 ## 所有權(ownership)
 
@@ -168,9 +168,9 @@ let s1 = String::from("hello");
 let s2 = s1;
 ```
 
-![將值 "hello" 綁定給 s1 的 String 在記憶體中的表現形式](<../../.gitbook/assets/string\_ctor-min (1).png>)
+![將值 "hello" 綁定給 s1 的 String 在記憶體中的表現形式](../.gitbook/assets/string\_ctor-min%20\(1\).png)
 
-![s1對hello的所有權移動至s2](../../.gitbook/assets/string\_move-min.png)
+![s1對hello的所有權移動至s2](../.gitbook/assets/string\_move-min.png)
 
 ```rust
 fn create(){
@@ -235,7 +235,7 @@ fn main() {
 
 這兩個操作本身是一樣的，都是簡單的記憶體複製，區別在於複製完以後，原先那個變數的生命週期是否結束。
 
-Rust中，在普通變數綁定、函數傳參、模式匹配等場景下，<mark style="color:red;">凡是實現了</mark><mark style="color:red;">`std::marker::Copy`</mark> <mark style="color:red;"></mark><mark style="color:red;">trait的類型，都會執行copy語義</mark>。**基本類型，比如整數、浮點數、字元、bool等，都實現了Copy trait，因此具備copy語義。對於自訂類型，預設是沒有實現Copy trait的，但是我們可以手動實現**。
+Rust中，在普通變數綁定、函數傳參、模式匹配等場景下，<mark style="color:red;">凡是實現了</mark><mark style="color:red;">`std::marker::Copy`</mark> <mark style="color:red;">trait的類型，都會執行copy語義</mark>。**基本類型，比如整數、浮點數、字元、bool等，都實現了Copy trait，因此具備copy語義。對於自訂類型，預設是沒有實現Copy trait的，但是我們可以手動實現**。
 
 ```rust
 struct Foo {
