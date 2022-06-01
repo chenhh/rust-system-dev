@@ -70,6 +70,26 @@ fn main() {
 }
 ```
 
+```rust
+fn print_arr(arr: &[i32]){
+    println!("{:?}", arr);
+} 
+
+fn main() {
+    let a = vec![1,2,3,4];
+    print_arr(&&&&&&&a); // 自動解引用至&[i32]
+}
+
+fn print_arr(arr: &[&str]){
+    println!("{:?}", arr);
+} 
+
+fn main() {
+    let a = vec!["hello","world","to","you"];
+    print_arr(&&&&a);
+}
+```
+
 ## 自訂解引用
 
 解引用操作可以被自訂。方法是，實現標準庫中的`std::ops::Deref`或者`std::ops::DerefMut`這兩個trait。 `DerefMut`的唯一區別是返回的是`&mut`型引用都是類似的，因此不過多介紹了。
