@@ -17,7 +17,7 @@ pub enum Result<T, E> {
 
 如果你呼叫了 `Result::unwrap` 或 `Option::unwrap` ，`panic!`會分別在值為 Err 或 None 時發生，這用在程式碰到了無法回覆的錯誤。
 
-## is\_ok, is\_err方法
+## is\_ok, is\_err方法判斷變數是否成功
 
 ```rust
 pub const fn is_ok(&self) -> bool {
@@ -33,6 +33,108 @@ assert!(good_result.is_ok() && !good_result.is_err());
 assert!(bad_result.is_err() && !bad_result.is_ok());
 ```
 
+## 提取包含的值
+
+當結果是 `Ok` 變體時，以下的這些方法可以提取 `Result<T, E>` 中包含的值。而如果 `Result` 是 `Err時`：
+
+* `expect(msg)`： panics且帶有提供的自定義訊息。
+* `unwrap()`： panics 帶有泛型資訊。
+* `unwrap_or()`： 返回使用者提供的預設值。
+* `unwrap_or_default`： 返回類型 `T` 的預設值 (必須實現 Default trait)。
+* `unwrap_or_else` ：返回對提供的函數求值的結果。
+
+```rust
+// 返回包含 self 值的包含的 Ok 值。
+// 如果值為 Err，就會出現 panics，其中 panic 訊息包括傳遞的訊息以及 Err 的內容。
+pub fn expect(self, msg: &str) -> T {
+        match self {
+            Ok(t) => t,
+            Err(e) => unwrap_failed(msg, &e),
+        }
+    }
+
+let x: Result<u32, &str> = Err("emergency failure");
+x.expect("Testing expect"); // `Testing expect: emergency failure` 的 panics
+```
+
+```rust
+// 返回包含 self 值的包含的 Ok 值。
+// 由於此函數可能為 panic，因此通常不建議使用該函數。只用於原型快速開發
+// 如果該值為 Err，就會出現 Panics，並由 Err 的值提供 panic 訊息。
+pub fn unwrap(self) -> T {
+        match self {
+            Ok(t) => t,
+            Err(e) => unwrap_failed("called `Result::unwrap()` on an `Err` value", &e),
+        }
+    }
+
+let x: Result<u32, &str> = Ok(2);
+assert_eq!(x.unwrap(), 2);
+let x: Result<u32, &str> = Err("emergency failure");
+x.unwrap(); // `emergency failure` 的 panics
+```
+
+```rust
+// 返回包含的 Ok 值或提供的預設值。
+pub fn unwrap_or(self, default: T) -> T {
+        match self {
+            Ok(t) => t,
+            Err(_) => default,
+        }
+    }
+
+let default = 2;
+let x: Result<u32, &str> = Ok(9);
+assert_eq!(x.unwrap_or(default), 9);
+
+let x: Result<u32, &str> = Err("error");
+assert_eq!(x.unwrap_or(default), default);
+```
+
+```rust
+// 返回包含的 Ok 值或默認值
+//如果 Ok，則返回包含的值，否則如果 Err，則返回該類型的預設值。
+ pub fn unwrap_or_default(self) -> T {
+        match self {
+            Ok(x) => x,
+            Err(_) => Default::default(),
+        }
+    }
+```
+
+```rust
+// 返回包含的 Ok 值或從閉包中計算得出。
+pub fn unwrap_or_else<F: FnOnce(E) -> T>(self, op: F) -> T {
+        match self {
+            Ok(t) => t,
+            Err(e) => op(e),
+        }
+    }
+```
+
+## map, and then, or else
+
+* `map` 通過將提供的函數應用於 `Ok` 的包含值並保持 `Err` 值不變，將 `Result<T, E>` 轉換為 `Result<U, E>`。
+
+```rust
+ pub fn map<U, F: FnOnce(T) -> U>(self, op: F) -> Result<U, E> {
+        match self {
+            Ok(t) => Ok(op(t)),
+            Err(e) => Err(e),
+        }
+```
+
+* `map_err` 通過將提供的函數應用於 `Err` 的包含值並保持 `Ok` 值不變，將 `Result<T, E>` 轉換為 `Result<T, F>`。
+
+```rust
+pub fn map_err<F, O: FnOnce(E) -> F>(self, op: O) -> Result<T, F> {
+        match self {
+            Ok(t) => Ok(t),
+            Err(e) => Err(op(e)),
+        }
+    }
+```
+
 ```rust
 // `map` 消耗 `Result` 並產生另一個Result
 let good_result: Result<i32, i32> = good_result.map(|i| i + 1);
@@ -43,10 +145,9 @@ let good_result: Result<bool, i32> = good_result.and_then(|i| Ok(i == 11));
 
 // 使用 `or_else` 處理該錯誤。
 let bad_result: Result<i32, i32> = bad_result.or_else(|i| Ok(i + 20));
-
-// 消費結果並用 `unwrap` 返回內容。
-let final_awesome_result = good_result.unwrap();
 ```
+
+
 
 ## 用match處理各類錯誤
 

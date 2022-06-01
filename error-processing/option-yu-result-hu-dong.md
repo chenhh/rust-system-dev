@@ -72,7 +72,23 @@ fn main() {
 
 ## 返回值由Result轉Option
 
-如果想提前丟棄計算結果，可以用 `.ok()?` 方法。
+如果想提前丟棄計算結果，可以用 `.ok()?` 或`.err()?`方法。
+
+```rust
+pub fn ok(self) -> Option<T> {
+        match self {
+            Ok(x) => Some(x),
+            Err(_) => None,
+        }
+    }
+    
+pub fn err(self) -> Option<E> {
+        match self {
+            Ok(_) => None,
+            Err(x) => Some(x),
+        }
+    }
+```
 
 ```rust
 fn foo() -> Result<i32, i32> {
@@ -80,7 +96,7 @@ fn foo() -> Result<i32, i32> {
 }
 
 fn bar() -> Option<i32> {
-    foo().ok()?;
+    foo().ok()?; // Ok時取值，否則傳回None
     Some(689)
 }
 
