@@ -29,6 +29,7 @@
   * [NLL(non-lexical-lifetime)](memory-management/non-lexical-lifetime.md)
   * [unsafe區塊](memory-management/unsafe.md)
 * [容器與迭代器](container.md)
+* [vec](vec.md)
 * [智慧指標(smart pointer)](memory-management/zhi-hui-zhi-biao-smart-pointer.md)
   * [解引用(deref)](memory-management/deref.md)
   * [Box](zhi-hui-zhi-biao-smart-pointer/box.md)
