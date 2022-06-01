@@ -90,11 +90,20 @@ let p: Person = match serde_json::from_str(data) {
 
 因此unwrap隱含了panic!。雖然與更顯式的版本沒有差異，但是危險在於其隱含特性，因為有時這並不是你真正期望的行為。
 
+## try! 巨集
+
+在 `?` 運算子出現以前，相同的功能是使用 `try!` 巨集完成的。現在我們推薦使用 `?` 運算子，但是 在老代碼中仍然會看到 `try!`。
+
 ## ? - 故障時返回Err物件
 
 Rust 中的問號 ( ?) 運算子用作返回`Result<T,E>`或`Option<T>`型別函式的錯誤傳播替代方案。?運算子是一種快捷方式，因為它減少了立即返回或從型別或函式中?返回所需的程式碼量。
 
-<mark style="color:orange;">如果有個函式在它呼叫其它函式時發生了錯誤的情況，?算子它就把錯誤往上回傳</mark>。
+當發生`Err`時，可以採取兩種行動：
+
+1. `panic!`，不過我們已經決定要盡可能避免 panic 了。
+2. 返回它，因為 Err 就意味著它已經不能被處理了。
+
+? 幾乎就等於一個會返回 Err 而不是 panic 的 unwrap。<mark style="color:orange;">如果有個函式在它呼叫其它函式時發生了錯誤的情況，?算子它就把錯誤往上回傳</mark>。
 
 <mark style="color:blue;">註：因為Result的回傳值為OK或Err，而Option的回傳值為Some或None，均為二類回傳值，可將?算子視為C/C++中的三元運算子，成功時傳回OK/Some，失敗時傳回Err/None</mark>。
 
@@ -184,43 +193,5 @@ fn bar() -> Result<i32, MyErr>{
 
 fn main(){
     println!("{:?}", bar()); // Err(MyErr { error_code: 1 })
-}
-```
-
-## 返回值由Option 轉 Result
-
-`ok_or()` 可以把 Option 類型轉換為 Result。
-
-```rust
-fn foo() -> Option<i32> {
-    None
-}
-
-fn bar() -> Result<i32, String> {
-    foo().ok_or("error".to_string())?;
-    Ok(689)
-}
-
-fn main() {
-    println!("{:?}", bar()); //Err("error")
-}
-```
-
-## 返回值由Result轉Option
-
-如果想提前丟棄計算結果，可以用 `.ok()?` 方法。
-
-```rust
-fn foo() -> Result<i32, i32> {
-    Err(123)
-}
-
-fn bar() -> Option<i32> {
-    foo().ok()?;
-    Some(689)
-}
-
-fn main() {
-    println!("{:?}", bar()); //None
 }
 ```
