@@ -19,7 +19,7 @@ Rust的迭代器是指實現了`Iterator` trait的類型。
 
 ```rust
 trait Iterator {
-    type Item;    // 關聯類型
+    type Item;
     fn next(&mut self) -> Option<Self::Item>;
     // ...
 }
@@ -33,7 +33,6 @@ use std::iter::Iterator;
 struct Seq {
     current: i32,
 }
-// 建構子
 impl Seq {
     fn new() -> Self {
         Seq { current: 0 }
@@ -45,9 +44,9 @@ impl Iterator for Seq {
     fn next(&mut self) -> Option<i32> {
         if self.current < 100 {
             self.current += 1;
-            Some(self.current)
+            return Some(self.current);
         } else {
-            None
+            return None;
         }
     }
 }
@@ -80,7 +79,7 @@ fn main() {
 
 如果迭代器就是這麼簡單，那麼它的用處基本就不大了。<mark style="background-color:red;">Rust的迭代器有一個重要特點，那它就是可組合的（composability）</mark>。
 
-`Iterator` trait裡面還有一大堆的方法，比如`nth`、`map`、`filter`、`skip_while`、`take`等等，這些方法都有預設實現，它們可以統稱為adapters（適配器）。它們有個共性，返回的是一個具體類型，而這個類型本身也實現了`Iterator` trait。這意味著，我們調用這些方法可以從一個迭代器創造出一個新的迭代器。
+Iterator trait裡面還有一大堆的方法，比如`nth`、`map`、`filter`、`skip_while`、`take`等等，這些方法都有預設實現，它們可以統稱為adapters（適配器）。它們有個共性，返回的是一個具體類型，而這個類型本身也實現了`Iterator` trait。這意味著，我們調用這些方法可以從一個迭代器創造出一個新的迭代器。
 
 ```rust
 // 迭代器寫法，容易平行化

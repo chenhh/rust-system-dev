@@ -11,6 +11,9 @@ prelude 會選擇並輸出符合平台類型 的 `Path` 種類。
 
 `Path` 可從 `OsStr` 類型創建，並且它提供數種方法，用於獲取路徑指向的檔案/目錄 的資訊。
 
+* Path 路徑的切片 (類似於 str)。&#x20;
+* PathBuf 擁有的可變路徑 (類似於 String)。
+
 注意 Path 在內部並不是用 UTF-8 字串表示的，而是存儲為若干位元組（Vec）的 vector。因此，將 Path 轉化成 \&str 並非零開銷的（free），且可能失敗（因此它 返回一個 Option）。
 
 ```rust
@@ -33,4 +36,22 @@ fn main() {
         Some(s) => println!("new path is {}", s),   // ./a/b
     }
 }
+```
+
+要構建或修改路徑，請使用 PathBuf：
+
+```rust
+use std::path::PathBuf;
+
+// 這種方式有效...
+let mut path = PathBuf::from("c:\\");
+
+path.push("windows");
+path.push("system32");
+
+path.set_extension("dll");
+
+// ... 但是如果您不瞭解所有內容，則最好使用push。
+// 如果您這樣做，則這種方法更好：
+let path: PathBuf = ["c:\\", "windows", "system32.dll"].iter().collect();
 ```
