@@ -55,3 +55,5 @@
   * [狀態共享](thread-safe/state-sharing.md)
   * [crossbeam](thread-safe/crossbeam.md)
   * [rayon](thread-safe/rayon.md)
+* [FFI](ffi.md)
+* [線性規劃(linear programming)](xian-xing-gui-hua-linear-programming.md)
