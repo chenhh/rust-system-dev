@@ -2,20 +2,32 @@
 
 ## 簡介
 
-Rust標準庫中還提供了另外一種執行緒之間的通信方式:mpsc。存儲在`std::sync::mpsc`這個模組中。
+Rust標準庫中還提供了另外一種執行緒之間的通信方式:mpsc。存儲在[`std::sync::mpsc`](https://rustwiki.org/zh-CN/std/sync/mpsc/index.html)這個模組中。
 
 <mark style="background-color:blue;">mpsc代表的是Multi-producer，single consumer FIFO queue，即多生產者單消費者先進先出佇列(queue)</mark>。這種執行緒之間的通信方式是在不同執行緒之間建立一個通信“管道”（channel），一邊發送消息，一邊接收消息，完成資訊交流。
 
+該模塊通過通道提供基於訊息的通訊，具體定義為以下三種類型：
+
+* Sender
+* SyncSender
+* Receiver
+
+Sender 或 SyncSender 用於將資料發送到 Receiver。 兩個發送者都是可克隆的 (multi-producer)，因此許多執行緒可以同時發送到一個接收者 (single-consumer)。
+
+![channel模型](../.gitbook/assets/thread\_channel-min.PNG)
+
 ## 異步管道
 
-非同步管道是最常用的一種管道類型。它的特點是:發送端和接收端之間存在一個緩衝區，發送端發送資料的時候，是先將這個資料扔到緩衝區，再由接收端自己去取。因此，每次發送，立馬就返回了，發送端不用管資料什麼時候被接收端處理。
+非同步管道是最常用的一種管道類型。它的特點是:發送端和接收端之間存在一個緩衝區，發送端發送資料的時候，是先將這個資料扔到緩衝區，再由接收端自己去取。因此，每次發送，立刻就返回了，發送端不用管資料什麼時候被接收端處理。
 
 ```rust
 use std::sync::mpsc::channel;
+use std::sync::mpsc::{Sender, Receiver};
 use std::thread;
+
 fn main() {
     // 建立channel
-    let (tx, rx) = channel();
+    let (tx, rx): (Sender<i32>, Receiver<i32>) = channel();
     thread::spawn(move || {
         for i in 0..10 {
             tx.send(i).unwrap();
@@ -27,9 +39,11 @@ fn main() {
 }
 ```
 
-子執行緒中的發送者不斷迴圈調用send方法，發送資料。在主執行緒中，我們使用接收者不斷調用recv方法接收資料。我們可以注意到，channel（）是一個泛型函數，Sender和Receiver都是泛型類型，且一組發送者和接收者必定是同樣的類型參數，因此保證了發送和接收端都是同樣的類型。因為Rust中的類型推導功能的存在，使我們可以在調用channel的時候不指定具體類型參數，而通過後續的方法調用，推導出正確的類型參數。
+子執行緒中的發送者不斷迴圈調用`send`方法，發送資料。
 
-Sender和Receiver的泛型參數必須滿足T：Send約束。這個條件是顯而易見的：被發送的消息會從一個執行緒轉移到另外一個執行緒，這個約束是為了滿足執行緒安全。如果用戶指定的泛型參數沒有滿足條件，在編譯的時候會發生錯誤，提醒我們修復bug。
+在主執行緒中，我們使用接收者不斷調用`recv`方法接收資料。我們可以注意到，`channel()`是一個泛型函數，Sender和Receiver都是泛型類型，且一組發送者和接收者必定是同樣的類型參數，因此保證了發送和接收端都是同樣的類型。因為Rust中的類型推導功能的存在，使我們可以在調用channel的時候不指定具體類型參數，而通過後續的方法調用，推導出正確的類型參數。
+
+Sender和Receiver的泛型參數必須滿足`T：Send`約束。這個條件是顯而易見的：被發送的消息會從一個執行緒轉移到另外一個執行緒，這個約束是為了滿足執行緒安全。如果用戶指定的泛型參數沒有滿足條件，在編譯的時候會發生錯誤，提醒我們修復bug。
 
 發送者調用send方法，接收者調用recv方法，返回類型都是Result類型，用於錯誤處理，因為它們都有可能調用失敗。當發送者已經被銷毀的時候，接收者調用recv則會返回錯誤；同樣，當接收者已經銷毀的時候，發送者調用send也會返回錯誤。
 
@@ -56,11 +70,66 @@ fn main() {
 
 但在這個示例中，這些數字呈亂序排列，因為它們來自不同的執行緒，哪個先執行哪個後執行並不是確定的，取決於作業系統的調度。
 
+### 使用管道傳送struct
+
+```rust
+use std::sync::mpsc::channel;
+use std::thread;
+struct Block {
+    value: i32,
+}
+fn main() {
+    let (tx1, rx1) = channel::<Block>();
+    let (tx2, rx2) = channel::<Block>();
+    // receiver 1 => send 2
+    thread::spawn(move || {
+        let mut block = rx1.recv().unwrap();
+        println!("Input: {:?}", block.value); // 1
+        block.value += 1;
+        tx2.send(block).unwrap();
+    });
+    let input = Block { value: 1 };
+    // send 1 => receiver 1
+    tx1.send(input).unwrap();
+    // send 2 => receiver 2
+    let output = rx2.recv().unwrap();
+    println!("Output: {:?}", output.value); // 2
+}
+```
+
+### 使用管道傳送引用
+
+```rust
+use std::sync::mpsc;
+use std::thread;
+trait Message: Send {
+    fn print(&self);
+}
+struct Msg1 {
+    value: i32,
+}
+impl Message for Msg1 {
+    fn print(&self) {
+        println!("value: {:?}", self.value);
+    }
+}
+fn main() {
+    let (tx, rx) = mpsc::channel::<Box<dyn Message>>();
+    let handle = thread::spawn(move || {
+        let msg = rx.recv().unwrap();
+        msg.print();    // 1
+    });
+    let msg = Box::new(Msg1 { value: 1 });
+    tx.send(msg).unwrap();
+    handle.join().ok();
+}
+```
+
 ## 同步管道
 
-非同步管道內部有一個不限長度的緩衝區，可以一直往裡面填充資料，直至記憶體資源耗盡。非同步管道的發送端調用send方法不會發生阻塞，只要把消息加入到緩衝區，它就馬上返回。
+<mark style="color:red;">非同步管道內部有一個不限長度的緩衝區，可以一直往裡面填充資料，直至記憶體資源耗盡。</mark>非同步管道的發送端調用send方法不會發生阻塞，只要把消息加入到緩衝區，它就馬上返回。
 
-同步管道的特點是：其內部有一個固定大小的緩衝區，用來緩存消息。如果緩衝區被填滿了，繼續調用send方法的時候會發生阻塞，等待接收端把緩衝區內的消息拿走才能繼續發送。緩衝區的長度可以在建立管道的時候設置，而且0是有效數值。如果緩衝區的長度設置為0，那就意味著每次的發送操作都會進入等候狀態，直到這個消息被接收端取走才能返回。
+<mark style="color:red;">同步管道的特點是：其內部有一個固定大小的緩衝區，用來緩存消息。如果緩衝區被填滿了，繼續調用send方法的時候會發生阻塞，等待接收端把緩衝區內的消息拿走才能繼續發送。</mark>緩衝區的長度可以在建立管道的時候設置，而且0是有效數值。如果緩衝區的長度設置為0，那就意味著每次的發送操作都會進入等候狀態，直到這個消息被接收端取走才能返回。
 
 ```rust
 use std::sync::mpsc::sync_channel;

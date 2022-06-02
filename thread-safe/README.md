@@ -78,7 +78,7 @@ fn main() {
     // 12, 值並未改變
     // ？因為health是Copy類型，在遇到move型閉包的時候，
     // 閉包內的health實際上是一份新的複製，外面的變數並沒有被真正修改。
-    println!("{}", health); 
+    println!("{}", health);  // 12
 }
 ```
 
@@ -105,8 +105,6 @@ fn main() {
 
 ## Send, Sync trait簡介
 
-
-
 Rust執行緒安全背後的功臣是兩個特殊的trait。
 
 * [std::marker::Sync](https://doc.rust-lang.org/std/marker/trait.Sync.html)：如果類型`T`實現了`Sync`類型，那說明在不同的執行緒中使用`&T`訪問同一個變數是安全的。
@@ -131,9 +129,9 @@ where F: FnOnce() -> T, F: Send + 'static, T: Send + 'static
 
 <mark style="background-color:red;">**如果一個類型可以安全地從一個執行緒move進入另一個執行緒，那它就是Send類型**</mark>。比如：普通的數字類型是`Send`，因為我們把數字move進入另一個執行緒之後，兩個執行緒同時執行也不會造成什麼安全問題。
 
-更進一步，<mark style="color:red;background-color:red;">**內部不包含引用的類型，都是Send**</mark>**。**因為這樣的類型跟外界沒有什麼關聯，當它被move進入另一個執行緒之後，它所有的部分都跟原來的執行緒沒什麼關係了，不會出現併發訪問的情況。比如String類型。
+更進一步，<mark style="color:red;background-color:red;">**內部不包含引用的類型，都是Send**</mark>\*\*。\*\*因為這樣的類型跟外界沒有什麼關聯，當它被move進入另一個執行緒之後，它所有的部分都跟原來的執行緒沒什麼關係了，不會出現併發訪問的情況。比如String類型。
 
-<mark style="background-color:red;">**具有泛型參數的類型，是否滿足Send大多是取決於參數類型是否滿足Send**</mark>**。**比如`Vec<T>`，只要我們能保證`T：Send`，那麼`Vec<T>`肯定也是`Send`，把它move進入其他執行緒是沒什麼問題的。再比如`Cell<T>`、`RefCell<T>`、`Option<T>`、`Box<T>`，也都是這種情況。
+<mark style="background-color:red;">**具有泛型參數的類型，是否滿足Send大多是取決於參數類型是否滿足Send**</mark>\*\*。\*\*比如`Vec<T>`，只要我們能保證`T：Send`，那麼`Vec<T>`肯定也是`Send`，把它move進入其他執行緒是沒什麼問題的。再比如`Cell<T>`、`RefCell<T>`、`Option<T>`、`Box<T>`，也都是這種情況。
 
 還有一些類型，不論泛型參數是否滿足Send，都是滿足Send的。<mark style="color:red;">這種類型，可以看作一種“構造器”，把不滿足Send條件的類型用它包起來，就變成了滿足Send條件的類型</mark>。比如`Mutex<T>`就是這種。`Mutex<T>`這個類型實際上不關心它內部類型是怎樣的，反正要訪問內部資料，一定要調用`lock()`方法上鎖，它的所有權在哪個執行緒中並不重要，所以把它move到其他執行緒也是沒有問題的。
 
@@ -143,7 +141,7 @@ where F: FnOnce() -> T, F: Send + 'static, T: Send + 'static
 
 ## sync trait
 
-<mark style="color:red;">Sync的定義是，如果類型</mark><mark style="color:red;">`T`</mark><mark style="color:red;">實現了</mark><mark style="color:red;">`Sync`</mark> <mark style="color:red;"></mark><mark style="color:red;">trait，那說明在不同的執行緒中使用</mark><mark style="color:red;">`&T`</mark><mark style="color:red;">（唯讀）訪問同一個變數是安全的</mark>。
+<mark style="color:red;">Sync的定義是，如果類型</mark><mark style="color:red;">`T`</mark><mark style="color:red;">實現了</mark><mark style="color:red;">`Sync`</mark> <mark style="color:red;">trait，那說明在不同的執行緒中使用</mark><mark style="color:red;">`&T`</mark><mark style="color:red;">（唯讀）訪問同一個變數是安全的</mark>。
 
 顯然，基本數字類型肯定是`Sync`。假如不同執行緒都擁有指向同一個`i32`類型的唯讀引用`&i32`，這是沒什麼問題的。因為這個類型引用只能讀，不能寫。多個執行緒讀同一個整數是安全的。
 

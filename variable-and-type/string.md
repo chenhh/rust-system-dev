@@ -6,7 +6,7 @@ Rust的字串有點複雜，主要是跟所有權有關。Rust的字串涉及兩
 
 * Rust 中只有一種字串原生類型：`str`，而字串切片，它通常以被借用的形式出現，`&str`，因為是唯讀借用，所以**沒有所有權且不可變**。
 * 稱作 String 的類型是由標准庫提供的，而沒有寫進核心語言部分，它是可增長的、可變的、**有所有權**的UTF-8 編碼的字串類型，String 是一個 `Vec<u8>` 的封裝。
-* <mark style="color:red;">當 Rustacean 們談到 Rust 的 “字串”時，它們通常指的是</mark> <mark style="color:red;"></mark><mark style="color:red;">`String`</mark> <mark style="color:red;"></mark><mark style="color:red;">和字串</mark> <mark style="color:red;"></mark><mark style="color:red;">`slice &str`</mark> <mark style="color:red;"></mark><mark style="color:red;">類型，而不僅僅是其中之一</mark>。<mark style="background-color:red;">String 和字串 slice 都是 UTF-8 編碼的</mark>。
+* <mark style="color:red;">當 Rustacean 們談到 Rust 的 “字串”時，它們通常指的是</mark> <mark style="color:red;">`String`</mark> <mark style="color:red;">和字串</mark> <mark style="color:red;">`slice &str`</mark> <mark style="color:red;">類型，而不僅僅是其中之一</mark>。<mark style="background-color:red;">String 和字串 slice 都是 UTF-8 編碼的</mark>。
 * 如果用C++來對比，Rust的String類型類似於`std::string`，而Rust的\&str類型類似於`std::string_view`。
 
 但是一般地，保守來講，如果我們正在構建的API不需要擁有或者修改使用的文字，那麼應該使用\&str而不是String。
@@ -118,6 +118,10 @@ String類型，這個型別管理被分配到**堆積**上的資料，所以能�
 
 ### 新建字串
 
+* 使用`String::new()`創建一個空的字串。&#x20;
+* 使用`String::from("...")`創建一個字串。&#x20;
+* 在實現了Display特性的物件上調用`to_string`方法得到一個字串。
+
 ```rust
 fn main(){
     // 直接新建字串, new()沒有參數傳入
@@ -216,7 +220,7 @@ fn main(){
 
 ### 自動解引用
 
-String類型實現了`Deref<Target=str>`的trait。所以在很多情況下，\&String類型可以被編譯器自動轉換為\&str類型。
+String類型實現了`Deref<Target=str>`的trait。所以在很多情況下，`&String`類型可以被編譯器自動轉換為`&str`類型。
 
 ```rust
 fn capitalize(substr: &mut str) {
@@ -342,9 +346,7 @@ fn main() {
 
 hello 是一個部分字串的引用，由一個額外的`[0..5]`部分指定。可以使用一個由中括號中的 \[starting\_index..ending\_index] 指定的 range 創建一個切片。
 
-
-
-![hello world slice](../../.gitbook/assets/hello\_world\_slice-min.png)
+![hello world slice](../.gitbook/assets/hello\_world\_slice-min.png)
 
 ## String，＆str，Vec 和＆\[u8]的慣用轉換
 

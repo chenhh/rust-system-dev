@@ -111,6 +111,53 @@ thread::Builder::new().name("thread1".to_string()).spawn(move || {
 });
 ```
 
+## 取得cpu的數量
+
+```rust
+extern crate num_cpus;
+fn main() {
+    let ncpus = num_cpus::get();
+    println!("The number of cpus in this machine is: {}", ncpus);
+}
+```
+
+## threadpool
+
+```rust
+extern crate num_cpus;
+extern crate threadpool;
+
+use std::thread;
+use std::time;
+use threadpool::ThreadPool;
+fn main() {
+    let ncpus = num_cpus::get();
+    let pool = ThreadPool::new(ncpus);
+    for i in 0..ncpus * 5 {
+        pool.execute(move || println!("this is thread number {}", i));
+    }
+    thread::sleep(time::Duration::from_millis(50));
+    println!("finish of main function");
+}
+```
+
+## 執行緒panic
+
+當其中一個生成的執行緒陷入恐慌時會發生什麼？沒問題，這些 執行緒之間是相互隔離的，只有恐慌的執行緒在釋放其資源後才會崩潰。釋放其資源後崩潰；父執行緒不受影響。
+
+```rust
+use std::thread;
+fn main() {
+    let result = thread::spawn(move || {
+        panic!("I have fallen into an unrecoverable trap!");
+    })
+    .join();
+    if let Err(why) = result {
+        println!("This child has panicked");
+    }
+}
+```
+
 ## 應用：map-reduce
 
 ```rust

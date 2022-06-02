@@ -6,6 +6,11 @@
 
 <mark style="background-color:blue;">**解引用是通過引用找到記憶體塊真正的主人(引用存放的記憶體地位，取引用是將此記憶體地位之值取出)**</mark>，然後你可以跟主人借一些不同型別的引用，比如從`&mut T`借成`Pin<&mut T>`。
 
+* 因為rust有自動deref機制，所以從`&T`到`T`的轉換一定只有deref這一種方式。
+* 但是如果在一個需要`&T`的場合傳入一個`T`，邏輯上你有可能想要把這個`T`通過某種方式轉換到`&T`，而不是傳入對這個`T`的借用，所以這裡是不能自動的。
+* 例如：如果函數需要`&st`r類型的參數，你給它一個`&&str`，編譯器會把自動把它解引用，變成`&str`。
+* 反過來，如果函數要一個`&&str`，你給它一個`&str`，編譯器解一次引用，結果是`str`，這不能再解引用了，因此編譯失敗。
+
 這個主人可能被包了很多層，當你以為你找了主人，其實它只是個皮，所以會存在不斷解引用的情況，你可能需要加很多個`*`符號，當然很多個`*`符號不符合設計美感。
 
 <mark style="background-color:red;">**Rust語法規定，同一塊記憶體只能有一個可變引用，或者有多個不可變引用（共享不可變，可變不共享**</mark>**）**。 **Rust之所以這麼規定，一個非常大的優點是避免了記憶體被多處修改的潛在隱患，避免了資源的複雜環境競爭，降低了程式的除錯難度(註：同時解決了多執行緒的同步問題)**。
@@ -48,7 +53,7 @@ fn main() {
 
 ## 自動解引用和手動解引用
 
-* <mark style="color:red;">自動解引用</mark>：Rust為了減少某些場合下重複解引用導致的程式碼美觀問題，在編譯期做了一些智慧識別功能，比如帶有`&T`引數的函式被呼叫的時候，你傳`&&&......&&&T`都可以自動解引用，直到符合函式的引數型別為止。
+* <mark style="color:red;">自動解引用</mark>：Rust為了減少某些場合下重複解引用導致的程式碼美觀問題，在編譯期做了一些智慧識別功能，比如帶有`&T`引數的函式被呼叫的時候，你傳`&&&......&&&T`都可以自動解引用，直到符合函式的引數型別為止(註：解引用簡單的說就是&&\&T->&\&T->\&T->T每一層都少一個&後，檢查看看有沒有符合程式需要的條件)。
 * <mark style="color:red;">手動解引用</mark>，就是和其他語言類似，<mark style="background-color:orange;">借用是</mark><mark style="background-color:orange;">`&`</mark><mark style="background-color:orange;">操作符，解引用是</mark><mark style="background-color:orange;">`*`</mark><mark style="background-color:orange;">操作符</mark>。
 
 我們也可以通過自行實現`Deref`這個Trait來自定義解引用的最終目標是什麼，而恰恰這個也是Rust語言最難的地方，你得瞭解每個型別是否實現了Deref，而Rust型別實在是太多了，連\&T借用也算一個新的型別，\&T是不能繼承T的所有特性的。
@@ -62,6 +67,26 @@ fn main() {
     let m = Box::new(String::from("Rust"));
     // 自動轉換由&Box(String) -> &String -> &str
     hello(&m);
+}
+```
+
+```rust
+fn print_arr(arr: &[i32]){
+    println!("{:?}", arr);
+} 
+
+fn main() {
+    let a = vec![1,2,3,4];
+    print_arr(&&&&&&&a); // 自動解引用至&[i32]
+}
+
+fn print_arr(arr: &[&str]){
+    println!("{:?}", arr);
+} 
+
+fn main() {
+    let a = vec!["hello","world","to","you"];
+    print_arr(&&&&a);
 }
 ```
 
