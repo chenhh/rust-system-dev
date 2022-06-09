@@ -1,3 +1,7 @@
+---
+description: 線程
+---
+
 # 執行緒
 
 [Module std::thread](https://doc.rust-lang.org/std/thread/) ([中文](https://rustwiki.org/zh-CN/std/thread/index.html))
@@ -10,7 +14,11 @@
 
 ## 建立執行緒
 
-可以使用[ thread::spawn](https://doc.rust-lang.org/std/thread/fn.spawn.html) 函數來生成一個新執行緒，傳回[JoinHandle\<T>](https://doc.rust-lang.org/std/thread/struct.JoinHandle.html)。
+可以使用[ thread::spawn](https://doc.rust-lang.org/std/thread/fn.spawn.html) 函數來生成一個新執行緒，傳回[JoinHandle\<T>](https://doc.rust-lang.org/std/thread/struct.JoinHandle.html)，有三個方法：
+
+1. [pub fn is\_finished(\&self) -> bool](https://doc.rust-lang.org/std/thread/struct.JoinHandle.html#method.is\_finished)：joinhandle 對應的執行緒是否已經完成。
+2. [pub fn join(self) -> Result](https://doc.rust-lang.org/std/thread/struct.JoinHandle.html#method.join)：等待執行緒工作完成，當執行緒異常時會傳回Err。
+3. [pub fn thread(\&self) -> \&Thread](https://doc.rust-lang.org/std/thread/struct.JoinHandle.html#method.thread)：傳回joinhandle對應的執行緒物件。
 
 `join` 方法返回一個 `thread::Result<T,E>`，其中包含由新建執行緒生成的最終值的 `Ok`，或者如果執行緒 `panicked`，則返回給 `panic!` 的調用值的 `Err`。
 
