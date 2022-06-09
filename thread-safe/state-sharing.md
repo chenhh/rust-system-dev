@@ -20,6 +20,8 @@ Rust的這套執行緒安全設計有以下好處：
 
 我們可以觀察到一個有趣的現象：Rust語言實際上並不知曉“執行緒”這個概念，相關類型都是寫在標準庫中的，與其他類型並無二致。<mark style="background-color:orange;">**Rust語言提供的僅僅只是Sync、Send這樣的一般性概念，以及生命週期分析、“borrow check”分析這樣的機制。Rust編譯器本身並未與“執行緒安全”“資料競爭”等概念深度綁定，也不需要一個runtime來輔助完成功能**</mark>。然而，通過這些基本概念和機制，它卻實現了完全通過編譯階段靜態檢查實現“免除資料競爭”這樣的目標。
 
+在 Rust 中有多種方式可以實現同步性。訊息傳遞(管道)就是同步性的一種實現方式，例如我們可以通過管道來控制不同執行緒間的執行次序。還可以使用共享記憶體來實現同步性，例如通過鎖和原子操作等並發原語來實現多個執行緒同時且安全地去訪問一個資源。
+
 ## Arc
 
 Arc是Rc的執行緒安全版本。它的全稱是“Atomic reference counter”。注意第一個單詞代表的是atomic而不是automatic。它強調的是“原子性”。它跟Rc最大的區別在於，引用計數用的是原子整數類型，即在同一時間內，資料只能被一個執行緒存取。
@@ -29,21 +31,41 @@ use std::sync::Arc;
 use std::thread;
 fn main() {
     // 由編譯器決定Vec中的類型T
-    let numbers: Vec<_> = (0..100u32).collect();
+    let numbers: Vec<_> = (0..5u32).collect();
     // 引用計數指標,指向一個 Vec
     let shared_numbers = Arc::new(numbers);
+    let mut pool = Vec::new();
     // 迴圈創建 10 個執行緒
-    for _ in 0..10 {
+    for idx in 0..10 {
         // 複製引用計數指標,所有的 Arc 都指向同一個 Vec
         let child_numbers = shared_numbers.clone();
         // move修飾閉包,上面這個 Arc 指標被 move 進入了新執行緒中
-        thread::spawn(move || {
+        let handle = thread::spawn(move || {
             // 我們可以在新執行緒中使用 Arc,讀取共用的那個 Vec
-            let local_numbers = &child_numbers[..];
+            let local_numbers = &child_numbers;
+            println!("thread {idx}: vec: {:?}", local_numbers);
             // 繼續使用 Vec 中的資料
         });
+        pool.push(handle);
+    }
+    
+    for t in pool{
+        t.join().expect("err");
     }
 }
+
+/*
+thread 7: vec: [0, 1, 2, 3, 4]
+thread 3: vec: [0, 1, 2, 3, 4]
+thread 8: vec: [0, 1, 2, 3, 4]
+thread 9: vec: [0, 1, 2, 3, 4]
+thread 6: vec: [0, 1, 2, 3, 4]
+thread 5: vec: [0, 1, 2, 3, 4]
+thread 4: vec: [0, 1, 2, 3, 4]
+thread 2: vec: [0, 1, 2, 3, 4]
+thread 1: vec: [0, 1, 2, 3, 4]
+thread 0: vec: [0, 1, 2, 3, 4]
+*/
 ```
 
 如果不小心把Rc用在了多執行緒環境，直接是編譯錯誤，根本不會引發多執行緒同步的問題。如果不小心把Arc用在了單執行緒環境也沒什麼問題，不會有bug出現，只是引用計數增加或減少的時候效率稍微有一點降低。
