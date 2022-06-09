@@ -58,6 +58,7 @@
   * [狀態共享atomic](thread-safe/zhuang-tai-gong-xiang-atomic.md)
   * [狀態共享Barrier](thread-safe/zhuang-tai-gong-xiang-barrier.md)
   * [狀態共享condvar](thread-safe/zhuang-tai-gong-xiang-condvar.md)
+  * [狀態共享：Semaphore](thread-safe/zhuang-tai-gong-xiang-semaphore.md)
   * [死結-哲學家問題](thread-safe/si-jie-zhe-xue-jia-wen-ti.md)
   * [crossbeam](thread-safe/crossbeam.md)
   * [rayon](thread-safe/rayon.md)
