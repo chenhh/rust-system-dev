@@ -12,6 +12,21 @@ description: 線程
 
 執行緒之間的通訊可以通過通道、Rust 的訊息傳遞類型、以及 其他形式的執行緒同步和共享記憶體資料結構來完成。 特別是，可以使用原子引用計數容器 Arc 在執行緒之間輕松共享保證執行緒安全的類型。
 
+### 模組中的方法
+
+* [pub fn available\_parallelism() -> Result\<NonZeroSize>](https://doc.rust-lang.org/std/thread/fn.available\_parallelism.html)：返回一個程式應該使用的預設並行量的估計值。
+* [pub fn current() -> Thread](https://doc.rust-lang.org/std/thread/fn.current.html)：得到目前執行緒的handle。
+* [pub fn panicking() -> bool](https://doc.rust-lang.org/std/thread/fn.panicking.html)：判斷當前執行緒是否因為panic而unwinding。
+* [pub fn park()](https://doc.rust-lang.org/std/thread/fn.park.html)阻塞，除非或直到當前執行緒的令牌被提供。對park的呼叫並不保證執行緒會永遠停在那裡，呼叫者應該為這種可能性做好準備。
+* [pub fn park\_timeout(dur: Duration)](https://doc.rust-lang.org/std/thread/fn.park\_timeout.html)。
+* [pub fn sleep(dur: Duration)](https://doc.rust-lang.org/std/thread/fn.sleep.html)。
+* [pub fn spawn\<F, T>(f: F) -> JoinHandle](https://doc.rust-lang.org/std/thread/fn.spawn.html)。
+* [pub fn yield\_now()](https://doc.rust-lang.org/std/thread/fn.yield\_now.html)：合作放棄時間片給 OS 調度程式。這會調用底層操作系統調度程式的 yield 原語，表示調用線程願意放棄其剩餘的時間片，以便操作系統可以在 CPU 上調度其他線程。
+
+
+
+
+
 ## 建立執行緒
 
 可以使用[ thread::spawn](https://doc.rust-lang.org/std/thread/fn.spawn.html) 函數來生成一個新執行緒，傳回[JoinHandle\<T>](https://doc.rust-lang.org/std/thread/struct.JoinHandle.html)，有三個方法：
