@@ -52,7 +52,7 @@
 * [執行緒安全](thread-safe/README.md)
   * [執行緒](thread-safe/zhi-hang-xu.md)
   * [管道(channel)](thread-safe/channel.md)
-  * [狀態共享](thread-safe/state-sharing.md)
+  * [狀態共享(Arc, Mutex)](thread-safe/state-sharing.md)
   * [crossbeam](thread-safe/crossbeam.md)
   * [rayon](thread-safe/rayon.md)
 * [FFI](ffi.md)
