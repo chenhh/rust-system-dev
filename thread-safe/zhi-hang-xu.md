@@ -139,9 +139,17 @@ fn main() {
 ```rust
 use std::thread;
 
-thread::Builder::new().name("thread1".to_string()).spawn(move || {
-    println!("Hello, world!");
-});
+fn main() {
+    let handle = thread::Builder::new()
+        .name("my thread".to_string())
+        .stack_size(4 * 1024 * 1024)
+        .spawn(move || {
+            println!("Hello, world!");
+        }).unwrap();
+
+    handle.join();
+    println!("main thread complete");
+}
 ```
 
 ## 取得cpu的數量
