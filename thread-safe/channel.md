@@ -153,6 +153,40 @@ fn main() {
 }
 ```
 
+### 傳輸多種類型的資料
+
+如果你想要傳輸多種類型的數據，可以為每個類型創建一個通道，你也可以使用枚舉類型來實現。
+
+枚舉類型還能讓我們帶上想要傳輸的資料，但是有一點需要注意，Rust 會按照枚舉中佔用記憶體最大的那個成員進行記憶體對齊，這意味著就算你傳輸的是枚舉中佔用記憶體最小的成員，它佔用的記憶體依然和最大的成員相同, 因此會造成記憶體上的浪費。
+
+```rust
+use std::sync::mpsc::{self, Receiver, Sender};
+
+enum Fruit {
+    Apple(u8),
+    Orange(String),
+}
+
+fn main() {
+    let (tx, rx): (Sender<Fruit>, Receiver<Fruit>) = mpsc::channel();
+
+    tx.send(Fruit::Orange("sweet".to_string())).unwrap();
+    tx.send(Fruit::Apple(2)).unwrap();
+
+    for _ in 0..2 {
+        match rx.recv().unwrap() {
+            Fruit::Apple(count) => println!("received {} apples", count),
+            Fruit::Orange(flavor) => println!("received {} oranges", flavor),
+        }
+    }
+}
+
+/*
+received sweet oranges
+received 2 apples
+*/
+```
+
 ## 同步管道
 
 <mark style="color:red;">非同步管道內部有一個不限長度的緩衝區，可以一直往裡面填充資料，直至記憶體資源耗盡。</mark>非同步管道的發送端調用send方法不會發生阻塞，只要把消息加入到緩衝區，它就馬上返回。
