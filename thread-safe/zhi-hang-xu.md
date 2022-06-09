@@ -137,6 +137,16 @@ fn main() {
 ## 通過 Builder 類型在執行緒生成之前進行配置
 
 ```rust
+pub fn spawn<F, T>(self, f: F) -> Result<JoinHandle<T>>
+where
+    F: FnOnce() -> T,
+    F: Send + 'static,
+    T: Send + 'static, 
+```
+
+以`Builder::new()`，可設定名稱與堆疊的空間使用量，之後再`spawn`後的執行緒，傳回的結果是包含在Result中的。
+
+```rust
 use std::thread;
 
 fn main() {
@@ -179,6 +189,42 @@ fn main() {
     }
     thread::sleep(time::Duration::from_millis(50));
     println!("finish of main function");
+}
+```
+
+## thread local變數
+
+對於多執行緒編程，執行緒區域性變量在一些場景下非常有用，而 Rust 通過標准庫和三方庫對此進行了支援。
+
+使用標準庫的`thread_local` 巨集可以初始化執行緒區域性變量，然後在執行緒內部使用該變量的 `with` 方法獲取變量值：
+
+```rust
+use std::cell::RefCell;
+use std::thread;
+
+fn main() {
+    thread_local!(static FOO: RefCell<u32> = RefCell::new(1));
+
+    FOO.with(|f| {
+        assert_eq!(*f.borrow(), 1);
+        *f.borrow_mut() = 2;
+    });
+
+    // 每個執行緒開始時都會拿到執行緒區域性變量的FOO的初始值
+    let t = thread::spawn(move || {
+        FOO.with(|f| {
+            assert_eq!(*f.borrow(), 1);
+            *f.borrow_mut() = 3;
+        });
+    });
+
+    // 等待執行緒完成
+    t.join().unwrap();
+
+    // 盡管子執行緒中修改為了3，我們在這裡依然擁有main執行緒中的區域性值：2
+    FOO.with(|f| {
+        assert_eq!(*f.borrow(), 2);
+    });
 }
 ```
 

@@ -14,28 +14,42 @@ Rust標準庫中還提供了另外一種執行緒之間的通信方式:mpsc。�
 
 Sender 或 SyncSender 用於將資料發送到 Receiver。 兩個發送者都是可克隆的 (multi-producer)，因此許多執行緒可以同時發送到一個接收者 (single-consumer)。
 
+這些通道有兩種類型：
+
+* <mark style="color:red;">異步，無限緩沖的通道</mark>。 channel 函數將返回 (Sender, Receiver) 元組，其中所有發送都是異步的 (它們從不阻塞)。 通道在概念上具有無限的緩沖區。
+* <mark style="color:red;">同步的有界通道</mark>。 sync\_channel 函數將返回 (SyncSender, Receiver) 元組，其中待處理訊息的存儲是固定大小的預分配緩沖區。 所有的發送都將被阻塞，直到有可用的緩沖區空間。 請注意，允許的界限為 0，從而使通道成為 “rendezvous” 通道，每個發送者在該通道上原子地將訊息傳遞給接收者。
+
 ![channel模型](../.gitbook/assets/thread\_channel-min.PNG)
 
 ## 異步管道
 
-非同步管道是最常用的一種管道類型。它的特點是:發送端和接收端之間存在一個緩衝區，發送端發送資料的時候，是先將這個資料扔到緩衝區，再由接收端自己去取。因此，每次發送，立刻就返回了，發送端不用管資料什麼時候被接收端處理。
+非同步管道是最常用的一種管道類型。<mark style="color:red;">它的特點是:發送端和接收端之間存在一個緩衝區，發送端發送資料的時候，是先將這個資料扔到緩衝區，再由接收端自己去取。</mark>因此，每次發送，立刻就返回了，發送端不用管資料什麼時候被接收端處理。
 
 ```rust
 use std::sync::mpsc::channel;
 use std::sync::mpsc::{Sender, Receiver};
 use std::thread;
+use std::time;
 
 fn main() {
-    // 建立channel
-    let (tx, rx): (Sender<i32>, Receiver<i32>) = channel();
-    thread::spawn(move || {
+    // 建立channel, 發送與接受端必須為同類型，但可由編譯器推論決定
+    // 有多種類型需要傳送時，可建立多個channel
+    let (tx, rx): (Sender<_>, Receiver<_>) = channel();
+    
+    let interval = time::Duration::from_millis(20);
+    
+    // tx已經move給thread，無法再被使用
+    let handle = thread::spawn(move || {
         for i in 0..10 {
             tx.send(i).unwrap();
+            thread::sleep(interval);
         }
     });
+
     while let Ok(r) = rx.recv() {
         println!("received {}", r);
     }
+    handle.join();
 }
 ```
 
@@ -43,7 +57,7 @@ fn main() {
 
 在主執行緒中，我們使用接收者不斷調用`recv`方法接收資料。我們可以注意到，`channel()`是一個泛型函數，Sender和Receiver都是泛型類型，且一組發送者和接收者必定是同樣的類型參數，因此保證了發送和接收端都是同樣的類型。因為Rust中的類型推導功能的存在，使我們可以在調用channel的時候不指定具體類型參數，而通過後續的方法調用，推導出正確的類型參數。
 
-Sender和Receiver的泛型參數必須滿足`T：Send`約束。這個條件是顯而易見的：被發送的消息會從一個執行緒轉移到另外一個執行緒，這個約束是為了滿足執行緒安全。如果用戶指定的泛型參數沒有滿足條件，在編譯的時候會發生錯誤，提醒我們修復bug。
+Sender和Receiver的泛型參數必須滿足`T：Send`約束。這個條件是顯而易見的：<mark style="color:red;">被發送的消息會從一個執行緒轉移到另外一個執行緒，這個約束是為了滿足執行緒安全。</mark>如果用戶指定的泛型參數沒有滿足條件，在編譯的時候會發生錯誤，提醒我們修復bug。
 
 發送者調用send方法，接收者調用recv方法，返回類型都是Result類型，用於錯誤處理，因為它們都有可能調用失敗。當發送者已經被銷毀的時候，接收者調用recv則會返回錯誤；同樣，當接收者已經銷毀的時候，發送者調用send也會返回錯誤。
 
@@ -54,18 +68,32 @@ use std::sync::mpsc::channel;
 use std::thread;
 fn main() {
     let (tx, rx) = channel();
-    for i in 0..10 {
+    for _ in 0..2 {
         // 複製一個新的 tx,將這個複製的變數 move 進入子執行緒
         let tx = tx.clone();
         thread::spawn(move || {
-            tx.send(i).unwrap();
+            for i in 0..5 {
+                tx.send(i).unwrap();
+            }
         });
     }
-    drop(tx);
+    // drop(tx);
     while let Ok(r) = rx.recv() {
         println!("received {}", r);
     }
 }
+/*
+received 0
+received 1
+received 2
+received 3
+received 4
+received 0
+received 1
+received 2
+received 3
+received 4
+*/
 ```
 
 但在這個示例中，這些數字呈亂序排列，因為它們來自不同的執行緒，哪個先執行哪個後執行並不是確定的，取決於作業系統的調度。
