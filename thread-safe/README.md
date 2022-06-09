@@ -60,7 +60,7 @@ child thread finished
 */
 ```
 
-## 避免資料競爭
+## 避免資料競爭(race condition)
 
 ```rust
 use std::thread;
