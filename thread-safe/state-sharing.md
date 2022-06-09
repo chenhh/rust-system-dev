@@ -72,7 +72,19 @@ thread 0: vec: [0, 1, 2, 3, 4]
 
 ## mutex
 
-單純的mutex無法在執行緒之間共享，因此必須在外層再包一個Arc提供多執行緒之間共享的方法。
+```rust
+#[stable(feature = "rust1", since = "1.0.0")]
+#[cfg_attr(not(test), rustc_diagnostic_item = "Mutex")]
+pub struct Mutex<T: ?Sized> {
+    inner: sys::MovableMutex,
+    poison: poison::Flag,
+    data: UnsafeCell<T>,
+}u
+```
+
+單純的互斥鎖(mutex)無法在執行緒之間共享，因此必須在外層再包一個Arc提供多執行緒之間共享的方法。
+
+此互斥鎖將阻止等待鎖可用的執行緒。互斥鎖也可以通過 new 構造函數進行靜態初始化或創建。 每個互斥鎖都有一個類型參數，表示它正在保護的數據。 只能通過從 lock 和 try\_lock 返回的 RAII 保護來訪問數據，這保證了只有在互斥鎖被鎖定時才可以訪問數據。
 
 根據Rust的“共用不可變，可變不共用”原則，Arc既然提供了共用引用，就一定不能提供可變性。所以，Arc也是唯讀的，它對外API和Rc是一致的。如果我們要修改怎麼辦？<mark style="color:red;">同樣需要“內部可變性”。這種時候，我們需要用執行緒安全版本的“內部可變性”，如Mutex和RwLock</mark>。
 
@@ -107,28 +119,40 @@ fn main() {
 }
 ```
 
-如果當前Mutex已經是“有毒”（Poison）的狀態，它返回的就是錯誤。什麼情況會導致Mutex有毒呢？當Mutex在鎖住的同時發生了panic，就會將這個Mutex置為“有毒”的狀態，以後再調用lock（）都會失敗。這個設計是為了panic safety而考慮的，主要就是考慮到在鎖住的時候發生panic可能導致Mutex內部資料發生混亂。所以這個設計防止再次進入Mutex內部的時候訪問了被破壞掉的資料內容。如果有需要的話，使用者依然可以手動調用PoisonError::into\_inner（）方法獲得內部資料。
+### Poisoning
+
+此模組中的互斥鎖實現了一種稱為 “poisoning” 的策略，只要執行緒 panics 按住互斥鎖，互斥鎖就會被視為中毒。 一旦互斥鎖中毒，預設情況下，所有其他執行緒都無法訪問資料，因為它很可能已被污染 (某些不變性未得到維護)。
+
+但是，中毒的互斥鎖不會阻止對底層數據的所有訪問。 PoisonError 類型具有 into\_inner 方法，該方法將返回保護，否則將在成功鎖定後返回該保護。 盡管鎖被中毒，這仍允許訪問數據。
+
+如果當前Mutex已經是“有毒”（Poison）的狀態，它返回的就是錯誤。
+
+什麼情況會導致Mutex有毒呢？當Mutex在鎖住的同時發生了panic，就會將這個Mutex置為“有毒”的狀態，以後再調用lock()都會失敗。這個設計是為了panic safety而考慮的，主要就是考慮到在鎖住的時候發生panic可能導致Mutex內部資料發生混亂。所以這個設計防止再次進入Mutex內部的時候訪問了被破壞掉的資料內容。如果有需要的話，使用者依然可以手動調用PoisonError::into\_inner（）方法獲得內部資料。
 
 ```rust
 use std::sync::{Arc, Mutex};
 use std::thread;
 
 fn main() {
-    let mut health = 12;
-    let data = Arc::new(Mutex::new(health));
-    for _ in 2..5 {
-        let mutex = data.clone();
-        thread::spawn(move || {
-            let mut health = mutex.lock().unwrap();
-            *health *= 2;
-        })
-        .join()
-        .unwrap();
-    }
-    health = *data.lock().unwrap();
-    println!("health: {health}"); // 96
-}
+    let lock = Arc::new(Mutex::new(0_u32));
+    let lock2 = Arc::clone(&lock);
 
+    let _ = thread::spawn(move || -> () {
+        // 該執行緒將首先獲取互斥鎖，因為該鎖尚未中毒，所以將解開 `lock` 的結果。
+        let _guard = lock2.lock().unwrap();
+
+        // 持有鎖時的這種 panic (`_guard` 在作用域內) 將使互斥鎖中毒。
+        panic!();
+    })
+    .join();
+
+    // 到此為止，鎖定都會中毒，但是可以對返回的結果進行模式匹配，以返回兩個分支上的底層防護。
+    let mut guard = match lock.lock() {
+        Ok(guard) => guard,
+        Err(poisoned) => poisoned.into_inner(),
+    };
+    *guard += 1;
+}
 ```
 
 
