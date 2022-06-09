@@ -10,9 +10,9 @@
 
 ## 建立執行緒
 
-可以使用 thread::spawn 函數來生成一個新執行緒。
+可以使用[ thread::spawn](https://doc.rust-lang.org/std/thread/fn.spawn.html) 函數來生成一個新執行緒，傳回[JoinHandle\<T>](https://doc.rust-lang.org/std/thread/struct.JoinHandle.html)。
 
-`join` 方法返回一個 `thread::Result`，其中包含由新建執行緒生成的最終值的 `Ok`，或者如果執行緒 `panicked`，則返回給 `panic!` 的調用值的 `Err`。
+`join` 方法返回一個 `thread::Result<T,E>`，其中包含由新建執行緒生成的最終值的 `Ok`，或者如果執行緒 `panicked`，則返回給 `panic!` 的調用值的 `Err`。
 
 <mark style="background-color:red;">請注意，生成新執行緒的執行緒與生成的執行緒之間沒有 parent/child 關係。特別是，除非生成執行緒是主執行緒，否則新建執行緒可能會也可能不會比生成執行緒的生命週期長</mark>。
 
