@@ -13,12 +13,12 @@
 單執行緒的引用計數指標，用來共享配置在堆積上的資料。
 
 * 內部記錄引用資料的指標數量，當最後一個 Rc 指標銷毀時，資料也隨風而去。
-* <mark style="background-color:red;">因為共享，所以禁止任何改變（但可從內部可變性繞過）</mark>。
-* 可能發生迴圈引用，導致記憶體洩漏，此時須使用 Weak 弱引用。
-* <mark style="color:red;">非原子操作，所以無法在執行緒間傳遞</mark>，但可用 Arc 原子引用計數指標。
+* &#x20;因為共享，所以禁止任何改變（但可從內部可變性繞過）。&#x20;
+* 可能發生迴圈引用，導致記憶體洩漏，此時須使用 Weak 弱引用。&#x20;
+* <mark style="color:red;">非原子操作，所以無法在執行緒間傳遞</mark>，但可用 Arc 原子引用計數指標。&#x20;
 * 類似 C++std::shared\_ptr。
 
-![b,c共享a的所有權](../.gitbook/assets/rc-min.PNG)
+![b,c共享a的所有權](../../.gitbook/assets/rc-min.PNG)
 
 ```rust
 #[derive(Debug)]

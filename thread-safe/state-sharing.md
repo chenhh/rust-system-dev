@@ -24,7 +24,7 @@ Rust的這套執行緒安全設計有以下好處：
 
 ## Arc
 
-Arc是Rc的執行緒安全版本。它的全稱是“Atomic reference counter”。注意第一個單詞代表的是atomic而不是automatic。它強調的是“原子性”。它跟Rc最大的區別在於，引用計數用的是原子整數類型，即在同一時間內，資料只能被一個執行緒存取。
+Arc是Rc的執行緒安全版本。它的全稱是“Atomic reference counter”。注意第一個單詞代表的是atomic而不是automatic。它強調的是“原子性”。它跟Rc最大的區別在於，引用計數用的是原子整數類型，即在同一時間內，資料只能被一個執行緒存取，<mark style="color:red;">內部的值仍然是不可變</mark>。
 
 ```rust
 use std::sync::Arc;
@@ -74,7 +74,7 @@ thread 0: vec: [0, 1, 2, 3, 4]
 
 單純的mutex無法在執行緒之間共享，因此必須在外層再包一個Arc提供多執行緒之間共享的方法。
 
-根據Rust的“共用不可變，可變不共用”原則，Arc既然提供了共用引用，就一定不能提供可變性。所以，Arc也是唯讀的，它對外API和Rc是一致的。如果我們要修改怎麼辦？同樣需要“內部可變性”。這種時候，我們需要用執行緒安全版本的“內部可變性”，如Mutex和RwLock。
+根據Rust的“共用不可變，可變不共用”原則，Arc既然提供了共用引用，就一定不能提供可變性。所以，Arc也是唯讀的，它對外API和Rc是一致的。如果我們要修改怎麼辦？<mark style="color:red;">同樣需要“內部可變性”。這種時候，我們需要用執行緒安全版本的“內部可變性”，如Mutex和RwLock</mark>。
 
 ```rust
 use std::sync::Arc;
@@ -85,16 +85,18 @@ fn main() {
     let global = Arc::new(Mutex::new(0));
     // 為了避免把global這個引用計數指標move進入閉包，
     // 所以在外面先提前複製一份，然後將複製出來的這個指標傳入閉包中
-    let clone1 = global.clone();
+    let clone1 = global.clone(); // 指向同一個mutex
     let thread1 = thread::spawn(move || {
         for _ in 0..COUNT {
+            // mutex lock, 離開scope後自動unlock
             let mut value = clone1.lock().unwrap();
             *value += 1;
         }
     });
-    let clone2 = global.clone();
+    let clone2 = global.clone();    // 指向同一個mutex
     let thread2 = thread::spawn(move || {
         for _ in 0..COUNT {
+            // mutex lock, 離開scope後自動unlock
             let mut value = clone2.lock().unwrap();
             *value -= 1;
         }
