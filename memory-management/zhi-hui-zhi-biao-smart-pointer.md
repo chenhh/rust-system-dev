@@ -17,7 +17,7 @@ Rust 中最常見的指標是引用（reference）。引用以`&`符號為標志
 
 必須做到兩件事：
 
-* 確認解引用(dereference)時可解開引用，取得底層值 ，即實作 `Deref` trait。&#x20;
+* 確認解引用(dereference)時可解開引用，取得底層值 ，即實作 `Deref` trait。
 * 確認指標結束生命週期時，會正確釋放資源，即實作`Drop` trait。
 
 符合上述要件，並在 safe Rust 前提下實作的智慧指標，就可消弭絕大多數記憶體問題，例如 double free 或 wild pointer。
@@ -26,16 +26,16 @@ Rust 中最常見的指標是引用（reference）。引用以`&`符號為標志
 
 ### Deref trait
 
-* 用來多載解引用運運算元 \*（dereference）的 trait。&#x20;
-* 有一個 required method `fn deref(&self) -> &Self::Target`&#x20;
-* DerefMut 則是用在 `&mut` 的 dereference。&#x20;
+* 用來多載解引用運運算元 \*（dereference）的 trait。
+* 有一個 required method `fn deref(&self) -> &Self::Target`
+* DerefMut 則是用在 `&mut` 的 dereference。
 * Rust 有很多 implicit dereference，實作 Deref trait 會簡單很多。
 
 ### 自動解引用(Implicit dereference)
 
-為了方便寫程式，不用再區分變數(obj.method)、變數指標(obj->method)、指標解引用((\*obj).method)，Rust 幫我們統一介面，只要是函式傳參或方法呼叫，當：
+<mark style="color:red;">為了方便寫程式，不用再區分變數(obj.method)、變數指標(obj->method)、指標解引用((\*obj).method)，Rust 幫我們統一介面</mark>，只要是函式傳參或方法呼叫，當：
 
-* 對指向 value type 的指標操作時，就執行原本的動作。&#x20;
+* 對指向 value type 的指標操作時，就執行原本的動作。
 * 超過一層指標包裹 value 時，會先呼叫 obj.deref()，將 T 引用解為 U 的值。
 
 ```rust
@@ -52,9 +52,9 @@ fn main() {
 
 ### Drop trait
 
-* 可視為物件的解構函式，當物件離開 scope 自動呼叫，可用來釋放資源。
-* 為 RAII pattern 的資源管理機制。&#x20;
-* Rustc 不能直接呼叫drop方法，必衝使用 `std::mem::drop`。 Rustc 不保證一定會呼叫（例如 FFI 不需要）。
+* 可視為物件的解構函式，當物件離開作用域時自動呼叫，可用來釋放資源。
+* 為 RAII pattern 的資源管理機制。
+* Rust 不能直接呼叫drop方法，必需使用 `std::mem::drop`。 Rust 不保證一定會呼叫（例如 FFI 不需要）。
 
 ```rust
 fn main() {
@@ -73,7 +73,7 @@ fn main() {
 
 ### 繼承可變性(Inherited mutability)
 
-一個資料結構內部欄位的可變性取決於「變數是可變的綁定或是不變的綁定」。可<mark style="color:red;">變性一旦決定就會影響全體，每個欄位都會「繼承」相同的可變性</mark>。
+一個資料結構內部欄位的可變性取決於「變數是可變的綁定或是不變的綁定」。<mark style="color:red;">可</mark><mark style="color:red;">變性一旦決定就會影響全體，每個欄位都會「繼承」相同的可變性</mark>。
 
 ```rust
 fn main() {
@@ -89,4 +89,4 @@ fn main() {
 
 若一個型別可以透過 shared reference 來修改其內部狀態，則我們稱之有內部可變性 ，這會透過 UnsafeCell 這個黑盒子實作。
 
-UnsafeCell 是 safe Rust 中少數可以無視「共享不可變，可變不共享」的型別，Cell 與 RefCell 都是其衍生型別。
+UnsafeCell 是 safe Rust 中少數可以無視「共享不可變，可變不共享」的類型，Cell 與 RefCell 都是其衍生型別。

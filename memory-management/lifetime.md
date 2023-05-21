@@ -29,7 +29,7 @@
 
 所有權的規則，是依賴於變數作用域。
 
-隱式作用域就是在當前作用域中由`let`開啟的作用域。在Rust中，也有一些特殊的巨集，比如`println!()`，也會產生一個預設的作用域，並且會隱式借用變數。除此之外，更明顯的作用域 範圍則是函式，也就是說，一個函式本身，就是一個顯式的作用域。你也可以使用一對花括號（`{}`）來建立顯式的作用域。
+隱式作用域就是在當前作用域中由`let`開啟的作用域。在Rust中，也有一些特殊的巨集，比如`println!()`，也會產生一個預設的作用域，並且會隱式借用變數。除此之外，更明顯的作用域範圍則是函式，也就是說，一個函式本身，就是一個顯式的作用域。你也可以使用一對花括號（`{}`）來建立顯式的作用域。
 
 除此之外，一個函式本身就顯式的開闢了一個獨立的作用域。
 
@@ -86,9 +86,9 @@ fn main() {
 
 ## 生命週期標記
 
-對一個函數內部的生命週期進行分析，Rust編譯器可以很好地解決。但是，當生命週期跨函數的時候，就需要一種特殊的生命週期標記符號了。
+對一個函數內部的生命週期進行分析，Rust編譯器可以很好地解決。<mark style="color:blue;">但是，當生命週期跨函數的時候，就需要一種特殊的生命週期標記符號了</mark>。
 
-生命週期是用`'`符號，和泛型一樣都是放在`<>`中。
+生命週期是用`'`符號，和泛型一樣都是放在`<>`中，引用變數才需要標記生命週期。
 
 ```rust
 struct Foo<'a> {
@@ -132,7 +132,7 @@ fn main() {
 
 借用指標類型都有一個生命週期泛型參數，它們的完整寫法應該是`&'a T&'a mut T`，只不過<mark style="background-color:blue;">在做區域變數的時候，生命週期參數是可以省略的</mark>。
 
-生命週期之間有重要的包含關係。如果生命週期`'a`比`'b`更長或相等，則記為`'a:'b`，意思是`'a`至少不會比`'b`短，英語讀做“lifetime a outlives lifetime b”。對於借用指標類型來說，如果`&'a`是合法的，那麼`'b`作為`'a`的一部分，`&'b`也一定是合法的。
+生命週期之間有重要的包含關係。<mark style="color:red;">如果生命週期</mark><mark style="color:red;">`'a`</mark><mark style="color:red;">比</mark><mark style="color:red;">`'b`</mark><mark style="color:red;">更長或相等，則記為</mark><mark style="color:red;">`'a:'b`</mark><mark style="color:red;">，意思是</mark><mark style="color:red;">`'a`</mark><mark style="color:red;">至少不會比</mark><mark style="color:red;">`'b`</mark><mark style="color:red;">短，英語讀做“lifetime a outlives lifetime b</mark>”。對於借用指標類型來說，如果`&'a`是合法的，那麼`'b`作為`'a`的一部分，`&'b`也一定是合法的。
 
 <mark style="background-color:orange;">註：可用trait的繼承類比，</mark><mark style="background-color:orange;">`trait Derived: Base{}`</mark><mark style="background-color:orange;">，可把</mark><mark style="background-color:orange;">`'a:'b`</mark><mark style="background-color:orange;">中，</mark><mark style="background-color:orange;">`'a`</mark><mark style="background-color:orange;">做為</mark><mark style="background-color:orange;">`'b`</mark><mark style="background-color:orange;">的延伸，因此生命週期更長一點</mark>。
 
@@ -140,7 +140,7 @@ fn main() {
 
 ## static生命週期
 
-另外，`'static`是一個特殊的生命週期，它代表的是這個程式從開始到結束的整個階段，所以它比其他任何生命週期都長。這意味著，任意一個生命週期`'a`都滿足`'static：'a`。
+另外，<mark style="color:red;">`'static`</mark><mark style="color:red;">是一個特殊的生命週期，它代表的是這個程式從開始到結束的整個階段，所以它比其他任何生命週期都長</mark>。這意味著，任意一個生命週期`'a`都滿足`'static：'a`。
 
 ```rust
 // 函數標記x,y的生命週期一樣長
