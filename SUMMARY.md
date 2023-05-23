@@ -67,6 +67,7 @@
 * [線性規劃(linear programming)](xian-xing-gui-hua-linear-programming.md)
 * [演算法](yan-suan-fa/README.md)
   * [排序(sorting)](yan-suan-fa/pai-xu-sorting.md)
+* [參考資料](reference.md)
 
 ## Windows系統程式 <a href="#windows-system-programming" id="windows-system-programming"></a>
 
