@@ -33,7 +33,7 @@ pub struct String {
 * \&str是Rust的內置類型，<mark style="color:red;">不可修改指向的字串</mark>。\&str是對str的借用。
   * 那麼這麼String的所有者是誰？
   * <mark style="color:blue;">字串字面量有點特殊。他們是引用自“預分配文字(preallocated text)”的字串切片</mark>，這個預分配文字存儲在可執行程式的唯讀記憶體中。換句話說，這是裝載我們程式的記憶體並且不依賴於在堆積上分配的緩沖區。
-* **Rust的字串內部預設是使用utf-8編碼格式的。而內置的char類型是4位元組長度的，存儲的內容是Unicode Scalar Value**。所以，Rust裡面的字串不能視為char類型的陣列，而更接近u8類型的陣列。
+* <mark style="color:red;">**Rust的字串內部預設是使用utf-8編碼格式的。而內置的char類型是4位元組長度的，存儲的內容是Unicode Scalar Value**</mark>。所以，Rust裡面的字串不能視為char類型的陣列，而更接近u8類型的陣列。
 
 ```rust
 fn main() {
@@ -45,7 +45,7 @@ fn main() {
 
 實際上str類型有一種方法：`fn as_ptr（&self）->*const u8`。它內部無須做任何計算，只需做一個強制類型轉換即可。
 
-這樣設計有一個缺點，就是不能支援O（1）時間複雜度的索引操作。如果我們要找一個字串s內部的第n個字元，不能直接通過s\[n]得到，這一點跟其他許多語言不一樣。在Rust中，這樣的需求可以通過下面的語句實現：
+這樣設計有一個缺點，就是不能支援O(1）時間複雜度的索引操作。如果我們要找一個字串s內部的第n個字元，不能直接通過s\[n]得到，這一點跟其他許多語言不一樣。在Rust中，這樣的需求可以通過下面的語句實現：
 
 ```rust
 fn main() {
@@ -67,6 +67,10 @@ fn main() {
     // 可以使用以下的方法達到類似於索引的功能
     let dog = hachiko.chars().nth(1); // kinda like hachiko[1]
     println!("{:?}", dog); // Some('犬')
+    
+    // 將字串以單字切割後，再收集成為vector的元素
+    let data: Vec<_> = hachiko.chars().collect();
+    println!("{:?}", data );
 }
 ```
 

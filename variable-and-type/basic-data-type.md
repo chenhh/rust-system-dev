@@ -116,8 +116,6 @@ fn main(){
 
 各種整數類型之間的主要區分特徵是：有符號/無符號與佔據空間大小，<mark style="color:red;">未指明整數類型時預設為i32</mark>。
 
-
-
 | 整數類型         | 有符號   | 無符號   |
 | ------------ | ----- | ----- |
 | 8-bit        | i8    | u8    |
@@ -158,7 +156,6 @@ fn main() {
 在Rust中，我們可以為任何一個類型增加(實作)方法，整數也不例外。如std中對所有整數類型都有實作[pow](https://doc.rust-lang.org/std/primitive.i32.html#method.pow)方法。
 
 ```rust
-
 fn main() {
     let x: i32 = 9;
     println!("9 power 3 = {}", x.pow(3));
@@ -253,7 +250,7 @@ pub enum FpCategory {
 }
 ```
 
-![IEEE754 單精度浮點數。](../../.gitbook/assets/ieee754\_single-precision-min.png)
+![IEEE754 單精度浮點數。](../.gitbook/assets/ieee754\_single-precision-min.png)
 
 ### 整數與浮點數四則運算需明確轉型
 
