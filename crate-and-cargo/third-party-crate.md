@@ -18,6 +18,8 @@
 ## 系統程式
 
 * [uutils / coreutils](https://github.com/uutils/coreutils): 以rust實作基本指令。
+* [cargo-edit](https://crates.io/crates/cargo-edit): 可使用`cargo add $crate_name` 讓系統自動新增cargo.toml套件相依性。 `cargo rm $crate_name` 刪除cargo.toml的相依套件。
+* [sudo-rs](https://github.com/memorysafety/sudo-rs)：以rust實作的sudo指令。
 
 ## 平行處理
 
@@ -68,4 +70,3 @@ log處理
 ## 金融
 
 * [Panther](https://github.com/gregyjames/Panther): 以PyO3實作的技術分析函數，目前只有一些函數可用。
-
