@@ -9,7 +9,7 @@ description: 數組
 * 陣列是一個容器，它在一塊**連續空間記憶體**中，存儲了一系列的**同樣類型**的資料。
 * 陣列中元素的佔用空間大小必須是**編譯期可以確定**的，<mark style="background-color:red;">即內容元素均有實現</mark>[<mark style="background-color:red;">sized trait</mark>](https://doc.rust-lang.org/std/marker/trait.Sized.html)。
 * 陣列本身所容納的元素個數也必須是編譯期確定的，執行階段不可變。如果需要使用變長的容器，可以使用標準庫中的Vec/LinkedList等。
-* 陣列類型的表示方式為**`[T:n]`**。其中`T`代表元素類型，`n`代表元素個數；它必須是編譯期常量整數；中間用分號隔開。
+* 陣列類型的表示方式為\*\*`[T:n]`\*\*。其中`T`代表元素類型，`n`代表元素個數；它必須是編譯期常量整數；中間用分號隔開。
 * 對陣列內部元素的訪問，可以使用中括弧索引的方式。Rust支援usize類型的索引的陣列，**索引從0開始計數**。
 
 ```rust
@@ -17,6 +17,8 @@ fn main() {
     // 固定長度的陣列
     let xs: [i32; 5] = [1, 2, 3, 4, 5];
     println!("{:?}", xs);
+    // 連續的記憶體配置，0x7ffec10a39ac, [1]:0x7ffec10a39b0
+    println!("{:p}, [1]:{:p}", &xs, &xs[1]); 
     // 所有的元素,可使用以下語法初始為同個的值
     // 類別可省略由編譯器自動推導
     let ys = [2; 10];
@@ -61,7 +63,7 @@ fn main() {
 ```rust
 fn main() {
     let v = [0_i32; 10];
-    for i in &v {
+    for i in &v { // borrow
         print!("{} ", i);
     }
     // 0 0 0 0 0 0 0 0 0 0 
@@ -96,9 +98,11 @@ fn main() {
     fn mut_array(a: &mut [i32]) {
         a[2] = 5;
     }
+    // array pointer佔用了8 bytes
     println!("size of &[i32; 3] : {:?}", std::mem::size_of::<&[i32; 3]>()); //8
     // fat pointer佔用了兩個pointer的空間 (64-bit OS pointer為8 bytes)
     println!("size of &[i32] : {:?}", std::mem::size_of::<&[i32]>());   // 16
+    // i32為4 bytes
     println!("size of i32 : {:?}", std::mem::size_of::<i32>());   // 4
     let mut v: [i32; 3] = [1, 2, 3];
     {
@@ -141,7 +145,7 @@ fn main() {
     println!("borrow the whole array as a slice");
     analyze_slice(&xs);
 
-    // slice 可以指向陣列的一部分
+    // slice 可以指向陣列的一部分, 可用slice.len()求得長度
     println!("borrow a section of the array as a slice");
     analyze_slice(&ys[1 .. 4]);
 
@@ -154,7 +158,7 @@ fn main() {
 
 Slice與普通的指標是不同的，它有一個非常形象的名字：胖指標（fat pointer）。與這個概念相對應的概念是“動態大小類型”（Dynamic Sized Type, DST）。
 
-**所謂的DST指的是編譯階段無法確定佔用空間大小的類型。為了安全性，指向DST的指標一般是胖指標**。比如：對於不定長陣列類型`[T]`，有對應的胖指標`&[T]`類型；對於不定長字串`str`類型，有對應的胖指標`&str`類型；以及在後文中會出現的Trait Object；等等。
+<mark style="color:red;">**所謂的DST指的是編譯階段無法確定佔用空間大小的類型。為了安全性，指向DST的指標一般是胖指標**</mark>。比如：對於不定長陣列類型`[T]`，有對應的胖指標`&[T]`類型；對於不定長字串`str`類型，有對應的胖指標`&str`類型；以及在後文中會出現的Trait Object；等等。
 
 由於不定長陣列類型`[T]`在編譯階段是無法判斷該類型佔用空間的大小的，目前我們不能在堆疊上聲明一個不定長大小陣列的變數實例，也不能用它作為函數的參數、返回值。但是，指**向不定長陣列的胖指標的大小是確定的**，`&[T]`類型可以用做變數實例、函數參數、返回值。
 
@@ -331,4 +335,3 @@ fn main() {
     println!("{:?}", item);
 }
 ```
-

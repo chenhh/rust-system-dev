@@ -2,12 +2,15 @@
 
 ## 簡介
 
+* [https://doc.rust-lang.org/std/option/enum.Option.html](https://doc.rust-lang.org/std/option/enum.Option.html)
+* [https://rustwiki.org/zh-CN/std/option/index.html#enums](https://rustwiki.org/zh-CN/std/option/index.html#enums)
+
 Option是一種枚舉類型，主要包括兩種值：`Some(T)`和`None`，強制使用者判斷是否存在空值。
 
 ```rust
 enum Option<T> {
-    Some(T),    // Some表示有值
-    None,       // None表示空值
+    Some(T),    // Some表示有值, tuple struct
+    None,       // None表示沒有值
 }
 ```
 
