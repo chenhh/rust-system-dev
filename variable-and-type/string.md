@@ -368,3 +368,52 @@ hello 是一個部分字串的引用，由一個額外的`[0..5]`部分指定。
 | Vec\<u8> | \&str    | \&s if possible\* else s.as\_slice()                           |
 | Vec\<u8> | String   | std::str::from\_utf8(\&s).unwrap(), but don't\*\*              |
 | Vec\<u8> | &\[u8]   | String::from\_utf8(s).unwrap(), but don't\*\*                  |
+
+## String與\&str的選用
+
+設計函數時，需要考慮獲取所有權或是借用。
+
+### 不需所有權
+
+<mark style="color:red;">如果你不需要獲取資料的所有權，那麼將參數設定成引用類型</mark>，接下來的問題就變成了：是用`&str`還是`&String`？答案通常是`&str`。
+
+```rust
+// 在任何地方你需要一個&str，那麼你也可以直接無障礙的直接使用&String，
+// 但反過來就不行了，如果你將函數的定義改成接收&String類型的變數，
+// 那麼當你傳遞&str類型參數的時候編譯器就會報錯
+
+fn print_str(msg: &str) {
+    // &str可接受&String, 因為會自動dereference
+    println!("{}", msg);
+}
+
+fn print_string(msg: &String) {
+    // &String只能接受&String，不能使用&str
+    println!("{}", msg);
+}
+
+fn main() {
+    let string_slice = "String slice assigned to variable";
+    let real_string = "Genuine String".to_owned();
+    let my_string = "hello world".to_string();
+    
+    print_str(string_slice);
+    print_str("Literal slice");
+    print_str(&real_string);
+    print_str(&my_string);
+    
+    
+    // print_string(string_slice); // error
+    // print_string("Literal slice"); // error
+    print_string(&real_string);
+    print_string(&my_string);
+}
+```
+
+### 需要所有權
+
+如果你需要一個有所有權的String，那麼需要考慮以下幾方面：
+
+* 手動將\&str轉化為String類型是件麻煩事，這是設計函數的大障礙。
+* 應該讓介面的使用者決定如何建立有所有權的資料，你不要簡單地到處接收\&str類型的變數然後自己去轉換它們。
+

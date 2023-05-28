@@ -2,6 +2,16 @@
 
 ## 簡介
 
+生命週期但它在不同的語境中有不同的側重點。它可以有下面三個語義：
+
+1. 引用必須有效的程式碼區域。&#x20;
+2. 引用的使用區域。&#x20;
+3. 值的存活區域。
+
+<mark style="color:red;">生命週期是針對引用的概念。而</mark>有引用就會有被指向的物件，可將「被引用的物件」簡稱為本體。
+
+<figure><img src="../.gitbook/assets/rust_reference.png" alt=""><figcaption><p>引用與本體</p></figcaption></figure>
+
 借出一個指向他人擁有的資源的引用是很複雜的。 舉例來說，想像一下以下的操作行為：
 
 1. 我獲得一個某種資源的控制代碼（handle）。
@@ -10,6 +20,8 @@
 4. 你決定要使用此資源(但引用指向的資源已經無效)。
 
 你的引用指向了一個無效的資源。 如果資源是記憶體時，我們叫dangling pointer或「釋放後使用」。
+
+<figure><img src="../.gitbook/assets/rust-dangling ptr.drawio.png" alt=""><figcaption><p>dangling reference(pointer)</p></figcaption></figure>
 
 <mark style="color:red;">所有的變數都有生命週期 (lifetime)，而參考型別帶來最困難的問題，就是如何避免懸置參考 (dangling reference)，亦即參考所指向的物件已經消失，但是參考本身仍然可以存取的現象</mark>。
 
@@ -20,7 +32,7 @@
 ### 生命週期要點
 
 * 對於生命週期<mark style="background-color:red;">全都是關於引用（references）的</mark>，與其他變數無關。
-* 生命週期參數是一種標記，類似於類型限定。
+* 生命週期參數是一種標記(annotation)而非定義，通常以 ' 開頭，後面以abcd來區分。，類似於類型限定。
 * 生命週期幫助編譯器執行一個簡單的規則：<mark style="background-color:red;">**引用不應該活得比所指物件長**</mark><mark style="background-color:red;">(no reference should outlive its referent)</mark>。
 * 生命週期參數的功能是向編譯器「**告知(讓編譯器檢查是否合法)**」引用之間的drop關係(引用(借用者)的生命週期是否參考的物件(出借者)短)，而非擴展或延長引用的存在時間，因此在編譯過程中，編譯器會根據生命週期參數檢查傳入的參數是否合法。
 * 為了能夠進行借用規則檢查，編譯器需要知道所有引用的生命週期。<mark style="color:blue;">在很多情況下，編譯器能夠自己推導出生命週期，但是有些情況它無法完成，這就需要開發者手動的對生命週期進行標注(註：只有在編譯器無法推論生命週期時，才須手動標註)</mark>。
@@ -63,7 +75,24 @@ fn main() {
         // r在離開作用域後，會指向已釋放的物件
         r = &a; //  ^^ borrowed value does not live long enough
     }
-    println!("{r}");
+    println!("{r}"); // 如果將此行註解掉時，不會有dangling pointer，可編譯成功
+}
+```
+
+```rust
+fn f<'a>(s: &'a str) -> &'a str {
+    //參數s要活得至少跟返回的引用一樣長
+    // 這裡的'a實際上可以省略，因為編譯器預設這麼推導。
+    s
+}
+fn main() {
+    let r;
+    {
+        let s = "hello world".to_owned();
+        r = f(&s); // borrowed value does not live long enough
+        // 傳入的參數生命週期和傳回的參數不一樣長，和標註不同
+    }
+    println!("{}", r); // 如果將此行註解掉時，不會有dangling pointer，可編譯成功
 }
 ```
 
@@ -231,3 +260,4 @@ fn get_str<'a>(s: &'a String) -> &'a str {
 * [\[知乎\] 如何理解Rust中的生命週期標注？](https://www.zhihu.com/question/435470652)
 * [\[知乎\] 深入理解Rust中的生命週期](https://zhuanlan.zhihu.com/p/342405519)
 * [\[知乎\] Rust中的生命週期](https://zhuanlan.zhihu.com/p/191457302)
+* [\[知乎\] Rust: Lifetime 解惑， 生命週期還在](https://zhuanlan.zhihu.com/p/384151733)
