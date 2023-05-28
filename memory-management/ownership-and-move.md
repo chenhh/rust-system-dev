@@ -469,6 +469,14 @@ struct MyStruct(i32);
 
 當類型具有泛型參數的時候，比如`struct MyStruct<T>{}`，通過derive自動生成的程式碼會自動添加一個T：Copy的約束。目前，只有一部分固定的特殊trait可以通過derive來自動實現。將來Rust會允許自訂的derive行為，讓我們自己的trait也可以通過derive的方式自動實現。
 
+## to\_ownd()和clone()的區別
+
+[Trait std::clone::Clone](https://doc.rust-lang.org/std/clone/trait.Clone.html)
+
+[Trait std::borrow::ToOwned](https://doc.rust-lang.org/std/borrow/trait.ToOwned.html#tymethod.to\_owned)
+
+clone()方法會回傳呼叫者相同的類型，如`&str`會回傳`&str`。而to\_owned()除了複制之外，還會改變所有權，如`&str`會回傳`String`。
+
 ## 參考資料
 
 * [\[知乎\] Rust所有權語義模型](https://zhuanlan.zhihu.com/p/27571264?group\_id=862978524611497984)
