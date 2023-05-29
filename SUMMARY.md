@@ -64,13 +64,14 @@
   * [rayon](thread-safe/rayon.md)
 * [非同(異)步程式](fei-tong-yi-bu-cheng-shi.md)
 * [FFI](ffi.md)
+* [資料處理polars](zi-liao-chu-li-polars.md)
 * [參考資料](reference.md)
 
 ## 演算法 <a href="#algorithm" id="algorithm"></a>
 
-* [線性規劃(linear programming)](algorithm/xian-xing-gui-hua-linear-programming.md)
-* [演算法](algorithm/yan-suan-fa/README.md)
-  * [排序(sorting)](algorithm/yan-suan-fa/pai-xu-sorting.md)
+* [線性規劃(linear programming)](xian-xing-gui-hua-linear-programming.md)
+* [演算法](yan-suan-fa/README.md)
+  * [排序(sorting)](yan-suan-fa/pai-xu-sorting.md)
 
 ## Windows系統程式 <a href="#windows-system-programming" id="windows-system-programming"></a>
 
