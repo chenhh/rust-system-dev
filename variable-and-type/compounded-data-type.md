@@ -32,6 +32,20 @@ fn main() {
 }
 ```
 
+### 函數一次傳回多個值時可用tuple
+
+```rust
+// 函數回傳值為tuple
+fn myfunc(a: i32, b: i32) -> (i32, i32, i32) {
+    (a, b, a + b)
+}
+
+fn main() {
+    let (a, b) = (10, 15);
+    println!("{:?}", myfunc(a, b));    //(10, 15, 25)ust
+}
+```
+
 ### unit(單元類型)
 
 元組內部也可以一個元素都沒有。這個類型單獨有一個名字，叫unit（單元類型），不佔記憶體空間。
@@ -121,7 +135,7 @@ fn main() {
 }
 ```
 
-struct內部成員也可以是空：
+### struct內部成員也可以是空
 
 ```cpp
 //以下三種語法都可以,內部可以沒有成員
@@ -129,6 +143,8 @@ struct Foo1;
 struct Foo2();
 struct Foo3{}
 ```
+
+##
 
 ## tuple struct
 
