@@ -9,7 +9,7 @@ description: 數組
 * 陣列是一個容器，它在一塊**連續空間記憶體**中，存儲了一系列的**同樣類型**的資料。
 * 陣列中元素的佔用空間大小必須是**編譯期可以確定**的，<mark style="background-color:red;">即內容元素均有實現</mark>[<mark style="background-color:red;">sized trait</mark>](https://doc.rust-lang.org/std/marker/trait.Sized.html)。
 * 陣列本身所容納的元素個數也必須是編譯期確定的，執行階段不可變。如果需要使用變長的容器，可以使用標準庫中的Vec/LinkedList等。
-* 陣列類型的表示方式為\*\*`[T:n]`\*\*。其中`T`代表元素類型，`n`代表元素個數；它必須是編譯期常量整數；中間用分號隔開。
+* 陣列類型的表示方式為`[T:n]`。其中`T`代表元素類型，`n`代表元素個數；它必須是編譯期常量整數；中間用分號隔開。
 * 對陣列內部元素的訪問，可以使用中括弧索引的方式。Rust支援usize類型的索引的陣列，**索引從0開始計數**。
 
 ```rust
@@ -89,9 +89,30 @@ fn main() {
 
 **對陣列取借用borrow操作，可以生成一個“陣列切片”（Slice）**。
 
-切片允許你引用集合中一段連續的元素序列，而不用引用整個集合。<mark style="color:red;">切片是一類引用，所以它沒有所有權</mark>。<mark style="color:blue;">我們可以把陣列切片看作專門用於指向陣列的指標，是對陣列的另外一個“視圖” (view)</mark>。
+切片允許你引用集合中一段連續的元素序列，而不用引用整個集合。<mark style="color:red;">切片是一類引用，所以它沒有所有權</mark>。<mark style="color:blue;">我們可以把陣列切片看作專門用於指向陣列的指標，是對陣列的另外一個“視圖” (view)。切片</mark>是可以動態的，但是其範圍是不能超過陣列的大小。
 
 比如，我們有一個陣列`[T:n]`，它的借用指標的類型就是`&[T;n]`。它可以通過編譯器內部魔法轉換為陣列切片類型`&[T]`。陣列切片實質上還是指標，它不過是在類型系統中丟棄了編譯階段定長陣列類型的長度資訊，而將此長度資訊存儲為執行期的值。
+
+```rust
+fn main() {
+    let arr = [1, 2, 3, 4, 5, 6];
+    // 獲取全部元素
+    let slice_complete = &arr[..]; 
+    println!("{:?}", slice_complete);
+    
+    // 獲取中間元素，最後取得的Slice為 [2, 3, 4] 。切片遵循左閉右開原則。
+    let slice_middle = &arr[1..4]; 
+    println!("{:?}", slice_middle);
+    
+    // 最後獲得的元素為[2, 3, 4, 5, 6]，長度為5。
+    let slice_right = &arr[1..]; 
+    println!("{:?}", slice_right);
+    
+    // 最後獲得的元素為[1, 2, 3]，長度為3。
+    let slice_left = &arr[..3]; 
+    println!("{:?}", slice_left);
+}
+```
 
 ```rust
 fn main() {

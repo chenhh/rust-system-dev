@@ -103,12 +103,19 @@ fn main() {
 
 ```rust
 fn main() {
-  let my_name = "Pascal";
-  greet(my_name);
+  let my_str = "Pascal";
+  // 使用to_string將&str轉為String
+  greet_str(my_str);
+  greet_string(&my_str.to_string());
+  
 }
 
-fn greet(name: String) {
-  println!("Hello, {}!", name);
+fn greet_str(name: &str) {
+  println!("str: Hello, {}!", name);
+}
+
+fn greet_string(name: &String) {
+  println!("string Hello, {}!", name);
 }
 ```
 
@@ -221,6 +228,23 @@ fn main(){
     println!("{s}");
 }
 ```
+
+### 將String重新變成\&str
+
+```rust
+fn use_str(s: &str) {
+    println!("I am: {}", s);
+}
+fn main() {
+    let s = "Hello".to_string();
+    // 先對String進行Deref,也就是*操作。
+    // 因單獨的str是不能在Rust裡直接存在的，
+    // 我們需要先給他進行&操作取得&str這個結果。
+    use_str(&*s);
+}
+```
+
+也可將`&*s`簡寫為`&s`，這其實是一個編譯器的特性，因為Rust的編譯器會在&後面插入足夠多的\*來儘可能滿足Deref這個特性。這個特性會在某些情況下失效。
 
 ### 自動解引用
 
