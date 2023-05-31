@@ -10,6 +10,7 @@
   * [字串](variable-and-type/string.md)
   * [泛型(generics)](variable-and-type/generics.md)
   * [動態尺寸類型(DST)](variable-and-type/dong-tai-chi-cun-lei-xing.md)
+  * [運算子重載](variable-and-type/operator-overloading.md)
   * [格式化輸出](variable-and-type/format-output.md)
 * [語句與運算式](statement-and-expression/README.md)
   * [模式解構(pattern destructure)](statement-and-expression/pattern-destructure.md)
