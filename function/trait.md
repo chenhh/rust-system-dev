@@ -13,13 +13,15 @@
 
 ## 成員函數(membership function)
 
-trait中可以定義函數，稱為該trait的成員函數(membership function)。該函數可直接實作，等到imp時再實作即可，類似於interface的概念。
+trait中可以定義函數，稱為<mark style="color:red;">該trait的成員函數(membership function)</mark>。該函數可直接實作，或等到imp時再實作即可，類似於interface的概念。
 
 ```rust
 trait Shape {
     fn area(&self) -> f64;    //成員函數，尚未實作
 }
 ```
+
+### self參數
 
 <mark style="background-color:red;">所有的trait中都有一個隱藏的</mark><mark style="background-color:red;">**類型Self（大寫S），代表當前這個實現了此trait的具體類型**</mark><mark style="background-color:red;">。trait中定義的函數，也可以稱作關聯函數（associated function）</mark>。
 
@@ -43,12 +45,15 @@ trait T {
     fn method2(self: &Self);
     // 參數為self, 類型為&mut Self, mutable borrow
     fn method3(self: &mut Self);
+    
+    fn mymethod(); // static function
 }
 // 上下兩種寫法等價
 trait T {
     fn method1(self);
     fn method2(&self);
     fn method3(&mut self);
+    fn mymethod();
 }
 ```
 
@@ -56,13 +61,22 @@ trait中可以包含方法的預設實現。如果這個方法在trait中已經�
 
 比如，在標準庫中，反覆運算器Iterator這個trait中就包含了十多個方法，但是，其中只有`fn next（&mut self）->Option<Self::Item>`是沒有預設實現的。其他的方法均有其預設實現，在實現反覆運算器的時候只需挑選需要重寫的方法來實現即可。
 
+### 預設方法
+
+```rust
+trait Foo {
+    fn is_valid(&self) -> bool;
+    fn is_invalid(&self) -> bool { !self.is_valid() }
+}
+```
+
+`is_invalid`是預設方法，實現者可不必實現它，如果選擇實現它，會覆蓋掉它的預設行為。
+
 ## 實現trait
 
 我們可以為某些具體類型實現（impl）這個trait。而且要實現所有的成員函數。
 
 假如我們有一個結構體類型Circle，它實現了這個trait，程式碼如下：
-
-
 
 ```rust
 trait Shape {
@@ -93,7 +107,7 @@ fn main() {
 
 ### 類型的內在方法
 
-另外，針對一個類型，我們可以直接對它impl來增加成員方法，無須trait名字（可視為該類型特有的匿名trait）。用這種方式定義的方法叫作這個類型的“內在方法”（inherent methods）。
+另外，針對一個類型，我們可以直接對它impl來增加成員方法，無須trait名字（可視為該類型特有的匿名trait）。用這種方式定義的方法叫作這個<mark style="color:red;">類型的“內在方法”（inherent methods）</mark>。
 
 ```rust
 // 實現Circle類型的匿名trait, 類似class的概念
@@ -256,9 +270,9 @@ fn main() {
 
 具體地說：
 
-1. 如果要實現外部定義的 trait 需要先將其導入作用域。&#x20;
-2. 不允許對外部類型實現外部 trait；&#x20;
-3. 可以對外部類型實現自定義的 trait；&#x20;
+1. 如果要實現外部定義的 trait 需要先將其導入作用域。
+2. 不允許對外部類型實現外部 trait；
+3. 可以對外部類型實現自定義的 trait；
 4. 可以對自定義類型上實現外部 trait。
 
 外部是指不是由自己，而是由外部定義的，<mark style="color:red;">包括標准庫</mark>。
@@ -298,8 +312,6 @@ fn main(){
 }
 ```
 
-
-
 ### 1.41.0鬆綁Trait實作限制
 
 但是這限制遇到泛型時，情況就變得複雜，例如當Crate定義了BetterVec結構，而開發者想要把該結構轉換成標準函式庫的Vec，程式碼寫作impl From\<BetterVec> for Vec{// ...}，在Rust 1.40中，這個寫法違反孤立原則，因為From和Vec都是定義在標準函式庫，對於當前Crate來說是外部的Trait與型別。
@@ -321,8 +333,6 @@ Rust是一種使用者可以對記憶體有精確控制能力的強類型語言�
 Fully Qualified Syntax提供一種無歧義的函式呼叫語法，允許程式師精確地指定想調用的是那個函數。以前也叫UFCS（universal function call syntax），也就是所謂的“通用函式呼叫語法”。
 
 這個語法可以允許使用類似的寫法精確調用任何方法，包括成員方法和靜態方法。其他一切函式呼叫語法都是它的某種簡略形式。它的具體寫法為`<T asTraitName>::item`。
-
-
 
 ```rust
 trait Cook {
@@ -390,7 +400,7 @@ fn main() {
 
 Rust的trait的另外一個大用處是，作為**泛型約束**使用，<mark style="background-color:red;">**即限定只有實現給定trait的類型才可被調用**</mark>。
 
-有兩種語法：
+多個traits限制時，用`+`符號串接，有兩種語法：
 
 * 在泛型的角括號中加入限制。
 * 在函數後面加where(多trait限制時 較容易閱讀)。
@@ -399,13 +409,13 @@ Rust的trait的另外一個大用處是，作為**泛型約束**使用，<mark s
 use std::fmt::Debug;
 
 // 限定實現Debug的類別T
-fn my_print<T: Debug>(x: T) {
+fn my_print<T: Debug + Clone>(x: T) {
     println!("The value is {:?}.", x);
 }
 // 等價寫法，用where將限制放到後面
 fn my_print<T>(x: T)
 where
-    T: Debug,
+    T: Debug + Clone,
 {
     println!("The value is {:?}.", x);
 }
@@ -432,7 +442,7 @@ impl Derived for T {}
 fn main() {}
 ```
 
-這表示Derived trait繼承了Base trait。它表達的意思是，滿足Derived的類型，必然也滿足Base trait。所以，我們在針對一個具體類型implDerived的時候，編譯器也會要求我們同時impl Base。
+這表示Derived trait繼承了Base trait。<mark style="color:red;">它表達的意思是，滿足Derived的類型，必然也滿足Base trait</mark>。所以，我們在針對一個具體類型implDerived的時候，編譯器也會要求我們同時impl Base。
 
 在標準庫中，很多trait之間都有繼承關係。
 
@@ -476,8 +486,6 @@ impl PartialEq for Foo { ... }
 這些trait都是標準庫內部的較特殊的trait，它們可能包含有成員方法，但是成員方法的邏輯有一個簡單而一致的“範本”可以使用，編譯器就機械化地重複這個範本，幫我們實現這個預設邏輯。當然我們也可以手動實現。
 
 目前，Rust支援的可以自動derive的trait有以下這些：`Debug`、`Clone`、`Copy`、`Hash`、`RustcEncodable`、`RustcDecodable`、`PartialEq`、`Eq`、`ParialOrd`、`Ord`、`Default`、`FromPrimitive`、`Send`、`Sync`。
-
-
 
 ## trait別名
 
@@ -532,8 +540,6 @@ Debug則是主要為了調試使用，建議所有的作為API的“公開”類
 
 因此，Rust設計了兩個trait來描述這樣的狀態:一個是`std::cmp::PartialOrd`，表示“偏序”，一個是`std::cmp::Ord`，表示“全序”。
 
-
-
 ```rust
 // 偏序 trait
 pub trait PartialOrd<Rhs: ?Sized = Self>: PartialEq<Rhs> {
@@ -587,8 +593,6 @@ pub trait Sized {
 
 * 一個 slice的`[T]`的size是未知的，因為在編譯期不知道到底會有多少個T存在。
 * 一個trait的size是未知的，因為不知道實現這個trait的結構是什麼。
-
-
 
 確定類型別的大小(size)對於能夠在堆疊(stack)上為實例分配足夠的空間是十分重要的。確定大小型別(sized type)可以通過傳值(by value)或者傳引用(by reference)的方式來傳遞。
 
