@@ -397,6 +397,7 @@ enum Coin {
     Quarter,
 }
 
+// 每一個分支都必須是一個表示式
 // 表達式較簡短時，不需使用括號，也可用括號將結果部份包起來
 fn value_in_cents(coin: Coin) -> u8 {
     match coin {
@@ -413,9 +414,14 @@ fn value_in_cents(coin: Coin) -> u8 {
 
 <mark style="color:green;">一個分支有兩個部分：一個模式和一些代碼</mark>。第一個分支的模式是值 Coin::Penny 而之後的 => 運算符將模式和將要運行的代碼分開。這裡的代碼就僅僅是值 1。每一個分支之間使用逗號分隔。
 
+match可以起到和switch相同的作用。不過有2點需要注意：
+
+1. match所羅列的匹配，必須窮舉出其所有可能。當然，你也可以用 \_ 這個符號來代表其餘的所有可能性情況，就類似於switch中的default語句。&#x20;
+2. match的每一個分支都必須是一個表示式，並且，除非一個分支一定會觸發panic，這些分支的所有表示式的最終返回值類型必須相同。
+
 ### 匹配 Option
 
-R<mark style="color:red;">ust 中的匹配是 窮盡的（exhaustive）：必須窮舉到最後的可能性來使代碼有效</mark>。特別的在這個 Option 的例子中，Rust 防止我們忘記明確的處理 None 的情況。
+<mark style="color:red;">R</mark><mark style="color:red;">ust 中的匹配是 窮盡的（exhaustive）：必須窮舉到最後的可能性來使代碼有效</mark>。特別的在這個 Option 的例子中，Rust 防止我們忘記明確的處理 None 的情況。
 
 ```rust
 fn plus_one(x: Option<i32>) -> Option<i32> {
@@ -432,7 +438,7 @@ let none = plus_one(None);
 
 ### 通配模式和 \_ 佔位符
 
-我們希望對一些特定的值採取特殊操作，而對其他的值採取默認操作。
+我們希望對一些特定的值採取特殊操作，而對其他的值採取預設操作。
 
 ```rust
 let dice_roll = 9;

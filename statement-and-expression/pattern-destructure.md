@@ -13,8 +13,6 @@ Rust中模式解構功能設計得非常美觀，它的原則是：構造和解�
 * Rust的“模式解構”功能要求“無遺漏”的分析（exhaustive case analysis），確保不會因為不小心而漏掉某些情況；
 * Rust的“模式解構”與Rust的核心所有權管理功能完全相容。
 
-
-
 ```rust
 let tuple = (1_i32, false, 3f32);    // 建構tuple
 let (head, center, tail) = tuple;    // 解構tuple至各變數
@@ -50,7 +48,7 @@ fn main() {
 
 Rust的“模式解構”功能不僅出現在let語句中，還可以出現在match、if let、while let、函式呼叫、閉包調用等情景中。而match具有功能最強大的模式匹配。
 
-## match
+## match與模式解構
 
 ```rust
 enum Direction {
@@ -253,6 +251,8 @@ fn main() {
 
 除了底線可以在模式中作為“預留位置”，還有兩個點`..`也可以在模式中作為“預留位置”使用。底線`_`表示省略一個元素，兩個點可以表示省略多個元素。
 
+總結一下，我們遇到了兩種不同的模式忽略的情況`_`和`..`。<mark style="color:red;">這裡要注意，模式匹配中被忽略的欄位是不會被move的，而且實現Copy的也會優先被Copy而不是被move</mark>。
+
 ```rust
 fn main() {
     let x = (1, 2, 3, 4);
@@ -270,6 +270,8 @@ fn main() {
 }
 ```
 
+### 邏輯匹配多個條件
+
 Match可以匹配值，且可以使用或運算子|來匹配多個條件：
 
 ```rust
@@ -285,6 +287,8 @@ fn main() {
     category(x);    // true
 }
 ```
+
+### 匹配值域區間
 
 match可用`..`表示前閉後開區間，或是`..=`表示閉區間：
 
@@ -383,7 +387,7 @@ fn main() {
 
 ## ref關鍵字
 
-如果我們需要綁定的是被匹配物件的引用，則可以使用ref關鍵字。之所以在某些時候需要使用ref，是因為模式匹配的時候有可能發生變數的所有權轉移，**使用ref就是為了避免出現所有權轉移**。
+如果我們需要綁定的是被匹配物件的引用，則可以使用ref關鍵字。<mark style="background-color:red;">之所以在某些時候需要使用ref，是因為模式匹配的時候有可能發生變數的所有權轉移，</mark><mark style="background-color:red;">**使用ref就是為了避免出現所有權轉移**</mark>。
 
 ```rust
 fn main() {

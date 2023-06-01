@@ -13,7 +13,7 @@
 * 當然，送出去(move)的東西如果別人不還你的話是拿不回來。
 * 但借出去(borrow)的就只是暫時的給別人使用而已。
 
-![rust語義樹](<../.gitbook/assets/rust-min (1).jpg>)
+![rust語義樹](<../.gitbook/assets/rust-min (2).jpg>)
 
 語義樹，主要是想表達下面幾層意思：
 
