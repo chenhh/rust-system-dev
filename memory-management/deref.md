@@ -79,6 +79,20 @@ fn main() {
 
 ## 自動解引用和手動解引用
 
+當我們對智慧指標 Box 進行解引用時，實際上 Rust 為我們呼叫了以下方法：
+
+```rust
+*(y.deref())
+```
+
+首先呼叫 deref 方法返回值的常規引用，然後通過`*`對常規引用進行解引用，最終獲取到目標值。
+
+至於 Rust 為何要使用這個有點囉嗦的方式實現，<mark style="color:red;">原因在於所有權系統的存在</mark>。如果 deref 方法直接返回一個值，而不是引用，那麼該值的所有權將被轉移給呼叫者，而我們不希望呼叫者僅僅只是 \*T 一下，就拿走了智慧指針中包含的值。
+
+需要注意的是，`*` 會無限遞迴替換，從 `*y` 到 `*(y.deref())` 只會發生一次，而不會繼續進行替換然後產生形如 `*((y.deref()).deref())` 的怪物。
+
+
+
 * <mark style="color:red;">自動解引用</mark>：Rust為了減少某些場合下重複解引用導致的程式碼美觀問題，在編譯期做了一些智慧識別功能，比如帶有`&T`引數的函式被呼叫的時候，你傳`&&&......&&&T`都可以自動解引用，直到符合函式的引數型別為止(註：解引用簡單的說就是&&\&T->&\&T->\&T->T每一層都少一個&後，檢查看看有沒有符合程式需要的條件)。
 * <mark style="color:red;">手動解引用</mark>，就是和其他語言類似，<mark style="background-color:orange;">借用是</mark><mark style="background-color:orange;">`&`</mark><mark style="background-color:orange;">操作符，解引用是</mark><mark style="background-color:orange;">`*`</mark><mark style="background-color:orange;">操作符</mark>。
 
