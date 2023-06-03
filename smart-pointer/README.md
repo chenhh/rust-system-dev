@@ -8,7 +8,7 @@ Rust 中最常見的指標是引用（reference）。引用以`&`符號為標志
 
 在 Rust 中，普通引用和智慧指針的一個額外的區別是<mark style="background-color:red;">引用是一類只借用(borrow)資料的指標；相反，在大部分情況下，智慧指標「擁有」(有所有權) 他們指向的資料。</mark>
 
-智慧指<mark style="background-color:red;">標</mark>通常使用結構體(struct)實現。智慧指標區別於常規結構體的顯著特性在於其實現了 `Deref` 和 `Drop` trait。
+智慧指標通常使用結構體(struct)實現。<mark style="color:red;">智慧指標區別於常規結構體的顯著特性在於其實現了</mark> <mark style="color:red;"></mark><mark style="color:red;">`Deref`</mark> <mark style="color:red;"></mark><mark style="color:red;">和</mark> <mark style="color:red;"></mark><mark style="color:red;">`Drop`</mark> <mark style="color:red;"></mark><mark style="color:red;">trait</mark>。
 
 * `Deref` trait 允許智慧指標結構體實例表現的像引用一樣，這樣就可以編寫既用於引用、又用於智慧指針的程式碼。
 * `Drop` trait 允許我們自定義當智慧指標離開作用域時運行的程式碼。

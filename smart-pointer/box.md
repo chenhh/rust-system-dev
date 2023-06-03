@@ -170,7 +170,7 @@ fn main() {
 }
 ```
 
-## 範例：特徵物件
+## 範例：trait物件
 
 ```rust
 trait Draw {

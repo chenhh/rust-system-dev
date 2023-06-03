@@ -2,7 +2,7 @@
 
 ## 借用(borrow)
 
-<mark style="background-color:blue;">&符號在說明記憶體的所有權時的概念稱為借用(borrow)，此時&位於變數的前面；而在說明變數的型別時稱為引用(reference)，此時&位於型別的前面，如果在說明解引用的時候，變數為指標</mark>。兩者可以再分為可變(mut)或不可變引用。
+<mark style="background-color:blue;">&符號在說明記憶體的所有權時的概念稱為借用(borrow)，此時&位於變數的前面；而在說明變數的型別時稱為引用(reference)，此時&位於型別的前面，如果在說明解引用的時候，變數為指標</mark>。可以再分為可變(mut)或不可變引用。
 
 如果我們必須在每個函式都交還所有權，這將會非常煩人。 當我們想處理更多所有權的時候會變得更糟。Rust 提供一個功能，借用（borrowing），可以幫助我們解決這個問題。
 
@@ -24,8 +24,8 @@ fn main() {
     println!("{:p}", n_ref);    // 0x7fff24bd3e9c
     println!("{:p}", &n_ref);   // 0x7fff24bd3ea0
     // Dereference n_ref to get n
-    println!("{}", *n_ref);     // 5
-}
+    println!("{}", *n_ref);     // 5，借用(指標)取值要先解引用
+ }
 ```
 
 ### 唯讀的借用

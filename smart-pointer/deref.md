@@ -2,32 +2,32 @@
 
 ## 簡介
 
-引用是對記憶體塊的借用，Rust裡每一個記憶體塊都是有主人的，主人就是對記憶體擁有所有權的變數，**沒有主人(無變數綁定)的記憶體塊我們稱之為記憶體洩露了**。
+引用是對記憶體塊的借用，Rust裡每一個記憶體塊都是有主人的，主人就是對記憶體擁有所有權的變數，<mark style="color:blue;">**沒有主人(無變數綁定)的記憶體塊我們稱之為記憶體洩露(memory leak)**</mark>。
 
-<mark style="background-color:blue;">**解引用是通過引用找到記憶體塊真正的主人(引用存放的記憶體地位，取引用是將此記憶體地位之值取出)**</mark>，然後你可以跟主人借一些不同型別的引用，比如從`&mut T`借成`Pin<&mut T>`，此行為和C語言中的指標一致，因此可以將引用類型解釋為指標。
+解引用(Deref)是引用(Ref)的反操作。比如說，我們有引用型別`let p: &T`;，那麼可以用`*`符號執行解引用操作，`let v: T = *p`_;。如果`p`的型別是`&T`， 那麼`*`_`p`的型別就是`T`。
 
-* 因為rust有自動deref機制，所以從`&T`到`T`的轉換一定只有deref這一種方式。
+Deref和DerefMut都是Rust中的trait，用來對指標型別進行轉化，得到指標所指向的內容。比如從Box或Rc中得到T，或是從String中得到\&str<mark style="color:red;">。另外我們經常使用的解引用運算子</mark><mark style="color:red;">`*`</mark><mark style="color:red;">其實就是呼叫了deref函數</mark>。
+
+<mark style="background-color:blue;">**解引用是通過引用找到記憶體塊真正的主人(引用存放的記憶體地位，和指標存放內容相同；解引用是將此記憶體地位之值取出)**</mark>，然後你可以跟主人借一些不同型別的引用，比如從`&mut T`借成`Pin<&mut T>`，此行為和C語言中的指標一致，因此可以將引用類型解釋為指標。
+
+* 因為rust有自動deref機制，<mark style="color:red;">所以從&</mark><mark style="color:red;">`T`</mark><mark style="color:red;">到</mark><mark style="color:red;">`T`</mark><mark style="color:red;">的轉換一定只有deref這一種方式</mark>。
 * 但是如果在一個需要`&T`的場合傳入一個`T`，邏輯上你有可能想要把這個`T`通過某種方式轉換到`&T`，而不是傳入對這個`T`的借用，所以這裡是不能自動的。
 * 例如：如果函數需要`&st`r類型的參數，你給它一個`&&str`，編譯器會把自動把它解引用，變成`&str`。
 * 反過來，如果函數要一個`&&str`，你給它一個`&str`，編譯器解一次引用，結果是`str`，這不能再解引用了，因此編譯失敗。
 
 這個主人可能被包了很多層，當你以為你找了主人，其實它只是個皮，所以會存在不斷解引用的情況，你可能需要加很多個`*`符號，當然很多個`*`符號不符合設計美感。
 
-`let t=&*v`說明`v`是可以解引用的。
+`例如let t=&*v`說明`v`是可以解引用的。
 
 * 這裡的解引用可能是的普通引用的解引用（這時可得`t=v`)；
-* 也能可能`v`是一個裸指標，`&*v`下來相當於把不安全的裸指標轉換為普通的引用；
+* 也可能`v`是一個裸指標，`&*v`下來相當於把不安全的裸指標轉換為普通的引用；
 * 也可能`v`是一個智慧指標，比如`Box<v>`，那`&*v`就相當於解出`&T`了；
-* 還有可能是`v`的類型實現了Deref trait，那`&v`_就相當於呼叫\`_(v.deref()\_\`
+* 還有可能是`v`的類型實現了Deref trait，那`&*v`_就相當於呼叫&_(v.deref())
 
 
 
-* `*`引用運算子對於沒有實現Dered的引用物件，返回其原始的物件。
-* 引用運算子對於實現Dered Trait的（非引用物件）操作是隱示的呼叫 其`deref()`方法，也就是從一個引用類型到另外一個引用類型。
-
-<mark style="background-color:red;">**Rust語法規定，同一塊記憶體只能有一個可變引用，或者有多個不可變引用（共享不可變，可變不共享**</mark>**）**。 **Rust之所以這麼規定，一個非常大的優點是避免了記憶體被多處修改的潛在隱患，避免了資源的複雜環境競爭，降低了程式的除錯難度(註：同時解決了多執行緒的同步問題)**。
-
-那麼，<mark style="background-color:orange;">程式編寫過程中必然會在不同的函式塊裡呼叫同一塊記憶體，所以引用的使用將會變得非常頻繁，我們犯的錯誤大多也在此</mark>。
+* <mark style="color:red;">`*`</mark><mark style="color:red;">引用運算子對於沒有實現Dered的引用物件，返回其原始的物件</mark>。
+* 引用運算子對於實現Dered Trait的（非引用物件）操作是隱式的呼叫 其`deref()`方法，也就是從一個引用類型到另外一個引用類型。
 
 ### 常規引用的解引用
 
@@ -91,8 +91,6 @@ fn main() {
 
 需要注意的是，`*` 會無限遞迴替換，從 `*y` 到 `*(y.deref())` 只會發生一次，而不會繼續進行替換然後產生形如 `*((y.deref()).deref())` 的怪物。
 
-
-
 * <mark style="color:red;">自動解引用</mark>：Rust為了減少某些場合下重複解引用導致的程式碼美觀問題，在編譯期做了一些智慧識別功能，比如帶有`&T`引數的函式被呼叫的時候，你傳`&&&......&&&T`都可以自動解引用，直到符合函式的引數型別為止(註：解引用簡單的說就是&&\&T->&\&T->\&T->T每一層都少一個&後，檢查看看有沒有符合程式需要的條件)。
 * <mark style="color:red;">手動解引用</mark>，就是和其他語言類似，<mark style="background-color:orange;">借用是</mark><mark style="background-color:orange;">`&`</mark><mark style="background-color:orange;">操作符，解引用是</mark><mark style="background-color:orange;">`*`</mark><mark style="background-color:orange;">操作符</mark>。
 
@@ -144,6 +142,8 @@ pub trait DerefMut: Deref {
 }
 ```
 
+請大家注意這裡的型別，`deref()` 方法返回的型別是 `&Target`，而不是 `Target`。
+
 這個trait有一個關聯類型Target，代表解引用之後的目標類型。 比如，<mark style="background-color:red;">標準庫中實現了</mark><mark style="background-color:red;">`String`</mark><mark style="background-color:red;">向</mark><mark style="background-color:red;">`str`</mark><mark style="background-color:red;">的解引用轉換</mark>：
 
 ```rust
@@ -155,6 +155,8 @@ impl ops::Deref for String {
     }
 }
 ```
+
+如果說有變數`s`的類型為`String`，`*s` 的類型並不等於 `s.deref()` 的類型。 `*s`的類型實際上是 `Target`，即`str`。`&*s`的型別為`&str`。 而 `s.deref()` 的型別為 `&Target`，即 `&str`。
 
 ## 標準庫的容器
 
@@ -171,6 +173,10 @@ impl ops::Deref for String {
 自訂解引用操作符可以讓用戶自行定義各種各樣的“智慧指標”，完成各種各樣的任務。再配合上編譯器的“自動”解引用機制，非常有用。
 
 ## 自動解引用
+
+自動解引用是為了方便程式設計師，在變數不滿足條件的情況下，自動對變數使用解引用。
+
+比如rust的庫中針對\&str實現了很多字串的操作，然而並沒有針對string進行實現，但是我們可以直接使用string進行字串操作，實際上是編譯器自動把\&string解引用為了\&str。
 
 Rust 在發現類型和 trait 實現滿足三種情況時會進行 Deref 強制轉換：
 

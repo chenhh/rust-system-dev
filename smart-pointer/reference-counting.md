@@ -4,7 +4,14 @@
 
 為了啟用多所有權，Rust 有一個叫做 `Rc` 的類型。其名稱為 引用計數（reference counting）的縮寫。引用計數意味著記錄一個值引用的數量來知曉這個值是否仍在被使用。如果某個值有零個引用，就代表沒有任何有效引用並可以被清理。
 
-<mark style="color:blue;">Rc 用於當我們希望在堆上分配一些內存供程式的多個部分讀取，而且無法在編譯時確定程式的哪一部分會最後結束使用它的時候</mark>。如果確實知道哪部分是最後一個結束使用的話，就可以令其成為數據的所有者，正常的所有權規則就可以在編譯時生效。
+Rust 所有權機制要求一個值只能有一個所有者，在大多數情況下都沒有問題，但是考慮以下情況：
+
+* 在圖(graph)資料結構中，多個邊可能會擁有同一個節點，該節點直到沒有邊指向它時，才應該被釋放清理
+* 在多執行緒中，多個執行緒可能會持有同一個資料，但是你受限於 Rust 的安全機制，無法同時獲取該資料的可變引用
+
+因此通過引用計數的方式，允許一個資料資源在同一時刻擁有多個所有者。
+
+<mark style="color:blue;">Rc 用於當我們希望在堆積上分配一些記憶體供程式的多個部分讀取，而且無法在編譯時確定程式的哪一部分會最後結束使用它的時候</mark>。如果確實知道哪部分是最後一個結束使用的話，就可以令其成為數據的所有者，正常的所有權規則就可以在編譯時生效。
 
 注意 Rc 只能用於單執行緒場景；
 
@@ -13,12 +20,43 @@
 單執行緒的引用計數指標，用來共享配置在堆積上的資料。
 
 * 內部記錄引用資料的指標數量，當最後一個 Rc 指標銷毀時，資料也隨風而去。
-* <mark style="background-color:red;">因為共享，所以禁止任何改變（但可從內部可變性繞過）</mark>。
+* <mark style="background-color:red;">因為共享，所以禁止任何改變（但可從內部可變性繞過）</mark>。如果要修改，需要配合內部可變性 RefCell 或互斥鎖 Mutex
 * 可能發生迴圈引用，導致記憶體洩漏，此時須使用 Weak 弱引用。
 * <mark style="color:red;">非原子操作，所以無法在執行緒間傳遞</mark>，但可用 Arc 原子引用計數指標。
+* Rc 是一個智慧指標，實現了 Deref 特徵，因此你無需先解開 Rc 指標，再使用裡面的 T，而是可以直接使用 T。
 * 類似 C++std::shared\_ptr。
 
 ![b,c共享a的所有權](../.gitbook/assets/rc-min.PNG)
+
+```rust
+use std::rc::Rc;
+fn main() {
+    // 使用 Rc::new 建立了一個新的 Rc<String> 智慧指標並賦給變數 a，
+    // 該指標指向底層的字串資料
+    let a = Rc::new(String::from("hello, world"));
+    // 這裡的 clone 僅僅複製了智慧指標並增加了引用計數，並沒有克隆底層資料
+    let b = Rc::clone(&a);
+
+    assert_eq!(2, Rc::strong_count(&a)); // 獲取引用計數
+    assert_eq!(Rc::strong_count(&a), Rc::strong_count(&b))
+}
+```
+
+```rust
+use std::rc::Rc;
+fn main() {
+        let a = Rc::new(String::from("test ref counting"));
+        println!("count after creating a = {}", Rc::strong_count(&a)); // 1
+        let b =  Rc::clone(&a);
+        println!("count after creating b = {}", Rc::strong_count(&a)); // 2
+        {
+            let c =  Rc::clone(&a);
+            println!("count after creating c = {}", Rc::strong_count(&c)); // 3
+        }
+        // 只有c離開scope, 因此計數減1
+        println!("count after c goes out of scope = {}", Rc::strong_count(&a)); // 2
+}
+```
 
 ```rust
 #[derive(Debug)]

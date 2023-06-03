@@ -6,6 +6,33 @@
 
 RefCell 只能用於單執行緒場景;
 
+所有權、借用規則與這些智慧指標做一個對比：
+
+| Rust 規則            | 智慧指標帶來的額外規則            |
+| ------------------ | ---------------------- |
+| 一個資料只有一個所有者        | Rc/Arc讓一個資料可以擁有多個所有者   |
+| 多個不可變借用不能和一個可變借用共存 | RefCell實現編譯期可變、不可變引用共存 |
+| 違背規則導致編譯錯誤         | 違背規則導致執行階段panic        |
+
+## Cell
+
+Cell 和 RefCell 在功能上沒有區別，區別在於 Cell 適用於 `T` 實現 Copy 的情形。
+
+由於 Cell 型別針對的是實現了 Copy trait的值類型，因此在實際開發中，Cell 使用的並不多。
+
+```rust
+use std::cell::Cell;
+fn main() {
+    // asdf" 是 &str 型別，它實現了 Copy trait，但不可用於String類型
+    let c = Cell::new("asdf");
+    // c.get 用來取值，c.set 用來設定新值
+    let one = c.get();
+    c.set("qwer");
+    let two = c.get();
+    println!("{},{}", one, two);
+}
+```
+
 ## 通過 RefCell 在執行時檢查借用規則
 
 不同於`Rc`，`RefCell` 代表其資料的**唯一**的所有權。
@@ -13,6 +40,20 @@ RefCell 只能用於單執行緒場景;
 **而**`RefCell`與`Box`都有唯有唯一的擁有權，其不同之處在於<mark style="color:red;">對於引用和 Box，借用規則的不可變性作用於編譯時</mark>。<mark style="color:red;">對於 RefCell，這些不可變性作用於執行時</mark>。對於引用，如果違反這些規則，會得到一個編譯錯誤。而對於 `RefCell`，如果違反這些規則程式會 panic 並退出。
 
 RefCell 是會動態檢查 borrow checker rule 的型別，比 Cell 多一個 borrow 的欄位，動態紀錄引用的情形。
+
+<mark style="color:red;">RefCell 實際上並沒有解決可變引用和引用可以共存的問題，只是將報錯從編譯期推遲到執行階段，從編譯器錯誤變成了 panic 異常</mark>。
+
+```rust
+use std::cell::RefCell;
+
+fn main() {
+    let s = RefCell::new(String::from("hello, world"));
+    let s1 = s.borrow();
+    let s2 = s.borrow_mut();
+
+    println!("{},{}", s1, s2);
+}
+```
 
 ### RefCell實作
 
@@ -40,8 +81,8 @@ fn main() {
 
 ## 選擇 Box，Rc 或 RefCell 的時機
 
-* Rc 允許相同資料有多個所有者；Box 和 RefCell 有單一所有者。&#x20;
-* Box 允許在編譯時執行不可變或可變借用檢查；Rc僅允許在編譯時執行不可變借用檢查；RefCell 允許在運行時執行不可變或可變借用檢查。&#x20;
+* Rc 允許相同資料有多個所有者；Box 和 RefCell 有單一所有者。
+* Box 允許在編譯時執行不可變或可變借用檢查；Rc僅允許在編譯時執行不可變借用檢查；RefCell 允許在運行時執行不可變或可變借用檢查。
 * 因為 RefCell 允許在運行時執行可變借用檢查，所以我們可以在即便 RefCell 自身是不可變的情況下修改其內部的值。
 
 ### 什麼時候該用 Cell 或 RefCell
@@ -93,7 +134,7 @@ fn main() {
 
 ## Cell與RefCell
 
-&#x20;Cell 透過所有權轉移修改內部的值。 RefCell 藉由執行時的借用檢查操作指標。 兩者皆不會額外在堆積配置空間存資料。
+Cell 透過所有權轉移修改內部的值。 RefCell 藉由執行時的借用檢查操作指標。 兩者皆不會額外在堆積配置空間存資料。
 
 ### Cell實作
 
