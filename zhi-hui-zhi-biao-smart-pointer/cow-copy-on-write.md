@@ -1,12 +1,10 @@
 # Cow(copy on write)
 
-
-
 ## Cow (copy on write)
 
 Clone On Write 的智慧指標，修改指標指向的資料時，才會複製一份資料。
 
-* Cow 是一個 enum，會是 borrowed 或 owned data 其中一種。&#x20;
+* Cow 是一個 enum，會是 borrowed 或 owned data 其中一種。
 * Cow 的 T 需實作 `ToOwned trait`，可視為需要能被 clone。
 
 ```rust
