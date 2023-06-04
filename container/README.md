@@ -15,7 +15,11 @@
 
 ## 迭代器 (iterator)
 
-Rust的迭代器是指實現了`Iterator` trait的類型。
+在Rust中，迭代器共分為三個部分：迭代器、介面卡、消費者。
+
+其中，迭代器本身提供了一個惰性的序列，介面卡對這個序列進行諸如篩選、拼接、轉換尋找等操作，消費者則在前兩者的基礎上生成最後的數值集合。
+
+Rust的迭代器是指實現了[`Iterator` trait](https://doc.rust-lang.org/std/iter/index.html)的類型。
 
 ```rust
 trait Iterator {

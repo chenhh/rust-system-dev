@@ -2,7 +2,7 @@
 
 ## 簡介
 
-閉包中有簡單介紹[靜態與動態分派](closure.md#jing-tai-yu-dong-tai-fen-pai)。
+閉包或函數做為函數的參數時，可使用[靜態與動態分派](closure.md#jing-tai-yu-dong-tai-fen-pai)。
 
 * 所謂“靜態分派”，是指具體調用哪個函數，在編譯階段就確定下來了。**Rust中的“靜態分派”靠泛型以及impl trait來完成**。對於不同的泛型類型參數，編譯器會生成不同版本的函數，在編譯階段就確定好了應該調用哪個函數。
 * 所謂“動態分派”，是指具體調用哪個函數，在執行階段才能確定。**Rust中的“動態分派”靠特徵物件(Trait Object)來完成**。特徵物件本質上是指標，它可以指向不同的類型；指向的具體類型不同，調用的方法也就不同。
@@ -24,11 +24,11 @@ impl Bird for Swan {
         println!("swan swan");
     }
 }
-// 靜態分派
+// 靜態分派，使用泛型與限制
 fn test_static<T: Bird>(arg: T) {
     arg.fly();
 }
-// 動態分派, 用Box將變數裝箱
+// 動態分派, 用Box將物件裝箱, 因為物件長度不確定，必須加上dyn關鍵字
 fn test_dynamic(arg: Box<dyn Bird>) {
     arg.fly();
 }
