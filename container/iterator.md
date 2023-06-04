@@ -1,8 +1,12 @@
-# 迭代器 (iterator)
+# 迭代器
 
 在Rust中，迭代器共分為三個部分：迭代器、介面卡、消費者。
 
 其中，迭代器本身提供了一個惰性的序列，介面卡對這個序列進行諸如篩選、拼接、轉換尋找等操作，消費者則在前兩者的基礎上生成最後的數值集合。
+
+消費者是迭代器上一種特殊的操作，其主要作用就是將迭代器轉換成其他類型的值，而非另一個迭代器。&#x20;
+
+而介面卡，則是對迭代器進行遍歷，並且其生成的結果是另一個迭代器，可以被鏈式呼叫直接呼叫下去。
 
 Rust的迭代器是指實現了[`Iterator` trait](https://doc.rust-lang.org/std/iter/index.html)的類型。
 
@@ -149,13 +153,21 @@ for e in arr.iter_mut(){
 
 ## for循環
 
-Rust裡面更簡潔、更自然地使用迭代器的方式是使用for迴圈。本質上來說，for迴圈就是專門為迭代器設計的一個語法糖。for迴圈可以對針對陣列切片、字串、Range、Vec、LinkedList、HashMap、BTreeMap等所有具有迭代器的類型執行迴圈，而且還允許我們針對自訂類型實現迴圈。
+Rust裡面更簡潔、更自然地使用迭代器的方式是使用for迴圈。for循環能夠依次對迭代器的任意元素進行訪問，即for迴圈就是專門為迭代器設計的一個語法糖。
+
+for迴圈可以對針對陣列切片、字串、Range、Vec、LinkedList、HashMap、BTreeMap等所有具有迭代器的類型執行迴圈，而且還允許我們針對自訂類型實現迴圈。
 
 ```rust
 use std::collections::HashMap;
 fn main() {
+    // 1..10 Range為迭代器，呼叫next()走訪元素
+    for i in 1..10 {
+        print!("{} ", i);
+    }
+
     let v = vec![1, 2, 3, 4, 5, 6, 7, 8, 9];
     // borrow of vec
+    // Vec沒有實現Iterator，而是實現IntoIterator
     for i in &v {
         print!("{i}\t");
     }
@@ -166,6 +178,7 @@ fn main() {
         println!("{k} : {v}");
     }
 }
+
 ```
 
 ```rust
@@ -195,9 +208,9 @@ impl<'a, K: 'a, V: 'a> IntoIterator for &'a mut BTreeMap<K, V> {
 
 對於一個容器類型，標準庫裡面對它impl了三次IntoIterator。當Self類型為BTreeMap的時候，Item類型為（K，V），這意味著，每次next()方法都是把內部的元素move出來了；當Self類型為\&BTreeMap的時候，Item類型為（\&K，\&V），每次next()方法返回的是借用；當Self類型為\&mut BTreeMap的時候，Item類型為（\&K，\&mut V），每次next()方法返回的key是唯讀的，value是可讀寫的。
 
-Rust的for\<item>in\<container>{\<body>}語法結構就是一個語法糖。這個語法的原理其實就是調用\*\*`<container>.into_iter()`\*\*方法來獲得迭代器，然後不斷迴圈調用迭代器的`next()`方法，將返回值解包，賦值給\<item>，然後調用\<body>語句塊。
+Rust的for\<item>in\<container>{\<body>}語法結構就是一個語法糖。這個語法的原理其實就是調用`<container>.into_iter()`方法來獲得迭代器，然後不斷迴圈調用迭代器的`next()`方法，將返回值解包，賦值給\<item>，然後調用\<body>語句塊。
 
-在使用for迴圈的時候，我們可以自主選擇三種使用方式：
+### 在使用for迴圈的時候，我們可以自主選擇三種使用方式
 
 ```rust
 // container在迴圈之後生命週期就結束了,
@@ -212,3 +225,132 @@ for item in &mut container{}
 ```
 
 Rust的IntoIterator trait實際上就是for語法的擴展介面。如果我們需要讓各種自訂容器也能在for迴圈中使用，那就可以借鑒標準庫中的寫法，自行實現這個trait即可。
+
+## 無限迭代器
+
+```rust
+let inf_seq = (1..).into_iter();
+```
+
+不用擔心這個無限增長的序列撐爆你的記憶體，因為介面卡的惰性求值的特性，它本身是安全的，除非你對這個序列進行collect或者fold。
+
+想要應用這個迭代號，你需要用take或者take\_while來截斷它。
+
+## 消費者
+
+迭代器負責生產，而消費者則負責將生產出來的東西最終做一個轉化。
+
+取第幾個值所用的 .nth()函數，還有用來尋找值的 .find() 函數，呼叫下一個值的next()函數。
+
+### collect方法
+
+一個典型的消費者就是collect。此方法負責將迭代器裡面的所有資料取出。
+
+```rust
+fn main() {
+    // 解法1，手動指定v的容器
+    let v: Vec<_> = (1..20).collect();
+    println!("{:?}", v);
+    
+    // 解法2，顯式地指定collect呼叫時的類型
+     let v2 = (1..20).collect::<Vec<_>>();
+     println!("{:?}", v2);
+}
+```
+
+collect只知道將迭代器收集到一個實現了 FromIterator 的類型中去，但是，事實上實現這個 trait 的類型有很多（Vec, HashMap等），因此，collect沒有一個上下文來判斷應該將v按照什麼樣的方式收集，必須手動指定類型。
+
+### fold方法
+
+fold函數即為map-reduce中的reduce函數。
+
+```rust
+// fold(base, |accumulator, element| .. )
+fn main() {
+    let m = (1..20).fold(0, |add, x| add + x);
+    println!("m={m}"); // 190
+}
+```
+
+fold的輸出結果的類型，最終是和base的類型是一致的（如果base的類型沒指定，那麼可以根據前面m的類型進行反推，除非m的類型也未指定）。
+
+## 介面卡
+
+生產消費者的模型裡，生產者所生產的東西不一定都會被消費者買賬，因此，需要對原有的產品進行再組裝。這個再組裝的過程，就是介面卡。因為介面卡返回的是一個新的迭代器，所以可以直接用鏈式請求一直寫下去。
+
+### map方法
+
+map接受一個閉包函數，對迭代器的每一個元素使用此函數。
+
+```rust
+fn main() {
+    // map為lazy eval，不會實作動作，必須有consumer才能編譯
+    let m: Vec<_> = (1..5).map(|x| x + 1).collect();
+    println!("{:?}", m); // [2, 3, 4, 5]
+}
+```
+
+### filter方法
+
+filter接受一個閉包涵數，返回一個布林值，返回true的時候表示保留元素，false丟棄之。
+
+```rust
+fn main() {
+    // filter為lazy eval，不會實作動作，必須有consumer才能編譯
+    let v: Vec<_> = (1..20).filter(|x| x % 2 == 0).collect();
+    println!("{:?}", v); // [2, 4, 6, 8, 10, 12, 14, 16, 18]
+}
+```
+
+### skip和take方法
+
+take(n)的作用是取前n個元素，而skip(n)正好相反，跳過前n個元素。
+
+```rust
+fn main() {
+    let v = vec![1, 2, 3, 4, 5, 6];
+    let v_take = v.iter().cloned().take(2).collect::<Vec<_>>();
+    assert_eq!(v_take, vec![1, 2]);
+
+    let v_skip: Vec<_> = v.iter().cloned().skip(2).collect();
+    assert_eq!(v_skip, vec![3, 4, 5, 6]);
+}
+```
+
+### zip
+
+zip是一個介面卡，他的作用就是將兩個迭代器的內容壓縮到一起，形成 Iterator\<Item=(ValueFromA, ValueFromB)>
+
+```rust
+use std::collections::HashMap;
+
+fn main() {
+    let names = vec!["WaySLOG", "Mike", "Elton"];
+    let scores = vec![60, 80, 100];
+    let score_map: HashMap<_, _> = names.iter().zip(scores.iter()).collect();
+    println!("{:?}", score_map);
+    // {"Elton": 100, "WaySLOG": 60, "Mike": 80}
+}
+```
+
+### enumerate
+
+把迭代器的下標顯示出來。
+
+```
+fn main() {
+    let v = vec![1u64, 2, 3, 4, 5, 6];
+    let val = v
+        .iter()
+        .enumerate()
+        // 迭代生成標，並且每兩個元素剔除一個
+        .filter(|&(idx, _)| idx % 2 == 0)
+        // 將下標去除,如果呼叫unzip獲得最後結果的話，可以呼叫下面這句，終止鏈式呼叫
+        // .unzip::<_,_, vec<_>, vec<_>>().1
+        .map(|(idx, val)| val)
+        // 累加 1+3+5 = 9
+        .fold(0u64, |sum, acm| sum + acm);
+    println!("{}", val); // 9
+}
+
+```
