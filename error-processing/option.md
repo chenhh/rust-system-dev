@@ -33,6 +33,10 @@ fn plus_one(x: Option<i32>) -> Option<i32> {
 
 一般用兩種方法取值，一種是[`expect(custom error msg)`](https://doc.rust-lang.org/std/option/enum.Option.html#method.expect)，可自定義錯誤時的訊息。另一種是[`unwrap()`](https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap)系列的方法(unwrap, [unwrap\_or](https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap\_or), [unwrap\_or\_default](https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap\_or\_default)(default),[ unwrap\_or\_else](https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap\_or\_else)(fn), [unwrap\_unchecked](https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap\_unchecked)())，錯誤時直接panic!。
 
+### unwrap()方法
+
+取值失敗時直接panic。
+
 ```rust
 // 由unwrap()的定義可以看出是直接取值，或在None時直接panic
 pub const fn unwrap(self) -> T {
@@ -42,6 +46,10 @@ pub const fn unwrap(self) -> T {
         }
     }
 ```
+
+### unwrap\_or方法
+
+unwrap\_or(default)取值失敗時，回傳default。
 
 ```rust
 // 由unwrap()的定義可以看出是直接取值，或在None時傳回給定的default值
@@ -58,6 +66,10 @@ pub const fn unwrap_or(self, default: T) -> T
 assert_eq!(Some("car").unwrap_or("bike"), "car");
 assert_eq!(None.unwrap_or("bike"), "bike");
 ```
+
+### unwrap\_or\_default()方法
+
+如果為 Some，則返回所包含的值，否則，如果None，則返回該類型的預設值。
 
 ```rust
 // 如果 Some，則返回所包含的值，否則，如果None，則返回該類型的預設值。
@@ -78,6 +90,8 @@ let bad_year = bad_year_from_input.parse().ok().unwrap_or_default();
 assert_eq!(1909, good_year);
 assert_eq!(0, bad_year);
 ```
+
+
 
 ```rust
 // 返回包含的 Some 值或從閉包中計算得出

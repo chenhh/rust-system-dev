@@ -280,7 +280,7 @@ fold的輸出結果的類型，最終是和base的類型是一致的（如果bas
 
 ### map方法
 
-map接受一個閉包函數，對迭代器的每一個元素使用此函數。
+[map](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.map)接受一個閉包函數，對迭代器的每一個元素使用此函數。
 
 ```rust
 fn main() {
@@ -292,7 +292,7 @@ fn main() {
 
 ### filter方法
 
-filter接受一個閉包涵數，返回一個布林值，返回true的時候表示保留元素，false丟棄之。
+[filter](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.filter)接受一個閉包涵數，返回一個布林值，返回true的時候表示保留元素，false丟棄之。
 
 ```rust
 fn main() {
@@ -304,7 +304,7 @@ fn main() {
 
 ### skip和take方法
 
-take(n)的作用是取前n個元素，而skip(n)正好相反，跳過前n個元素。
+[take(n)](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.take)的作用是取前n個元素，而[skip(n)](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.skip)正好相反，跳過前n個元素。
 
 ```rust
 fn main() {
@@ -317,9 +317,9 @@ fn main() {
 }
 ```
 
-### zip
+### zip與unzip
 
-zip是一個介面卡，他的作用就是將兩個迭代器的內容壓縮到一起，形成 Iterator\<Item=(ValueFromA, ValueFromB)>
+[zip](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.zip)是一個介面卡，他的作用就是將兩個迭代器的內容壓縮到一起，形成 Iterator\<Item=(ValueFromA, ValueFromB)>
 
 ```rust
 use std::collections::HashMap;
@@ -333,11 +333,32 @@ fn main() {
 }
 ```
 
+[unzip](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.unzip)是將zip後的元素解開。
+
+```rust
+fn main() {
+    let a = [(1, 2), (3, 4), (5, 6)];
+    // 第一個元素解開成left vec，第二個元素解開成right vec
+    let (left, right): (Vec<_>, Vec<_>) = a.iter().cloned().unzip();
+
+    assert_eq!(left, [1, 3, 5]);
+    assert_eq!(right, [2, 4, 6]);
+
+    // you can also unzip multiple nested tuples at once
+    let a = [(1, (2, 3)), (4, (5, 6))];
+
+    let (x, (y, z)): (Vec<_>, (Vec<_>, Vec<_>)) = a.iter().cloned().unzip();
+    assert_eq!(x, [1, 4]);
+    assert_eq!(y, [2, 5]);
+    assert_eq!(z, [3, 6]);
+}
+```
+
 ### enumerate
 
-把迭代器的下標顯示出來。
+[enumerate](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.enumerate)把迭代器的下標顯示出來。
 
-```
+```rust
 fn main() {
     let v = vec![1u64, 2, 3, 4, 5, 6];
     let val = v
@@ -352,5 +373,72 @@ fn main() {
         .fold(0u64, |sum, acm| sum + acm);
     println!("{}", val); // 9
 }
-
 ```
+
+### find與position
+
+[find](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.find)傳入一個閉包函數，從開頭到結尾依次尋找能令這個閉包返回true的第一個元素，返回Option\<Item>。
+
+```rust
+fn main() {
+    let a = [1, 2, 3];
+
+    assert_eq!(a.iter().find(|&&x| x == 2), Some(&2));
+    assert_eq!(a.iter().find(|&&x| x == 5), None);
+
+    let a = [1, 2, 3];
+    let mut iter = a.iter();
+    assert_eq!(iter.find(|&&x| x == 2), Some(&2));
+    // we can still use `iter`, as there are more elements.
+    assert_eq!(iter.next(), Some(&3));
+}
+```
+
+[position()](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.position): 類似find函數，不過這次輸出的是Option，第幾個元素。
+
+```rust
+fn main() {
+    let a = [1, 2, 3];
+
+    assert_eq!(a.iter().position(|&x| x == 2), Some(1));
+    assert_eq!(a.iter().position(|&x| x == 5), None);
+
+    let a = [1, 2, 3, 4];
+
+    let mut iter = a.iter();
+    assert_eq!(iter.position(|&x| x >= 2), Some(1));
+    // we can still use `iter`, as there are more elements.
+    assert_eq!(iter.next(), Some(&3));
+    // The returned index depends on iterator state
+    assert_eq!(iter.position(|&x| x == 4), Some(0));
+}
+```
+
+### all與any
+
+[all](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.all)傳入一個函數，如果對於迭代器內的任意一個元素，呼叫這個函數返回false，則整個表示式返回false；否則返回true，即所有元素使用函數都為真。
+
+[any](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.any)也是傳入一個函數，不過這次是任何一個元素返回true，則整個表示式返回true，否則false。
+
+```rust
+fn main() {
+    let a = [1, 2, 3];
+
+    assert!(a.iter().all(|&x| x > 0));
+
+    assert!(!a.iter().all(|&x| x > 2));
+
+    let a = [1, 2, 3];
+
+    let mut iter = a.iter();
+    // 在第一個傳回false的pos停止
+    assert!(!iter.all(|&x| x != 2));
+    // we can still use `iter`, as there are more elements.
+    assert_eq!(iter.next(), Some(&3));
+}
+r
+```
+
+### max和min
+
+尋找整個迭代器裡所有元素，返回最大或最小值的元素。注意作用在浮點數上會有不符合預期的結果。

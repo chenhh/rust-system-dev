@@ -159,7 +159,7 @@ enum Result<T, E> {
 
 Rust用於錯誤處理的最基本的類型就是我們常見的Option\<T>類型。<mark style="color:red;">**用 Option\<T> 表示錯誤時一般不關心錯誤原因，出錯時直接返回空值 None**</mark> 。一般就直接用 Option\<T> 例如從 HashMap 裡面取值或者對 Vector 進行 pop 操作，前者出錯了只可能是對應的 key 不存在，後者出錯只可能是 Vector 已經是空的了。
 
-<mark style="color:red;">而 Result\<T, E> 則將錯誤的不同原因包括進來了，Option\<T> 相當於 Result\<T, ()></mark>。而如果錯誤可能是多種原因造成的則用 Result\<T, E> 來表示，例如 IO 錯誤，原因可能是 NotFound, PermissionDenied, AlreadyExists, InvalidData…。
+<mark style="color:red;">而 Result\<T, E> 則將錯誤的不同原因包括進來了，</mark><mark style="color:red;background-color:red;">Option\<T> 相當於 Result\<T, ()></mark>。而如果錯誤可能是多種原因造成的則用 Result\<T, E> 來表示，例如 IO 錯誤，原因可能是 NotFound, PermissionDenied, AlreadyExists, InvalidData…。
 
 在看各種文檔或讀別人的程式碼時發現 Result\<T> 的錯誤類型時可能會有點小疑惑。因為Result\<T> 是用到了類型別名。
 
