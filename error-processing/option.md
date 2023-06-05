@@ -69,7 +69,7 @@ assert_eq!(None.unwrap_or("bike"), "bike");
 
 ### unwrap\_or\_default()方法
 
-如果為 Some，則返回所包含的值，否則，如果None，則返回該類型的預設值。
+如果為 Some，則返回所包含的值，否則，如果None，則返回回傳類型的預設值。
 
 ```rust
 // 如果 Some，則返回所包含的值，否則，如果None，則返回該類型的預設值。
