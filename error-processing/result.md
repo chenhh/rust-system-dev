@@ -11,7 +11,7 @@ pub enum Result<T, E> {
 }
 ```
 
-在變體`Err(E)`為`None`時，`Option`可以被看作`Result`的特例。，`Err(E)`描述的是可能的錯誤而不是可能的不存在。
+在變體`Err(E)`為`None`時，`Option`可以被看作`Result`的特例，即<mark style="color:red;">`Option<T>=Result<T, ()>`</mark>。，`Err(E)`描述的是可能的錯誤而不是可能的不存在。
 
 `Result`的處理方法和`Option`類似，都可以使用`unwrap`和`expect方`法，也可以使用`map`和`and_then`方法，並且用法也都類似。
 

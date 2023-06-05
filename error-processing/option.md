@@ -33,12 +33,13 @@ fn plus_one(x: Option<i32>) -> Option<i32> {
 
 一般用兩種方法取值，一種是[`expect(custom error msg)`](https://doc.rust-lang.org/std/option/enum.Option.html#method.expect)，可自定義錯誤時的訊息。另一種是[`unwrap()`](https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap)系列的方法(unwrap, [unwrap\_or](https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap\_or), [unwrap\_or\_default](https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap\_or\_default)(default),[ unwrap\_or\_else](https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap\_or\_else)(fn), [unwrap\_unchecked](https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap\_unchecked)())，錯誤時直接panic!。
 
-### unwrap()方法
+## unwrap()方法族
 
-取值失敗時直接panic。
+[unwrap](https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap)如果為 Some，則返回所包含的值，否則時直接panic。
 
 ```rust
 // 由unwrap()的定義可以看出是直接取值，或在None時直接panic
+// 回傳值會造成所有權轉移
 pub const fn unwrap(self) -> T {
         match self {
             Some(val) => val,
@@ -47,9 +48,29 @@ pub const fn unwrap(self) -> T {
     }
 ```
 
+unwrap會消費Option變數，後面不可再使用。且有所有權的限制，只有原始變數可使用unwrap，其引用(可變與不可變)均不可呼叫之。
+
+```rust
+fn main() {
+    let a = Some(Box::new(5));
+    let av = a.unwrap(); // 所有權已轉移，無法再使用a
+    println!("val={}", *av);
+
+    let b = Some(Box::new(6));
+    let c = &b;
+    // cannot move out of `*c` which is behind a shared reference
+    //   let d = *c.unwrap();
+
+    // 先clone再unwrap()就OK
+    let e = c.clone().unwrap();
+}
+```
+
 ### unwrap\_or方法
 
 unwrap\_or(default)取值失敗時，回傳default。
+
+generic bounds前的tilde(\~)符號表示不穩定的實作。
 
 ```rust
 // 由unwrap()的定義可以看出是直接取值，或在None時傳回給定的default值
@@ -91,7 +112,7 @@ assert_eq!(1909, good_year);
 assert_eq!(0, bad_year);
 ```
 
-
+### unwrap\_or\_else()方法
 
 ```rust
 // 返回包含的 Some 值或從閉包中計算得出
@@ -108,8 +129,10 @@ pub const fn unwrap_or_else<F>(self, f: F) -> T
     }
 let k = 10;
 assert_eq!(Some(4).unwrap_or_else(|| 2 * k), 4);
-assert_eq!(None.unwrap_or_else(|| 2 * k), 20);u
+assert_eq!(None.unwrap_or_else(|| 2 * k), 20);
 ```
+
+### expect(msg)方法
 
 ```rust
 // 由expect(msg)的定義可以看出是直接取值，或是在None傳回自訂的error msg
@@ -124,6 +147,8 @@ const fn expect_failed(msg: &str) -> ! {
     panic_str(msg)
 }
 ```
+
+### unwrap\_unchecked()方法
 
 ```rust
 // 返回包含 self 值的包含的 Some 值，而不檢查該值是否不是 None。
@@ -169,7 +194,33 @@ fn main() {
 }
 ```
 
-## 組合運算元：map
+## take方法
+
+take方法可以從option中取值，而原始的變數為None(原始變數仍有效，只是值變為None)，注意變數必須為可變。
+
+```rust
+pub const fn take(&mut self) -> Option<T> {
+        // FIXME replace `mem::replace` by `mem::take` when the latter is const ready
+        mem::replace(self, None)
+    }
+```
+
+```rust
+fn main() {
+    let mut a = Some(Box::new(5));
+    let mut b = &mut a;
+    let c = &mut b;
+    let d = c.take();
+
+    println!("{:?}", c); //None
+    println!("{:?}", d); //Some(5)
+    println!("{:?}", a); // None
+}
+```
+
+## 組合運算元：map族
+
+[map(f)](https://doc.rust-lang.org/std/option/enum.Option.html#method.map)如果變數為None時，直接傳回None，否則將變數unwrap後，再呼叫函數回傳計算值`Some(f(x))`。
 
 ```rust
 //FnOnce：表示捕獲方式為通過值（T）的閉包。
@@ -186,6 +237,10 @@ let maybe_some_len = maybe_some_string.map(|s| s.len()); // 得到Some(s.len())
 
 assert_eq!(maybe_some_len, Some(13));
 ```
+
+### map\_or方法
+
+[map\_or(default, f)](https://doc.rust-lang.org/std/option/enum.Option.html#method.map\_or)如果變數為None時，直接傳回給定預設值default值，否則將變數unwrap後，再呼叫函數回傳計算值Some(f(x))。
 
 ```rust
 // 返回提供的預設結果 (如果None)，或將函數應用於包含的值 (如果Some)。
@@ -207,6 +262,10 @@ assert_eq!(x.map_or(42, |v| v.len()), 3);
 let x: Option<&str> = None;
 assert_eq!(x.map_or(42, |v| v.len()), 42);
 ```
+
+### map\_or\_else方法
+
+[map\_or\_else(default\_func, f)](https://doc.rust-lang.org/std/option/enum.Option.html#method.map\_or\_else)如果變數為None時，直接傳回給定預設函數default，否則將變數unwrap後，再呼叫函數回傳計算值Some(f(x))。
 
 ```rust
 // 計算 default 函數的結果 (如果None)，或將不同的函數應用於包含的值 (如果Some)。
@@ -247,6 +306,8 @@ fn main() {
 
 ## 組合運算元：and\_then
 
+如果變數為None時，直接傳回None，否則將變數unwrap後，再呼叫函數回傳計算值`f(x)`。
+
 ```rust
 //FnOnce：表示捕獲方式為通過值（T）的閉包。
  pub const fn and_then<U, F>(self, f: F) -> Option<U>
@@ -261,7 +322,7 @@ fn main() {
     }
 ```
 
-但是，如果參數本身返回的結果就是`Option`的話，處理起來就比較麻煩，因為每執行一次map都會多封裝一層，最後的結果有可能是Some(Some(Some(...)))這樣N層Some的巢狀。這時，我們就可以用[and\_then](https://doc.rust-lang.org/std/option/enum.Option.html#method.and\_then)來處理了。
+如果參數本身返回的結果就是`Option`的話，處理起來就比較麻煩，因為每執行一次map都會多封裝一層，最後的結果有可能是Some(Some(Some(...)))這樣N層Some的巢狀。這時，我們就可以用[and\_then](https://doc.rust-lang.org/std/option/enum.Option.html#method.and\_then)來處理了。
 
 ```rust
 fn main() {
@@ -275,7 +336,11 @@ fn sq(x: u32) -> Option<u32> {
 
 ## ? - 故障時返回Err物件
 
-如果你調用的函數和你正在寫的函數都返回 `Option` 類型，如果你調用的函數返回 `None`，你的函數也返回 `None`，這時，代碼可以用問號 ？ 操作符簡化。
+[The question mark operator](https://doc.rust-lang.org/reference/expressions/operator-expr.html)
+
+問號算子無法被重載。
+
+如果呼叫的函數和正在寫的函數都返回 `Option` 類型，如果呼叫的函數返回 `None`，你的函數也返回 `None`，這時，代碼可以用問號 ？ 操作符簡化。如果是Result類型，則回傳Error。
 
 ```rust
 fn foo() -> Option<i32> {
@@ -283,7 +348,13 @@ fn foo() -> Option<i32> {
 }
 
 fn bar() -> Option<String>{
-    foo()?; // None時值回return, 不會執行下一步
+    foo()?; // None時直接return, 不會執行下一步
+    // 等價寫法，None必須加上return表示提早返回
+    // match foo() {
+    //     Some(T) => Some(T),
+    //     None => return None,
+    // };
+    
     Some(String::from("hello world"))
 }
 
