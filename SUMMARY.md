@@ -30,6 +30,7 @@
   * [生命週期(lifetime)](memory-management/lifetime.md)
   * [NLL(non-lexical-lifetime)](memory-management/non-lexical-lifetime.md)
   * [unsafe區塊](memory-management/unsafe.md)
+  * [裸指標(原始指標)](memory-management/raw-pointer.md)
 * [容器與迭代器](container/README.md)
   * [迭代器](container/iterator.md)
   * [vec](container/vec.md)

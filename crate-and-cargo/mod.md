@@ -4,16 +4,48 @@
 
 mod（模組）是用於在crate內部繼續進行分層和封裝的機制。模組內部又可以包含模組。Rust中的模組是一個典型的樹形結構。每個crate會自動產生一個跟當前crate同名的模組，作為這個樹形結構的根節點。
 
+寫模組的目的一是為了分隔邏輯塊，二是為了提供適當的函數，或物件供外部訪問。<mark style="color:red;">而模組中的內容，默認是私有的，只有模組內部能訪問</mark>。
+
+為了讓外部能使用模組中 item，需要使用 pub 關鍵字。外部引用的時候，使用 use 關鍵字。
+
+關於模組的一些要點：
+
+* 每個 crate 中，預設實現了一個隱式的根模組（root module）；
+* 模組的命名風格也是 lower\_snake\_case，跟其它的 Rust 的識別碼一樣；&#x20;
+* 模組可以巢狀； 模組中可以寫任何合法的 Rust 程式碼；
+
 在一個crate內部創建新模組的方式有下面幾種。
 
 * 一個檔中創建內嵌模組。直接使用mod關鍵字即可，模組內容包含到大括弧內部：
 
 ```rust
-mod name { fn items() {} … }
+mod aaa {
+    const X: i32 = 10;
+    // 必須加上pub才可被外部呼叫
+    pub fn print_aaa() {
+        println!("aaa");
+        // bbb中的函數也要加上pub在此處才可被呼叫
+        bbb::print_bbb();
+    }
+    mod bbb {
+        pub fn print_bbb() {
+            println!("bbb");
+        }
+    }
+}
+mod ccc {
+    fn print_ccc() {
+        println!("{}", 25);
+    }
+}
+
+fn main(){
+    aaa::print_aaa();   // aaa bbb
+}
 ```
 
 * 獨立的一個檔就是一個模組。檔案名即是模組名。
-* 一個資料夾也可以創建一個模組。資料夾內部要有一個mod.rs文  件，這個檔就是這個模組的入口。
+* 一個資料夾也可以創建一個模組。資料夾內部要有一個mod.rs文 件，這個檔就是這個模組的入口。
 
 使用哪種方式編寫模組取決於當時的場景。
 
@@ -41,14 +73,20 @@ mod worker {
 
 ### 方案二：把模組分到兩個不同的檔中
 
-分別叫作caller.rs和worker.rs。那麼我們的項目就有了三個檔，它們的內容分別是：
+通常，我們會在單獨的檔案中寫模組內容，然後使用 mod 關鍵字來載入那個檔案作為我們的模組。
+
+模組分別叫作caller.rs和worker.rs。那麼我們的項目就有了三個檔，它們的內容分別是：
 
 ```rust
 // <lib.rs>
 mod caller;
 mod worker;
+
 // <caller.rs>
+// caller.rs 中，沒有使用 mod caller {} 這樣包裹起來，
+// 是因為 mod caller; 相當於把 caller.rs 檔案用 mod caller {} 包裹起來了
 fn call() {}
+
 // <worker.rs>
 fn work1() {}
 fn work2() {}
@@ -79,6 +117,50 @@ fn work3() {}
 
 這樣就把一個模組繼續分成了幾個小模組。而且worker模組的拆分其實是不影響caller模組的，只要我們在worker模組中把它子模組內部的東西重新匯出（re-export）就可以了。這個是可見性控制的內容。
 
+## 多檔案模組的層級關係
+
+Rust 的模組支援層級結構，但這種層級結構本身與檔案系統目錄的層級結構是解耦的。
+
+`mod xxx;` 這個 `xxx` 不能包含 `::` 號。也即在這個表達形式中，是沒法引用資料夾多層結構下的模組的。因此無法直接使用 `mod a::b:c::d;` 的形式來引用資料夾中 `a/b/c/d.rs` 這個模組。
+
+Rust 的多層模組遵循如下兩條規則：
+
+1. 優先尋找xxx.rs 檔案&#x20;
+   * main.rs、lib.rs、mod.rs中的mod xxx; 默認優先尋找同級目錄下的 xxx.rs 檔案；&#x20;
+   * 其他檔案yyy.rs中的mod xxx;默認優先尋找同級目錄的yyy目錄下的 xxx.rs 檔案；
+2. 如果 xxx.rs 不存在，則尋找 xxx/mod.rs 檔案，即 xxx 目錄下的 mod.rs 檔案。
+
+上述兩種情況，載入成模組後，效果是相同的。Rust 就憑這兩條規則，通過迭代使用，結合 pub 關鍵字，實現了對深層目錄下模組的載入；
+
+```rust
+// a/b/c/d.rs
+pub fn print_ddd() {
+    println!("i am ddd.");
+}
+
+// a/b/c/mod.rs
+pub mod d;
+
+// a/b/mod.rs
+pub mod c;
+
+// a/mod.rs 
+pub mod b;
+
+// main.rs
+mod a;
+use a::b::c::d;
+fn main() {
+    d::print_ddd();
+}
+```
+
+Rust 要這樣設計，有以下幾個原因：
+
+1. Rust 本身模組的設計是與作業系統檔案系統目錄解耦的，因為 Rust 本身可用於作業系統的開發；
+2. Rust 中的一個檔案內，可包含多個模組，直接將 a::b:c::d 對應到 a/b/c/d.rs 會引起一些歧義；
+3. Rust 一切從安全性、顯式化立場出發，要求引用路徑中的每一個節點，都是一個有效的模組，比如上例，d 是一個有效的模組的話，那麼，要求 c, b, a 分別都是有效的模組，可單獨引用。
+
 ## pub可見性
 
 我們可以給模組內部的元素指定可見性。預設都是私有，除了兩種例外情況：
@@ -87,8 +169,6 @@ fn work3() {}
 * 二是pub enum內部的成員預設是公開的。
 * <mark style="color:blue;">如果一個元素是私有的，那麼只有本模組內的元素以及它的子模組可以訪問</mark>；
 * <mark style="color:red;">如果一個元素是公開的，那麼上一層的模組就有權訪問它</mark>。
-
-
 
 ```rust
 mod top_mod1 {
@@ -177,7 +257,7 @@ mod top_mod {
 
 Rust裡面的路徑有不同寫法，它們代表的含義如下：
 
-### 以::開頭的路徑，代表全域路徑。它是從crate的根部開始算。&#xD;
+### 以::開頭的路徑，代表全域路徑。它是從crate的根部開始算。
 
 ```rust
 mod top_mod1 {
