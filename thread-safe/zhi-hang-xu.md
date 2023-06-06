@@ -33,7 +33,7 @@ where
     T: Send + 'static, 
 ```
 
-可以使用[ thread::spawn](https://doc.rust-lang.org/std/thread/fn.spawn.html) 函數來生成一個新執行緒，參數為一生命週期為`'static`函數，且傳回值的生命週期也為`'static`( move所有權)，傳回[JoinHandle\<T>](https://doc.rust-lang.org/std/thread/struct.JoinHandle.html)。
+可以使用[ thread::spawn](https://doc.rust-lang.org/std/thread/fn.spawn.html) 函數來生成一個新執行緒，參數為一生命週期為`'static`函數，且傳回值的生命週期也為`'static`( move所有權)，傳回[JoinHandle\<T>](https://doc.rust-lang.org/std/thread/struct.JoinHandle.html)([中文](https://rustwiki.org/zh-CN/std/thread/struct.JoinHandle.html))。
 
 * `'static`約束意味著閉包及其返回值必須具有整個程式執行的生命週期。<mark style="color:red;">這樣做的原因是執行緒可以超過它們被創建的生命週期</mark>。事實上，如果線程，以及它的返回值，可以比它們的調用者活得更久，我們需要確保它們之後是有效的，並且由於我們不知道它什麼時候返回，我們需要讓它們儘可能長的有效，直到程式結束，因此是'static 生命週期。
 * `Send`約束是因為閉包需要從產生它的執行緒按值傳遞給新執行緒。它的返回值需要從新執行緒傳遞到它所在的執行緒。Send標記特徵表示從執行緒傳遞到執行緒是安全的。Sync表示在執行緒之間傳遞引用是安全的。
@@ -44,6 +44,27 @@ JoinHandle\<T>有三個方法：
 1. [pub fn is\_finished(\&self) -> bool](https://doc.rust-lang.org/std/thread/struct.JoinHandle.html#method.is\_finished)：joinhandle 對應的執行緒是否已經完成。
 2. [pub fn join(self) -> Result](https://doc.rust-lang.org/std/thread/struct.JoinHandle.html#method.join)：等待執行緒工作完成，當執行緒異常時會傳回Err。
 3. [pub fn thread(\&self) -> \&Thread](https://doc.rust-lang.org/std/thread/struct.JoinHandle.html#method.thread)：傳回joinhandle對應的執行緒物件。
+
+```rust
+use std::thread;
+
+fn main() {
+    let builder = thread::Builder::new();
+
+    let join_handle: thread::JoinHandle<_> = builder
+        .spawn(|| {
+            // some work here
+        })
+        .unwrap();
+
+    let thread = join_handle.thread();
+    println!(
+        "thread id: {:?}, finished:{}",
+        thread.id(),
+        join_handle.is_finished()
+    );
+}
+```
 
 `join` 方法返回一個 `thread::Result<T,E>`，其中包含由新建執行緒生成的最終值的 `Ok`，或者如果執行緒 `panicked`，則返回給 `panic!` 的調用值的 `Err`。
 

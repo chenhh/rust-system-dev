@@ -129,9 +129,9 @@ where F: FnOnce() -> T, F: Send + 'static, T: Send + 'static
 
 <mark style="background-color:red;">**如果一個類型可以安全地從一個執行緒move進入另一個執行緒，那它就是Send類型**</mark>。比如：普通的數字類型是`Send`，因為我們把數字move進入另一個執行緒之後，兩個執行緒同時執行也不會造成什麼安全問題。
 
-更進一步，<mark style="color:red;background-color:red;">**內部不包含引用的類型，都是Send**</mark>\*\*。\*\*因為這樣的類型跟外界沒有什麼關聯，當它被move進入另一個執行緒之後，它所有的部分都跟原來的執行緒沒什麼關係了，不會出現併發訪問的情況。比如String類型。
+更進一步，<mark style="color:red;background-color:red;">**內部不包含引用的類型，都是Send**</mark>。因為這樣的類型跟外界沒有什麼關聯，當它被move進入另一個執行緒之後，它所有的部分都跟原來的執行緒沒什麼關係了，不會出現併發訪問的情況。比如String類型。
 
-<mark style="background-color:red;">**具有泛型參數的類型，是否滿足Send大多是取決於參數類型是否滿足Send**</mark>\*\*。\*\*比如`Vec<T>`，只要我們能保證`T：Send`，那麼`Vec<T>`肯定也是`Send`，把它move進入其他執行緒是沒什麼問題的。再比如`Cell<T>`、`RefCell<T>`、`Option<T>`、`Box<T>`，也都是這種情況。
+<mark style="background-color:red;">**具有泛型參數的類型，是否滿足Send大多是取決於參數類型是否滿足Send**</mark>。比如`Vec<T>`，只要我們能保證`T：Send`，那麼`Vec<T>`肯定也是`Send`，把它move進入其他執行緒是沒什麼問題的。再比如`Cell<T>`、`RefCell<T>`、`Option<T>`、`Box<T>`，也都是這種情況。
 
 還有一些類型，不論泛型參數是否滿足Send，都是滿足Send的。<mark style="color:red;">這種類型，可以看作一種“構造器”，把不滿足Send條件的類型用它包起來，就變成了滿足Send條件的類型</mark>。比如`Mutex<T>`就是這種。`Mutex<T>`這個類型實際上不關心它內部類型是怎樣的，反正要訪問內部資料，一定要調用`lock()`方法上鎖，它的所有權在哪個執行緒中並不重要，所以把它move到其他執行緒也是沒有問題的。
 
