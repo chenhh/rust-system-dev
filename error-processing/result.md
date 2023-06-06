@@ -9,6 +9,7 @@ pub enum Result<T, E> {
     Ok(T),    // Ok(value) 表示操作成功，並包裝操作返回的 value
     Err(E),   // 表示操作失敗，並包裝 why，它（但願）能夠解釋失敗的原因
 }
+type Option<T> = Result<T, ()>;
 ```
 
 在變體`Err(E)`為`None`時，`Option`可以被看作`Result`的特例，即<mark style="color:red;">`Option<T>=Result<T, ()>`</mark>。，`Err(E)`描述的是可能的錯誤而不是可能的不存在。
@@ -43,6 +44,8 @@ assert!(bad_result.is_err() && !bad_result.is_ok());
 * `unwrap_or_default`： 返回類型 `T` 的預設值 (必須實現 Default trait)。
 * `unwrap_or_else` ：返回對提供的函數求值的結果。
 
+### expect(msg)方法
+
 ```rust
 // 返回包含 self 值的包含的 Ok 值。
 // 如果值為 Err，就會出現 panics，其中 panic 訊息包括傳遞的訊息以及 Err 的內容。
@@ -56,6 +59,8 @@ pub fn expect(self, msg: &str) -> T {
 let x: Result<u32, &str> = Err("emergency failure");
 x.expect("Testing expect"); // `Testing expect: emergency failure` 的 panics
 ```
+
+### unwrap()方法
 
 ```rust
 // 返回包含 self 值的包含的 Ok 值。
@@ -74,6 +79,8 @@ let x: Result<u32, &str> = Err("emergency failure");
 x.unwrap(); // `emergency failure` 的 panics
 ```
 
+### unwrap\_or(default)方法
+
 ```rust
 // 返回包含的 Ok 值或提供的預設值。
 pub fn unwrap_or(self, default: T) -> T {
@@ -91,6 +98,8 @@ let x: Result<u32, &str> = Err("error");
 assert_eq!(x.unwrap_or(default), default);
 ```
 
+### unwrap\_or\_default()方法
+
 ```rust
 // 返回包含的 Ok 值或默認值
 //如果 Ok，則返回包含的值，否則如果 Err，則返回該類型的預設值。
@@ -101,6 +110,8 @@ assert_eq!(x.unwrap_or(default), default);
         }
     }
 ```
+
+### unwrap\_or\_else(F)方法
 
 ```rust
 // 返回包含的 Ok 值或從閉包中計算得出。
@@ -146,8 +157,6 @@ let good_result: Result<bool, i32> = good_result.and_then(|i| Ok(i == 11));
 // 使用 `or_else` 處理該錯誤。
 let bad_result: Result<i32, i32> = bad_result.or_else(|i| Ok(i + 20));
 ```
-
-
 
 ## 用match處理各類錯誤
 
@@ -224,7 +233,7 @@ let p: Person = match serde_json::from_str(data) {
 
 ## try! 巨集
 
-在 `?` 運算子出現以前，相同的功能是使用 `try!` 巨集完成的。現在我們推薦使用 `?` 運算子，但是 在老代碼中仍然會看到 `try!`。
+在 `?` 運算子出現以前，相同的功能是使用 `try!` 巨集完成的。現在我們推薦使用 `?` 運算子，但是在老程式中仍然會看到 `try!`。
 
 ## ? - 故障時返回Err物件
 
