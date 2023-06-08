@@ -17,6 +17,7 @@ struct Stack<T> {
 #[derive(Clone, Debug)]
 struct StackNode<T> {
     val: T,
+    // next為None時，為bottom
     next: Option<Box<StackNode<T>>>,
 }
 

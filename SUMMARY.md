@@ -75,10 +75,12 @@
 
 ## 資結與演算法 <a href="#ds-algorithm" id="ds-algorithm"></a>
 
-* [堆疊(stack)](ds-algorithm/dui-die-stack.md)
-* [線性規劃(linear programming)](ds-algorithm/xian-xing-gui-hua-linear-programming.md)
-* [演算法](ds-algorithm/yan-suan-fa/README.md)
-  * [排序(sorting)](ds-algorithm/yan-suan-fa/pai-xu-sorting.md)
+* [堆疊(stack)](ds-algorithm/stack.md)
+* [佇列(queue)](ds-algorithm/queue.md)
+* [優先佇列(priority queue)](ds-algorithm/priority-queue.md)
+* [線性規劃(linear programming)](xian-xing-gui-hua-linear-programming.md)
+* [演算法](yan-suan-fa/README.md)
+  * [排序(sorting)](yan-suan-fa/pai-xu-sorting.md)
 
 ## Windows系統程式 <a href="#windows-system-programming" id="windows-system-programming"></a>
 
