@@ -41,8 +41,8 @@
   * [Rc引用計數](zhi-hui-zhi-biao-smart-pointer/rc-yin-yong-ji-shu.md)
   * [Arc](smart-pointer/arc.md)
   * [Cow(copy on write)](zhi-hui-zhi-biao-smart-pointer/cow-copy-on-write.md)
-* [測試與性能測試](test-and-benchmark/README.md)
-  * [斷言(assert)](test-and-benchmark/duan-yan-assert.md)
+* [測試與性能測試](testing.md)
+  * [斷言(assert)](testing/duan-yan-assert.md)
   * [性能測試(benchmark)](test-and-benchmark/benchmark.md)
 * [錯誤處理](error-processing/README.md)
   * [Option](error-processing/option.md)
@@ -73,11 +73,12 @@
 * [資料處理polars](zi-liao-chu-li-polars.md)
 * [參考資料](reference.md)
 
-## 演算法 <a href="#algorithm" id="algorithm"></a>
+## 資結與演算法 <a href="#ds-algorithm" id="ds-algorithm"></a>
 
-* [線性規劃(linear programming)](xian-xing-gui-hua-linear-programming.md)
-* [演算法](yan-suan-fa/README.md)
-  * [排序(sorting)](yan-suan-fa/pai-xu-sorting.md)
+* [堆疊(stack)](ds-algorithm/dui-die-stack.md)
+* [線性規劃(linear programming)](ds-algorithm/xian-xing-gui-hua-linear-programming.md)
+* [演算法](ds-algorithm/yan-suan-fa/README.md)
+  * [排序(sorting)](ds-algorithm/yan-suan-fa/pai-xu-sorting.md)
 
 ## Windows系統程式 <a href="#windows-system-programming" id="windows-system-programming"></a>
 
