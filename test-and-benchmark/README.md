@@ -1,4 +1,4 @@
-# 測試
+# 測試與性能測試
 
 ## 簡介
 
@@ -14,11 +14,28 @@ Rust 中的測試函數是用來驗證非測試代碼是否按照期望的方式
 * 文檔測試。
 * 整合測試。
 
+而依按精細度劃分，分為三個層次：
+
+* 函數級(function)；
+* 模組級(mod)；
+* 工程級(crate)；
+
 有時僅在測試中才需要一些依賴（比如基準測試相關的）。這種依賴要寫在 Cargo.toml 的 \[dev-dependencies] 部分。這些依賴不會傳播給其他依賴於這個包的包。
 
 ## 如何撰寫測試？
 
 加上`#[cfg(test)]`的模組在執行`cargo test`指令的時候其底下有被加上`#[test]`的函數會被執行。
+
+對於函數而言，加上 `#[test]` 就標明這是一個測試用的函數。
+
+```rust
+#[test]
+fn it_works() {
+    // do test work
+}
+```
+
+<mark style="color:red;">有了這個屬性之後，在使用</mark> <mark style="color:red;"></mark><mark style="color:red;">`cargo build`</mark> <mark style="color:red;"></mark><mark style="color:red;">編譯時，就會忽略這些函數。使用</mark> <mark style="color:red;"></mark><mark style="color:red;">`cargo test`</mark> <mark style="color:red;"></mark><mark style="color:red;">可以執行這些函數</mark>。
 
 Rust的「測試」就是一個函數，這個函數被用來驗證其它非測試函數的函數(沒有加上#\[test]的函數)所實作的功能。
 
@@ -28,7 +45,14 @@ Rust的「測試」就是一個函數，這個函數被用來驗證其它非測�
 2. 執行我們要測試的程式(例如要被測試的函數)。
 3. 驗證程式執行之後的結果是不是跟我們預期的一樣。
 
-## 單元測試
+Rust 提供了兩個巨集來執行測試斷言：
+
+```rust
+assert!(expr)               // 測試表示式是否為 true 或 false
+assert_eq!(expr, expr)      // 測試兩個表示式的結果是否相等
+```
+
+## 模塊級測試
 
 大多數單元測試都會被放到一個叫 `tests` 的、帶有 `#[cfg(test)]` 屬性的模塊(mod)中，測試函數要加上 `#[test]` 屬性。完成後，可以使用 cargo test 來運行測試。
 
@@ -170,15 +194,15 @@ pub fn div(a: i32, b: i32) -> i32 {
 }
 ````
 
-## 整合測試
+## 工程級(整合)測試
 
-函數級和模組級的測試，程式碼是與要測試的模組（編譯單元）寫在相同的檔案中，一般做的是白盒測試。
+函數級和模組級的測試，<mark style="color:red;">程式碼是與要測試的模組（編譯單元）寫在相同的檔案中</mark>，一般做的是白盒測試。
 
-整合測試是 crate 外部的測試，並且僅使用 crate 的公共介面，就像其他使用 該 crate 的程式那樣。整合測試的目的是檢驗你的庫的各部分是否能夠正確地協同工作。
+整合測試是 crate 外部的測試，並且僅使用 crate 的公共介面，就像其他使用 該 crate 的程式那樣，一般做的就是黑盒整合測試。<mark style="color:red;">整合測試的目的是檢驗你的函式庫的各部分是否能夠正確地協同工作</mark>。
 
-cargo 在與 src 同級別的 tests 目錄尋找整合測試。
+cargo 在與 src 同級別的 <mark style="color:red;">tests 目錄</mark>尋找整合測試。
 
-```
+```rust
 // 檔案 src/lib.rs：
 // 在一個叫做 'adder' 的 crate 中定義此函式。
 pub fn add(a: i32, b: i32) -> i32 {
@@ -186,13 +210,15 @@ pub fn add(a: i32, b: i32) -> i32 {
 }
 
 // 包含測試的檔案：tests/integration_test.rs：
+extern crate adder;
+
 #[test]
 fn test_add() {
     assert_eq!(adder::add(3, 2), 5);
 }
 ```
 
-tests 目錄中的每一個 Rust 原始檔都被編譯成一個單獨的 crate。在整合測試中要想 共享代碼，一種方式是創建具有公用函數的模塊，然後在測試中導入並使用它。
+tests 目錄中的每一個 Rust 原始檔都被編譯成一個單獨的 crate。在整合測試中要想共享代碼，一種方式是創建具有公用函數的模塊，然後在測試中導入並使用它。
 
 帶有共用代碼的模塊遵循和普通的[模塊](https://rustwiki.org/zh-CN/rust-by-example/mod.html)一樣的規則，所以完全可以把公共模塊 寫在 `tests/common/mod.rs` 檔案中。
 
