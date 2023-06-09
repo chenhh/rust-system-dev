@@ -69,7 +69,8 @@
   * [crossbeam](thread-safe/crossbeam.md)
   * [rayon](thread-safe/rayon.md)
 * [非同(異)步程式](fei-tong-yi-bu-cheng-shi.md)
-* [FFI](ffi.md)
+* [FFI](ffi/README.md)
+  * [cffi](ffi/cffi.md)
 * [資料處理polars](zi-liao-chu-li-polars.md)
 * [參考資料](reference.md)
 

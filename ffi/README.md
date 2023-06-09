@@ -6,7 +6,15 @@
 
 每一種程式語言都可能定義許多“基礎類型”， 兩種程式語言的基礎類型之間最好有一個交集， 這樣才能傳遞資料， 所以：`Rust std::ffi` 和 The libc crate就是非常重要的C and Rust的基礎類型交集，
 
+## Rust支援的函式庫類型
 
+* lib — Generates a library kind preferred by the compiler, currently defaults to rlib.&#x20;
+* rlib — A Rust static library.&#x20;
+* staticlib — A native static library. (與C ABI相容)
+* dylib — A Rust dynamic library.&#x20;
+* cdylib — A native dynamic library.  (與C ABI相容)
+* bin — A runnable executable program.&#x20;
+* proc-macro — Generates a format suitable for a procedural macro library that may be loaded by the compiler.
 
 ## rust-bindgen
 

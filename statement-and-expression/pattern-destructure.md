@@ -461,7 +461,9 @@ let mut x: &mut i32;
 
 ## if let, while let關鍵字
 
-Rust不僅能在match運算式中執行“模式解構”，在let語句中，也可以應用同樣的模式。Rust還提供了if-let語法糖。它的語法為`if let PATTERN=EXPRESSION{BODY}`。後面可以跟一個可選的else分支。
+Rust還提供了if-let語法糖。它的語法為`if let PATTERN=EXPRESSION{BODY}`。後面可以跟一個可選的else分支。
+
+if let 語法讓我們以一種不那麼冗長的方式結合 if 和 let，來處理只匹配一個模式的值而忽略其他模式的情況。
 
 ```rust
 // 原始寫法，從Some中取出x傳入函數
