@@ -75,9 +75,12 @@
 
 ## 資結與演算法 <a href="#ds-algorithm" id="ds-algorithm"></a>
 
+* [鏈結串列(link list)](ds-algorithm/link-list.md)
 * [堆疊(stack)](ds-algorithm/stack.md)
 * [佇列(queue)](ds-algorithm/queue.md)
 * [優先佇列(priority queue)](ds-algorithm/priority-queue.md)
+* [二元樹(binary tree)](ds-algorithm/er-yuan-shu-binary-tree.md)
+* [圖(graph)](ds-algorithm/graph.md)
 * [線性規劃(linear programming)](xian-xing-gui-hua-linear-programming.md)
 * [演算法](yan-suan-fa/README.md)
   * [排序(sorting)](yan-suan-fa/pai-xu-sorting.md)

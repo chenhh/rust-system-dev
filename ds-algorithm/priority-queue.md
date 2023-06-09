@@ -14,6 +14,10 @@
 
 在最小優先佇列(min priority queue)中，查詢操作用來搜尋優先權最小的元素，刪除操作用來刪除該元素；對於最大優先佇列(max priority queue)，查詢操作用來搜尋優先權最大的元素，刪除操作用來刪除該元素。優先權佇列中的元素可以有相同的優先權，查詢與刪除操作可根據任意優先權進行。
 
+[Trait OartialOrd](https://doc.rust-lang.org/std/cmp/trait.PartialOrd.html)([中文](https://rustwiki.org/zh-CN/std/cmp/trait.PartialOrd.html))
+
+## 以Vec實作(沒有使用heap)
+
 ```rust
 #[derive(Debug)]
 struct PriorityQueue<T>
