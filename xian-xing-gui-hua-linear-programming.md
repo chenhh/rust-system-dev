@@ -25,3 +25,4 @@ $$
 * [\[github\] good\_lp](https://github.com/rust-or/good\_lp)
 * [\[By Hans Mittelmann\] BENCHMARKS FOR OPTIMIZATION SOFTWARE](http://plato.asu.edu/bench.html)
 * [\[GNU\] GSL - GNU Scientific Library](https://www.gnu.org/software/gsl/)
+* [https://lib.rs/crates/varpro](https://lib.rs/crates/varpro)
