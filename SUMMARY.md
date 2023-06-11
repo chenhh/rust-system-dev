@@ -8,6 +8,7 @@
   * [const與static](variable-and-type/const-yu-static.md)
   * [陣列與切片](variable-and-type/array.md)
   * [字串](variable-and-type/string.md)
+  * [常用字串操作](variable-and-type/useful-string-operation.md)
   * [泛型(generics)](variable-and-type/generics.md)
   * [動態尺寸類型(DST)](variable-and-type/dong-tai-chi-cun-lei-xing.md)
   * [運算子重載](variable-and-type/operator-overloading.md)
