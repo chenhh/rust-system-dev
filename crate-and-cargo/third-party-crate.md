@@ -3,17 +3,25 @@
 ## [awesome rust (github)](https://github.com/rust-unofficial/awesome-rust)
 
 * [\[知乎\] GitHub 上有哪些值得關注的 Rust 項目？](https://www.zhihu.com/question/30511494/answer/649921526)
+* [rust-boom](https://github.com/rust-boom/rust-boom)
 
 ## 數值計算
 
 * [num-bigint](https://crates.io/crates/num-bigint)：官方的大整數計算。
 * ndarray：
-* ndarray-rand：
-* ndarray-stats：
+  * [Benchmarking Rust's Ndarray Crate Against Plain Slices](https://www.reidatcheson.com/rust/ndarray/performance/2022/06/11/rust-ndarray.html)
+  * ndarray-rand：
+  * ndarray-stats：
+* [nalgebra](https://nalgebra.org/)：rust的線性代數庫。
+* [glam](https://crates.io/crates/glam/)：繪圖和遊戲的3D數學庫。
 * [polars](https://github.com/pola-rs/polars)：快速多線程的DataFrame函式庫。
 * [noisy\_float](https://docs.rs/noisy\_float/0.2.0/noisy\_float/)：這個板塊包含了浮點類型，如果它們被設置為非法值，例如NaN，就會發生panic!。
 * [stars](https://github.com/statrs-dev/statrs)：統計套件。
-*
+* [libm](https://crates.io/crates/libm)：純rust實作的數學函式庫(musl libc)，可用於no-std環境。
+
+#### 性能測試
+
+* [https://github.com/bitshifter/mathbench-rs](https://github.com/bitshifter/mathbench-rs)
 
 ## 系統程式
 
@@ -43,8 +51,9 @@
 
 * [serde - rust的多種序列化格式的解決方案](https://zhuanlan.zhihu.com/p/54004232)。
 * [ripreg](https://github.com/BurntSushi/ripgrep)：文字搜尋工具，應該算是Rust的Cli殺手級應用。
+* [itoa](https://crates.io/crates/itoa)：(非常快)快速的整數->字串套件。
 
-log處理
+## log處理
 
 * [tokio-rs/tracing](https://github.com/tokio-rs/tracing)：強大的日誌框架，同時還支援OpenTelemetry格式，無縫打通未來的監控 rust-lang/log 官方日誌庫，事實上的API標准, 但是三方庫未必遵循。
 
@@ -57,7 +66,16 @@ log處理
 
 * [tauri](https://github.com/tauri-apps/tauri)：
 * [\[知乎\] Rust GUI 庫](https://zhuanlan.zhihu.com/p/278012049)
-*
+
+## TUI
+
+* [indicatif](https://crates.io/crates/indicatif)：進度條。
+* [ctrlc](https://crates.io/crates/ctrlc)：簡易 ctrl-c 處理程式。
+* [clap](https://crates.io/crates/clap)：命令列參數解析器。
+  * [clap-verbosity-flag](https://crates.io/crates/clap-verbosity-flag)：新增 --verbose 標籤到 structopt CLI。
+* [structopt](https://crates.io/crates/structopt)：解析命令列參數為一個結構體。
+* [atty](https://crates.io/crates/atty)：檢測應用程式是否運行在 tty 上。
+* [exitcode](https://crates.io/crates/exitcode)：系統退出碼常數。
 
 ## 優化
 
@@ -66,6 +84,7 @@ log處理
 ## 繪圖
 
 * [poloto](https://docs.rs/poloto/latest/poloto/)：以CSS控制SVG繪圖。
+* [plotters](https://crates.io/crates/plotters/0.3.4)
 
 ## 金融
 
