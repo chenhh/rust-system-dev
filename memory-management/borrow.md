@@ -186,7 +186,7 @@ Rust 沒有 null pointer。在你拿一個合法物件的位址來初始化指�
 
 * <mark style="color:red;">引用必須總是有效的</mark>。
 * <mark style="color:red;">借用指標不能比它指向的變數存在的時間更長</mark>。(註：編譯器無法判定時，會要求明確加入生命週期)，否則可能存在指向變數已死亡，而借用指標仍存活的問題(指向不存在的物件)。
-  * 借用指標只能臨時地擁有對這個變數讀或寫的許可權，沒有義務管理這個變數的生命週期。<mark style="color:red;">因此，借用指標的生命週期絕對不能大於它所引用的原來變數的生命週期，否則就是</mark><mark style="color:red;"><mark style="color:red;">懸空指標(dangling pointer)<mark style="color:red;"></mark><mark style="color:red;">，會導致記憶體不安全</mark>。
+  * 借用指標只能臨時地擁有對這個變數讀或寫的許可權，沒有義務管理這個變數的生命週期。<mark style="color:red;">因此，借用指標的生命週期絕對不能大於它所引用的原來變數的生命週期，否則就是懸空指標(dangling pointer)，會導致記憶體不安全</mark>。
 * 使用 `&` 取得變數的參考後，你只能透過參考讀取內容，而不能寫入資料。這樣的取址行為，Rust 稱之為不可變借用( immutable borrow)。
 * 若你想要透過參考寫入資料，必需透過 `&mut` 來取得位址。這樣的取址稱為可變借用(mutable borrow)。
   * `&mut`型借用只能指向本身具有`mut`修飾的變數，對於唯讀變數，不可以有`&mut`型借用。
