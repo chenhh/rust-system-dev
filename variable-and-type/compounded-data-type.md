@@ -148,10 +148,11 @@ struct Foo3{}
 
 ## tuple struct
 
-tuple struct就像是tuple和struct的混合。區別在於，tuple struct有名字，而它們的成員沒有名字。
+tuple struct就像是tuple和struct的混合。區別在於，tuple struct是有名字的結構(有名字的tuple)，而它們的成員仍然沒有名字。
 
 ```rust
-// tuple struct
+// tuple struct, 名稱為Color，包含了3個整數的結構
+// struct必須為每一個成員命名，而tuple struct只要列出成員的類型，不需為成員命名
 #[derive(Debug)]
 struct Color(i32, i32, i32);
 
@@ -227,8 +228,8 @@ enum類型在Rust中代表的就是多個成員的OR關係（同時間只有一�
 ```rust
 // Number為整數或浮點數
 enum Number {
-    Int(i32),   // struct tuple
-    Float(f32), // struct tuple
+    Int(i32),   // struct tuple，名稱為Int，包含了一個成員類型為整數
+    Float(f32), // struct tuple，名稱為Float，包含了一個成員類型為浮點數
 }
 
 // enum的元素可為複合型別
@@ -352,7 +353,7 @@ enum Option<T> {
 
 由於它實在是太常用，標準庫將Option以及它的成員Some、None都加入到了Prelude中，使用者甚至不需要use語句聲明就可以直接使用。
 
-它表示的含義是“<mark style="color:red;"><mark style="background-color:red;">類型T的值要麼存在、要麼不存在”。比如Option\<i32>表達的意思就是“可以是一個i32類型的值，或者沒有任何值”。<mark style="background-color:red;"></mark>
+它表示的含義是“<mark style="color:red;">類型T的值要麼存在、要麼不存在”。比如Option\<i32>表達的意思就是“可以是一個i32類型的值，或者沒有任何值”。</mark>
 
 從類型系統的角度來表達這個概念就意味著<mark style="color:blue;">編譯器需要檢查是否處理了所有應該處理的情況</mark>，這樣就可以避免在其他編程語言中非常常見的 bug。
 
