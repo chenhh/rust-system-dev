@@ -2,9 +2,9 @@
 
 ## tuple(元組)
 
-tuple指的是“元組”類型，它通過圓括號包含一組運算式構成。tuple內的元素沒有名字。tuple是把幾個相同或相異類型組合到一起的最簡單的方式。
+tuple指的是一堆類型的組合，它通過圓括號包含一組運算式構成。<mark style="color:red;">tuple本身沒有名字，其內的元素也沒有名字</mark>。tuple是把幾個相同或相異類型組合到一起的最簡單的方式。
 
-tuple和struct tuple的差別在於tuple直接將元素放在括號內就可以使用，而struct tuple必須先定義結構後，才能當成類型使用。
+tuple和struct tuple的差別在於<mark style="color:blue;">tuple直接將元素放在括號內就可以使用，而struct tuple必須先定義結構的名稱後</mark>，才能當成類型使用。
 
 ```rust
 fn main() {
@@ -72,7 +72,11 @@ assert(sizeof(emp) != 0);
 
 ## struct(結構體)
 
-struct與tuple類似，也可以把多個類型組合到一起，作為新的類型。**區別在於，struct每個元素都有自己的名字**。
+struct與tuple類似，也可以把多個類型組合到一起，作為新的類型。
+
+* **tuple自已沒有名字，且每個元素都沒有名字。**
+* **struct自已有名字，且每個元素都有自己的名字**。
+* **tuple struct自已有名字，但每個元素都沒有名字。**
 
 ```rust
 // struct宣告
