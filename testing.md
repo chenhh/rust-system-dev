@@ -22,6 +22,10 @@ Rust 中的測試函數是用來驗證非測試代碼是否按照期望的方式
 
 有時僅在測試中才需要一些依賴（比如基準測試相關的）。這種依賴要寫在 Cargo.toml 的 \[dev-dependencies] 部分。這些依賴不會傳播給其他依賴於這個包的包。
 
+#### cargo test時印出println!的內容
+
+使用cargo test時，預設會隱藏println的內容，只要加上`cargo test -- --nocapture` 指定不要捕捉即可。
+
 ## 如何撰寫測試？
 
 加上`#[cfg(test)]`的模組在執行`cargo test`指令的時候其底下有被加上`#[test]`的函數會被執行。
