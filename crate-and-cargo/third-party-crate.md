@@ -10,14 +10,14 @@
 * [num-bigint](https://crates.io/crates/num-bigint)：官方的大整數計算。
 * ndarray：
   * [Benchmarking Rust's Ndarray Crate Against Plain Slices](https://www.reidatcheson.com/rust/ndarray/performance/2022/06/11/rust-ndarray.html)
-  * ndarray-rand：
-  * ndarray-stats：
-* [nalgebra](https://nalgebra.org/)：rust的線性代數庫。
-* [glam](https://crates.io/crates/glam/)：繪圖和遊戲的3D數學庫。
+  *
+* ndarray-rand：
+* ndarray-stats：
 * [polars](https://github.com/pola-rs/polars)：快速多線程的DataFrame函式庫。
 * [noisy\_float](https://docs.rs/noisy\_float/0.2.0/noisy\_float/)：這個板塊包含了浮點類型，如果它們被設置為非法值，例如NaN，就會發生panic!。
 * [stars](https://github.com/statrs-dev/statrs)：統計套件。
-* [libm](https://crates.io/crates/libm)：純rust實作的數學函式庫(musl libc)，可用於no-std環境。
+* [glam-rs](https://github.com/bitshifter/glam-rs)
+  * [https://github.com/bitshifter/mathbench-rs](https://github.com/bitshifter/mathbench-rs)
 
 #### 性能測試
 
