@@ -1,6 +1,7 @@
 # Table of contents
 
 * [Rust系統程式](README.md)
+  * [小抄](readme/cheat-sheet.md)
 * [變數與類型](variable-and-type/README.md)
   * [基本資料類型](variable-and-type/basic-data-type.md)
   * [複合資料類型](variable-and-type/compounded-data-type.md)
