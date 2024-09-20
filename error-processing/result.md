@@ -333,6 +333,24 @@ fn write_info(info: &Info) -> io::Result<()> {
 }
 ```
 
+## 主函數main可傳回Result
+
+我們所使用的所有 `main` 函數都返回 `()`。`main` 函數是特殊的因為它是可執行程式的入口點和退出點，為了使程式能正常工作，其可以返回的類型是有限制的，另一種就是傳回 `Result<(), E>`。
+
+```rust
+use std::error::Error;
+use std::fs::File;
+
+//Box<dyn Error> 類型是一個 trait物件，理解為 “任何類型的錯誤”
+// 如果 main 返回 Ok(()) 可執行程式會以 0 值退出，
+// 而如果 main 返回 Err 值則會以非零值退出；
+fn main() -> Result<(), Box<dyn Error>> {
+    let greeting_file = File::open("hello.txt")?;
+
+    Ok(())
+}
+```
+
 ## 錯誤資訊類型不一樣，如何轉換？
 
 ```rust

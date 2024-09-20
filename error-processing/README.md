@@ -57,8 +57,8 @@ Rust把錯誤分成了兩大類：
 
 ```cpp
 enum Result<T, E>{
-    Ok(T),
-    Err(E),
+    Ok(T),    // T 代表成功時返回的 Ok 成員中的資料的類型
+    Err(E),    // E 代表失敗時返回的 Err 成員中的錯誤的類型
 }
 ```
 

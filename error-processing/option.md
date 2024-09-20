@@ -363,6 +363,23 @@ fn main(){
 }
 ```
 
+### 運算子?可以用於連續的函數呼叫中
+
+```rust
+/* 
+這個函數返回 Option<char> 因為它可能會在這個位置找到一個字元，也可能沒有字元。
+獲取 text 字串 slice 作為參數並呼叫其 lines 方法，這會返回一個字串中每一行的迭代器。
+因為函數希望檢查第一行，所以呼叫了迭代器 next 來獲取迭代器中第一個值。
+如果 text 是空字串，next 呼叫會返回 None，此時我們可以使用 ? 來停止並從 last_char_of_first_line 返回 None。
+如果 text 不是空字串，next 會返回一個包含 text 中第一行的字串 slice 的 Some 值。
+? 會提取這個字串 slice，然後可以在字串 slice 上呼叫 chars 來獲取字元的迭代器。
+我們感興趣的是第一行的最後一個字元，所以可以呼叫 last 來返回迭代器的最後一項。
+*/
+fn last_char_of_first_line(text: &str) -> Option<char> {
+    text.lines().next()?.chars().last()
+}
+```
+
 ## 使用unwrap和?解包Option
 
 如果我們unwrap的Option的值是`None`，那麼程式就會`panic!`。
