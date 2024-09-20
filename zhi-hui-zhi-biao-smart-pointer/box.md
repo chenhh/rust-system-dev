@@ -144,6 +144,23 @@ fn main() {
 }
 ```
 
+## 範例：錯誤處理
+
+此 main 函式本來只會回傳錯誤型別 std::io::Error，但有了 Box 的話，此簽名就能允許其他錯誤型別加入 main 本體中。
+
+dyn Error表示任何有實作Error trait的類型都可以傳入。
+
+```rust
+use std::error::Error;
+use std::fs::File;
+
+// Box<dyn Error> 是「任何種類的錯誤」
+fn main() -> Result<(), Box<dyn Error>> {
+    let greeting_file = File::open("hello.txt")?;
+    Ok(())
+}
+```
+
 ## 範例：避免複制整個物件
 
 ```rust
