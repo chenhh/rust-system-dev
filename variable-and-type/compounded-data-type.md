@@ -1,5 +1,7 @@
 # 複合資料類型
 
+資料類型要考慮宣告變數(可變、不可變、引用)、當做參數傳遞(可變、不可變、引用)，以及函數回傳值((可變、不可變、引用)的情形。
+
 ## tuple(元組)
 
 tuple指的是一堆類型的組合，它通過圓括號包含一組運算式構成。<mark style="color:red;">tuple本身沒有名字，其內的元素也沒有名字</mark>。tuple是把幾個相同或相異類型組合到一起的最簡單的方式。
@@ -148,8 +150,6 @@ struct Foo2();
 struct Foo3{}
 ```
 
-##
-
 ## tuple struct
 
 tuple struct就像是tuple和struct的混合。區別在於，tuple struct是有名字的結構(有名字的tuple)，而它們的成員仍然沒有名字。
@@ -184,7 +184,9 @@ fn main(){
 }
 ```
 
-<mark style="background-color:red;">tuple struct有一個特別有用的場景，那就是當它只包含一個元素的時候，就是所謂的newtype idiom</mark>。因為它實際上讓我們非常方便地在一個類型的基礎上創建了一個新的類型。
+### Newtype idiom
+
+<mark style="background-color:red;">tuple struct有一個特別有用的場景，那就是當它只包含一個元素的時候，就是所謂的newtype idiom</mark>。因為它實際上讓我們非常方便地在一個類型的基礎上創建了一個新的類型，常用於enum中。
 
 <mark style="background-color:blue;">註：在實作中，常常會使用此方法限定資料的類別，比如說height, weight兩個變數都是浮點數，使用此方法可以替變數的類型取名，限定變數的類別</mark>。
 
@@ -204,7 +206,7 @@ fn main() {
 
 通過關鍵字type，我們可以創建一個新的類型名稱，但是這個類型不是全新的類型，而只是一個具體類型的別名。在編譯器看來，這個別名與原先的具體類型是一模一樣的。
 
-而使用tuple struct做包裝，則是創造了一個全新的類型，它跟被包裝的類型不能發生隱式類型轉換，可以具有不同的方法，滿足不同的trait，完全按需求而定。
+而使用tuple struct做包裝，則是創造了一個全新的類型，它跟被包裝的類型<mark style="background-color:yellow;">不能發生隱式類型轉換</mark>，可以具有不同的方法，滿足不同的trait，完全按需求而定。
 
 ```rust
 fn main() {
