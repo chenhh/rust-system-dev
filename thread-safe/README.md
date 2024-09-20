@@ -41,6 +41,7 @@ use std::thread;
 use std::time::Duration;
 
 fn main() {
+    // 此範例是在1個thread中產生1~10的迴圈
     thread::spawn(|| {
         for i in 1..10 {
             println!("數字 {} 出現在產生的執行緒中！", i);
@@ -78,6 +79,30 @@ fn main() {
 數字 8 出現在產生的執行緒中！
 數字 9 出現在產生的執行緒中！
 */
+
+// 以下範例是產生10個threads
+use std::thread;
+use std::time::Duration;
+
+fn main() {
+    let mut handles = Vec::new();
+    for i in 1..10 {
+        handles.push(thread::spawn(move || {
+            let tid = thread::current().id();
+            println!("TID: {:?}, 數字 {i} 出現在產生的執行緒中！", tid);
+            thread::sleep(Duration::from_millis(5));
+        }));
+    }
+
+    for i in 1..5 {
+        println!("數字 {} 出現在主執行緒中！", i);
+        thread::sleep(Duration::from_millis(1));
+    }
+
+    for handle in handles {
+        handle.join().unwrap();
+    }
+}
 ```
 
 ```rust
