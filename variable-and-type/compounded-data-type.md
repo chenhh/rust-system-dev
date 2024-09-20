@@ -8,6 +8,8 @@ tuple指的是一堆類型的組合，它通過圓括號包含一組運算式構
 
 tuple和struct tuple的差別在於<mark style="color:blue;">tuple直接將元素放在括號內就可以使用，而struct tuple必須先定義結構的名稱後</mark>，才能當成類型使用。
 
+### tuple變數宣告
+
 ```rust
 fn main() {
     // 元組中包含兩個元素,第一個是i32類型,第二個是bool類型
@@ -31,6 +33,21 @@ fn main() {
     let x = p.0;
     let y = p.1;
     println!("{} {} {} {}", a, b, x, y);
+}
+```
+
+### tuple當做參數傳遞
+
+```rust
+// 將tuple當做參數傳入函數, 用.1, .2依序取出其中的成員
+fn add1(t: (i32, i32)) -> i32 {
+    t.0 + t.1
+}
+
+fn main() {
+    let t = (1, 2);
+    let r = add1(t);
+    print!("result:{r}");
 }
 ```
 
