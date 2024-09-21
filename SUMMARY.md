@@ -5,6 +5,7 @@
 * [變數與類型](variable-and-type/README.md)
   * [基本資料類型](variable-and-type/basic-data-type.md)
   * [複合資料類型](variable-and-type/compounded-data-type.md)
+  * [類型轉換](variable-and-type/type\_transformation.md)
   * [複合資料類型的記憶體配置](variable-and-type/fu-he-zi-liao-lei-xing-de-ji-yi-ti-pei-zhi.md)
   * [const與static](variable-and-type/const-yu-static.md)
   * [陣列與切片](variable-and-type/array.md)
