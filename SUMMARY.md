@@ -20,6 +20,7 @@
   * [生成器(generator)](statement-and-expression/generator.md)
   * [靜態與動態分派](statement-and-expression/static-dynamic-dispatch.md)
 * [trait語法](trait/README.md)
+  * [標準庫常用trait](trait/traits\_in\_standard\_lib.md)
   * [trait物件](trait/trait-object.md)
 * [函數](function/README.md)
   * [閉包(closure)](statement-and-expression/closure.md)
