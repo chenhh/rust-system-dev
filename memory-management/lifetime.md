@@ -33,6 +33,8 @@
 
 * 對於生命週期<mark style="background-color:red;">全都是關於引用（references）的</mark>，與其他變數無關。
 * 生命週期參數是一種標記(annotation)而非定義，通常以 ' 開頭，後面以abcd來區分。，類似於類型限定。
+* 如果你要跨出函數或作用域的邊界，就需要關心生命週期了。
+* 每一個 let 表示式都隱式引入了一個範疇，但通常不需要標記生命週期。
 
 ```rust
 &i32        // 引用
@@ -230,6 +232,8 @@ impl後面的那個`'t`是用於聲明生命週期參數的，後面的`Test<'t>
 
 ## 省略生命週期標記
 
+為了讓語言的表達方式更人性化，Rust 允許函數的簽名中省略生命週期。
+
 在某些情況下，Rust允許我們在寫函數的時候省略掉顯式生命週期標記。在這種時候，編譯器會通過一定的固定規則為參數和返回值指定合適的生命週期，從而省略一些顯而易見的生命週期標記。
 
 ```rust
@@ -255,9 +259,6 @@ fn get_str<'a>(s: &'a String) -> &'a str {
 #### 如果只有一個輸入引用帶生命週期參數，那麼返回值的生命週期被指定為這個參數；
 
 * 即`fn foo <'a>(x: &'a i32) -> &'a i32`
-
-
-
 * 如果有多個輸入參數帶生命週期參數，但其中有`&self`、`&mut self`，那麼返回值的生命週期被指定為這個參數；
 * 以上都不滿足，就不能自動補全返回值的生命週期參數。
 
@@ -271,6 +272,31 @@ fn get_str<'a>(s: &'a String) -> &'a str {
     println!("call fn {}", s);
     "hello world"
 }
+
+fn print(s: &str);                                      // 省略的
+fn print<'a>(s: &'a str);                               // 完整的
+
+fn debug(lvl: usize, s: &str);                          // 省略的
+fn debug<'a>(lvl: usize, s: &'a str);                   // 完整的
+
+fn substr(s: &str, until: usize) -> &str;               // 省略的
+fn substr<'a>(s: &'a str, until: usize) -> &'a str;     // 完整的
+
+fn get_str() -> &str;                                   // 錯誤
+
+fn frob(s: &str, t: &str) -> &str;                      // 錯誤
+
+fn get_mut(&mut self) -> &mut T;                        // 省略的
+fn get_mut<'a>(&'a mut self) -> &'a mut T;              // 完整的
+
+fn args<T: ToCStr>
+    (&mut self, args: &[T]) -> &mut Command          // 省略的
+fn args<'a, 'b, T: ToCStr>
+    (&'a mut self, args: &'b [T]) -> &'a mut Command // 完整的
+
+fn new(buf: &mut [u8]) -> BufWriter;                    // 省略的
+fn new<'a>(buf: &'a mut [u8]) -> BufWriter<'a>          // 完整的
+
 ```
 
 ## 參考資料
