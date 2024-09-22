@@ -428,7 +428,13 @@ fn main() {
 
 定義一個函數，使用特徵作為函數參數。
 
-雖然 `impl Trait` 這種語法非常好理解，但是實際上它只是一個trait約束的語法糖。
+雖然 `impl Trait` 這種語法非常好理解，但是實際上它只是一個trait約束的語法糖，在只有少數約束或參數時很方便。
+
+使用情境：
+
+* 單參數且只有少數特徵時，使用impl語法。
+* 多參數且只有少數特徵時，使用角括號語法。
+* 多參數且多特徵時，使用where語法。
 
 ```rust
 // 實現了Summary特徵 的 item 參數。語法糖
@@ -445,6 +451,13 @@ pub fn notify<T: Summary>(item: T) {
 pub fn notify<T>(item: T) where T: Summary{
     println!("Breaking news! {}", item.summarize());
 }
+
+
+// 多約束或多參數時，impl寫法很長
+pub fn notify(item1: &impl Summary, item2: &impl Summary) {}
+
+// 使用角括號可簡化
+pub fn notify<T: Summary>(item1: &T, item2: &T) {}
 ```
 
 ## trait約束
@@ -455,6 +468,18 @@ Rust的trait的另外一個大用處是，作為**泛型約束**使用，<mark s
 
 * 在泛型的角括號中加入限制。
 * 在函數後面加where(多trait限制時 較容易閱讀)。
+
+```rust
+// 特徵約束變得很多時，函數的簽名將變得很複雜
+fn some_function<T: Display + Clone, U: Clone + Debug>
+(t: &T, u: &U) -> i32 {}
+
+// 使用where簡化
+fn some_function<T, U>(t: &T, u: &U) -> i32
+    where T: Display + Clone,
+          U: Clone + Debug
+{}
+```
 
 ```rust
 use std::fmt::Debug;
@@ -475,6 +500,93 @@ fn main() {
     my_print(41_i32);
     my_print(true);
     my_print(['a', 'b', 'c'])
+}
+```
+
+## 使用特徵約束有條件地實現方法或特徵
+
+特徵約束，可以讓我們在指定類型 + 指定特徵的條件下去實現方法。
+
+```rust
+use std::fmt::Display;
+
+struct Pair<T> {
+    x: T,
+    y: T,
+}
+
+// Pair的匿名方法，對於任意類型T均可使用
+impl<T> Pair<T> {
+    fn new(x: T, y: T) -> Self {
+        Self {
+            x,
+            y,
+        }
+    }
+}
+
+// cmp_display 方法，並不是所有的 Pair<T> 結構體對象都可以擁有，
+// 只有 T 同時實現了 Display + PartialOrd 的 Pair<T> 才可以擁有此方法。 
+impl<T: Display + PartialOrd> Pair<T> {
+    fn cmp_display(&self) {
+        if self.x >= self.y {
+            println!("The largest member is x = {}", self.x);
+        } else {
+            println!("The largest member is y = {}", self.y);
+        }
+    }
+}
+
+// 也可以有條件地實現特徵, 
+// 例如，標準庫為任何實現了 Display 特徵的類型實現了 ToString 特徵
+impl<T: Display> ToString for T {
+    // --skip--
+}
+```
+
+### 函數返回中的 impl Trait
+
+因為 Weibo 實現了 Summary，因此這裡可以用它來作為返回值。要注意的是，雖然我們知道這裡是一個 Weibo 類型，但是對於 returns\_summarizable 的呼叫者而言，他只知道返回了一個實現了 Summary 特徵的對象，但是並不知道返回了一個 Weibo 類型。
+
+```rust
+fn returns_summarizable() -> impl Summary {
+    Weibo {
+        username: String::from("sunface"),
+        content: String::from(
+            "m1 max太厲害了，電腦再也不會卡",
+        )
+    }
+}
+```
+
+這種 impl Trait 形式的返回值，在一種場景下非常非常有用，那就是返回的真實類型非常複雜，你不知道該怎麼聲明時(畢竟 Rust 要求你必須標出所有的類型)，此時就可以用 impl Trait 的方式簡單返回。
+
+例如，閉包和迭代器就是很複雜，只有編譯器才知道那玩意的真實類型，好在你可以用 impl Iterator 來告訴呼叫者，返回了一個迭代器，因為所有迭代器都會實現 Iterator 特徵。
+
+<mark style="color:red;">但是這種返回值方式有一個很大的限制：只能有一個具體的類型</mark>。<mark style="background-color:red;">如果想要實現返回不同的類型，需要使用特徵對象</mark>。
+
+```rust
+// error, 程式碼就無法通過編譯，因為它返回了兩個不同的類型 Post 和 Weibo。
+fn returns_summarizable(switch: bool) -> impl Summary {
+    if switch {
+        Post {
+            title: String::from(
+                "Penguins win the Stanley Cup Championship!",
+            ),
+            author: String::from("Iceburgh"),
+            content: String::from(
+                "The Pittsburgh Penguins once again are the best \
+                 hockey team in the NHL.",
+            ),
+        }
+    } else {
+        Weibo {
+            username: String::from("horse_ebooks"),
+            content: String::from(
+                "of course, as you probably already know, people",
+            ),
+        }
+    }
 }
 ```
 
