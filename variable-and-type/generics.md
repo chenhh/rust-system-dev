@@ -1,10 +1,18 @@
-# 泛型\(generics\)
+# 泛型(generics)
 
 ## 簡介
 
 泛型（Generics）是指把類型抽象成一種“參數”，資料和演算法都針對這種抽象的類型參數來實現，而不針對具體類型。當我們需要真正使用的時候，再具體化、產生實體類型參數。
 
-## 資料結構中的泛型
+泛型參數的名稱你可以任意起，但是出於慣例，我們都用 `T` ( T 是 type 的首字母)來作為首選。
+
+### 泛型的效能
+
+在 Rust 中泛型是零成本的抽象，意味著你在使用泛型時，完全不用擔心效能上的問題。
+
+Rust 通過在編譯時進行泛型程式碼的 **單態化(monomorphization)**來保證效率。單態化是一個通過填充編譯時使用的具體類型，將通用程式碼轉換為特定程式碼的過程。
+
+## enum中的泛型
 
 ```rust
 enum Option<T> {
@@ -16,7 +24,34 @@ let x: Option<i32> = Some(42);
 let y: Option<f64> = None;
 ```
 
-這裡的&lt;T&gt;實際上是聲明了一個“類型”參數。在這個Option內部，Some（T）是一個tuple struct，包含一個元素類型為T。這個泛型參數類型T，可以在使用時指定具體類型。
+這裡的\<T>實際上是聲明了一個“類型”參數。在這個Option內部，Some（T）是一個tuple struct，包含一個元素類型為T。這個泛型參數類型T，可以在使用時指定具體類型。
+
+```rust
+enum Result<T, E> {
+    Ok(T),
+    Err(E),
+}
+```
+
+與 Option 用於值的存在與否不同，Result 關注的主要是值的正確性。
+
+如果函數正常運行，則最後返回一個 Ok(T)，T 是函數具體的返回值類型，如果函數異常運行，則返回一個 Err(E)，E 是錯誤類型。但是Err(E)不會造成程式停止，而是通知設計師發生錯誤，必須要處理。
+
+### struct的泛型
+
+```rust
+// x 和 y 是相同的類型
+struct Point<T> {
+    x: T,
+    y: T,
+}
+
+fn main() {
+    let integer = Point { x: 5, y: 10 };
+    let float = Point { x: 1.0, y: 4.0 };
+    // let p = Point{x: 1, y :1.1}; error, x,y兩種為不同類型
+}
+```
 
 泛型參數可以有多個也可以有預設值。
 
@@ -34,7 +69,7 @@ fn main() {
 }
 ```
 
-使用不同類型參數將泛型類型具體化後，獲得的是完全不同的具體類型。如Option&lt;i32&gt;和Option&lt;i64&gt;是完全不同的類型，不可通用，也不可相互轉換。當編譯器生成程式碼的時候，它會為每一個不同的泛型參數生成不同的程式碼。各種自訂複合類型都可以攜帶任意的泛型參數。
+使用不同類型參數將泛型類型具體化後，獲得的是完全不同的具體類型。如Option\<i32>和Option\<i64>是完全不同的類型，不可通用，也不可相互轉換。當編譯器生成程式碼的時候，它會為每一個不同的泛型參數生成不同的程式碼。各種自訂複合類型都可以攜帶任意的泛型參數。
 
 Rust規定，所有的泛型參數必須是真的被使用過的，否則會產生編譯錯誤。
 
@@ -47,6 +82,35 @@ struct Num<T> {
 
 ## 函數中的泛型
 
+使用泛型參數，有一個先決條件，必需在使用前對其進行聲明：
+
+```rust
+fn largest<T>(list: &[T]) -> T {}
+```
+
+函數 largest 有泛型類型 T，它有個參數 list，其類型是元素為 T 的陣列切片，最後，該函數返回值的類型也是 T。
+
+### 泛型類型限制
+
+但是在實作largest時，如果使用到特定的運算時，必須對T進行限制：
+
+```rust
+// T 可以是任何類型，但不是所有的類型都能進行比較, 修改如下：
+fn largest<T: std::cmp::PartialOrd>(list: &[T]) -> T {
+    let mut largest = list[0];
+
+    for &item in list.iter() {
+        // 有PartialOrd的限制才能保證T中元素可以比較大小
+        if item > largest {
+            largest = item;
+        }
+    }
+    largest
+}
+```
+
+### 類型檢查
+
 ```rust
 fn compare_option<T>(first: Option<T>, second: Option<T>) -> bool {
     match (first, second) {
@@ -57,7 +121,7 @@ fn compare_option<T>(first: Option<T>, second: Option<T>) -> bool {
 }
 ```
 
-函數compare\_option有一個泛型參數T，兩個形參類型均為Option&lt;T&gt;。這意味著這兩個參數必須是完全一致的類型。如果我們在參數中傳入兩個不同的Option，會導致編譯錯誤。
+函數compare\_option有一個泛型參數T，兩個形參類型均為Option\<T>。這意味著這兩個參數必須是完全一致的類型。如果我們在參數中傳入兩個不同的Option，會導致編譯錯誤。
 
 ```rust
 fn main() {
@@ -68,10 +132,10 @@ fn main() {
 
 編譯器在看到這個函式呼叫的時候，會進行類型檢查：
 
-* first的形參類型是Option&lt;T&gt;、實參類型是Option&lt;i32&gt;，
-* second的形參類型是Option&lt;T&gt;、實參類型是Option&lt;f32&gt;。
+* first的形參類型是Option\<T>、實參類型是Option\<i32>，
+* second的形參類型是Option\<T>、實參類型是Option\<f32>。
 
-這時編譯器的類型推導功能會進行一個類似解方程組的操作：由Option&lt;T&gt;==Option&lt;i32&gt;可得T==i32，而由Option&lt;T&gt;==Option&lt;f32&gt;又可得T==f32。這兩個結論產生了矛盾，因此該方程組無解，出現編譯錯誤。
+這時編譯器的類型推導功能會進行一個類似解方程組的操作：由Option\<T>==Option\<i32>可得T==i32，而由Option\<T>==Option\<f32>又可得T==f32。這兩個結論產生了矛盾，因此該方程組無解，出現編譯錯誤。
 
 如果我們希望參數可以接受兩個不同的類型，那麼需要使用兩個泛型參數：
 
@@ -81,7 +145,7 @@ fn compare_option<T1, T2>(
     second: Option<T2>) -> bool { ... }
 ```
 
-一般情況下，調用泛型函數可以不指定泛型參數類型，編譯器可以通過類型推導自動判斷。某些時候，如果確實需要手動指定泛型參數類型，則需要使用function\_name：：&lt;type params&gt;（function params）的語法：
+一般情況下，調用泛型函數可以不指定泛型參數類型，編譯器可以通過類型推導自動判斷。某些時候，如果確實需要手動指定泛型參數類型，則需要使用function\_name：：\<type params>（function params）的語法：
 
 ```rust
 compare_option::<i32, f32>(Some(1), Some(1.0));
@@ -97,7 +161,7 @@ enum會在執行階段判斷當前成員是哪個變體，而“函數重載”�
 
 ## impl區塊的泛型
 
-impl的時候也可以使用泛型。在impl&lt;Trait&gt;for&lt;Type&gt;{}這個語法結構中，泛型類型既可以出現在&lt;Trait&gt;位置，也可以出現在&lt;Type&gt;位置。
+impl的時候也可以使用泛型。在impl\<Trait>for\<Type>{}這個語法結構中，泛型類型既可以出現在\<Trait>位置，也可以出現在\<Type>位置。
 
 與其他地方的泛型一樣，impl塊中的泛型也是先聲明再使用。在impl塊中出現的泛型參數，需要在impl關鍵字後面用尖括弧聲明。
 
@@ -114,7 +178,7 @@ where
 }
 ```
 
-標準庫中的Into和From是一對功能互逆的trait。如果A：Into&lt;B&gt;，意味著B：From&lt;A&gt;。因此，標準庫中寫了這樣一段程式碼，意思是針對所有類型T，只要滿足U：From&lt;T&gt;，那麼就針對此類型impl Into&lt;U&gt;。有了這樣一個impl塊之後，我們如果想為自己的兩個類型提供互相轉換的功能，那麼只需impl From這一個trait就可以了，因為反過來的Intotrait標準庫已經幫忙實現好了。
+標準庫中的Into和From是一對功能互逆的trait。如果A：Into\<B>，意味著B：From\<A>。因此，標準庫中寫了這樣一段程式碼，意思是針對所有類型T，只要滿足U：From\<T>，那麼就針對此類型impl Into\<U>。有了這樣一個impl塊之後，我們如果想為自己的兩個類型提供互相轉換的功能，那麼只需impl From這一個trait就可以了，因為反過來的Intotrait標準庫已經幫忙實現好了。
 
 ## 泛型參數約束
 
@@ -140,12 +204,10 @@ fn main() {
 }
 ```
 
-修復方案為泛型類型T添加泛型約束。泛型參數約束有兩種語法：
+修復方案為泛型類型T添加泛型約束。 泛型參數約束有兩種語法：
 
 1. 在泛型參數聲明的時候使用冒號：指定；
 2. 使用where子句指定。
-
-
 
 ```rust
 use std::cmp::PartialOrd;
@@ -332,9 +394,50 @@ fn main() {
 }
 ```
 
-## 泛型特化
+## const泛型(1.51版後引入)
 
-Rust2018目前還不穩定，暫不介紹。
+通過引用，我們可以很輕鬆的解決處理任何類型陣列的問題，但是如果在某些場景下引用不適宜用或者乾脆不能用呢？
+
+const 泛型，也就是針對值的泛型，正好可以用於處理陣列長度的問題。
+
+```rust
+// 只能列印長度為3的array
+fn display_array(arr: [i32; 3]) {
+    println!("{:?}", arr);
+}
+
+// 可列印任意長度，只要傳入不可變引用
+fn display_array_2(arr: &[i32]) {
+    println!("v2, {:?}", arr);
+}
+
+// 泛型版本，fmt::Debug表示可用{:?}的類型
+fn display_array_3<T: std::fmt::Debug>(arr: &[T]) {
+    println!("v3, {:?}", arr);
+}
+
+// const泛型版本
+// N 這個泛型參數，它是一個基於值的泛型參數！因為它用來替代的是陣列的長度。
+fn display_array_4<T: std::fmt::Debug, const N: usize>(arr: [T; N]) {
+    println!("v4, {:?}", arr);
+}
 
 
+fn main() {
+    let arr: [i32; 3] = [1, 2, 3];
+    display_array(arr);
+    display_array_2(&arr);
+    display_array_3(&arr);
+    display_array_4(arr);
+    
+    let arr: [i32;2] = [1,2];
+    //display_array(arr);   // error
+    display_array_2(&arr);
+    display_array_3(&arr);
+    display_array_4(arr);
+}
+```
 
+### const 泛型表示式
+
+假設我們某段程式碼需要在記憶體很小的平台上工作，因此需要限制函數參數佔用的記憶體大小，此時就可以使用 const 泛型表示式來實現。
