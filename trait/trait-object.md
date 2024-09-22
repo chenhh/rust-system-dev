@@ -7,50 +7,6 @@ trait物件在Rust中是指使用指標封裝了的 trait，比如`&SomeTrait` �
 因為`&SomeTrait`記憶體大小並不確定，因此需加上`dyn`關鍵字 。
 
 ```rust
-trait Draw {
-    fn draw(&self) -> String;
-}
-
-impl Draw for u8 {
-    fn draw(&self) -> String {
-        format!("u8: {}", *self)
-    }
-}
-
-impl Draw for f64 {
-    fn draw(&self) -> String {
-        format!("f64: {}", *self)
-    }
-}
-
-// 若 T 實現了 Draw 特徵， 則呼叫該函數時傳入的 Box<T> 可以被隱式轉換成函數參數簽名中的 Box<dyn Draw>
-fn draw1(x: Box<dyn Draw>) {
-    // 由於實現了 Deref 特徵，Box 智慧指針會自動解引用為它所包裹的值，然後呼叫該值對應的類型上定義的 `draw` 方法
-    println!("draw1 {}", x.draw());
-}
-
-fn draw2(x: &dyn Draw) {
-    println!("draw2 {}", x.draw());
-}
-
-fn main() {
-    let x = 1.1f64;
-    // do_something(&x);
-    let y = 8u8;
-
-    // x 和 y 的類型 T 都實現了 `Draw` 特徵，因為 Box<T> 可以在函數呼叫時隱式地被轉換為特徵對象 Box<dyn Draw> 
-    // 基於 x 的值建立一個 Box<f64> 類型的智慧指針，指針指向的資料被放置在了堆上
-    draw1(Box::new(x));
-    // 基於 y 的值建立一個 Box<u8> 類型的智慧指針
-    draw1(Box::new(y));
-    draw2(&x);
-    draw2(&y);
-}
-```
-
-
-
-```rust
 trait Foo {
     fn method(&self) -> String;
 }
