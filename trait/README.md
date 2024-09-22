@@ -424,6 +424,29 @@ fn main() {
 }
 ```
 
+## 使用trait作為函數參數
+
+定義一個函數，使用特徵作為函數參數。
+
+雖然 `impl Trait` 這種語法非常好理解，但是實際上它只是一個trait約束的語法糖。
+
+```rust
+// 實現了Summary特徵 的 item 參數。語法糖
+pub fn notify(item: &impl Summary) {
+    println!("Breaking news! {}", item.summarize());
+}
+
+// 使用角括號的特徵限制語法
+pub fn notify<T: Summary>(item: T) {
+    println!("Breaking news! {}", item.summarize());
+}
+
+// 使用where特徵限制語法
+pub fn notify<T>(item: T) where T: Summary{
+    println!("Breaking news! {}", item.summarize());
+}
+```
+
 ## trait約束
 
 Rust的trait的另外一個大用處是，作為**泛型約束**使用，<mark style="background-color:red;">**即限定只有實現給定trait的類型才可被調用**</mark>。
