@@ -1,6 +1,14 @@
+---
+description: 特徵
+---
+
 # trait語法
 
-在Rust中，trait這一個概念有多個意義。在中文裡，trait可以翻譯為“特徵”“特點”“特性”等。由於這些詞區分度並不明顯，因此不翻譯trait這個詞，以避免歧義。trait中可以包含：函數、常量、類型等。
+trait在其它語言中近似的概念如介面(interface)。
+
+<mark style="background-color:red;">trait定義了一組可以被共享的行為，只要實現了trait，你就能使用這組行為(包含：函數、常量、類型等)</mark>。
+
+定義特徵是把一些方法組合在一起，目的是定義一個實現某些目標所必需的行為的集合。
 
 * trait本身可以攜帶泛型參數；
 * trait可以用在泛型參數的約束中；
@@ -11,17 +19,18 @@
 * trait可以不包含任何方法，用於給類型做標籤（marker），以此來描述類型的一些重要特性；
 * trait可以包含常量。
 
-## 成員函數(membership function)
+## 成員函數(方法)(membership function, method)
 
 trait中可以定義函數，稱為<mark style="color:red;">該trait的成員函數(membership function)</mark>。該函數可直接實作，或等到imp時再實作即可，類似於interface的概念。
 
 ```rust
 trait Shape {
+    // 只定義函數的簽名，而不進行實現，此時函數簽名結尾是 ;，而不是一個 {}。
     fn area(&self) -> f64;    //成員函數，尚未實作
 }
 ```
 
-### self參數
+### self/\&self/\&mut self參數
 
 <mark style="background-color:red;">所有的trait中都有一個隱藏的</mark><mark style="background-color:red;">**類型Self（大寫S），代表當前這個實現了此trait的具體類型**</mark><mark style="background-color:red;">。trait中定義的函數，也可以稱作關聯函數（associated function）</mark>。
 
@@ -72,6 +81,20 @@ trait Foo {
 
 `is_invalid`是預設方法，實現者可不必實現它，如果選擇實現它，會覆蓋掉它的預設行為。
 
+預設實現允許呼叫相同特徵中的其他方法，哪怕這些方法沒有預設實作。
+
+```rust
+pub trait Summary {
+    fn summarize_author(&self) -> String;
+
+    // 預設方法，可呼叫未實作方法self.summarize_author()
+    // 因此可用於切割相異未實作方法的共通部分
+    fn summarize(&self) -> String {
+        format!("(Read more from {}...)", self.summarize_author())
+    }
+}
+```
+
 ## 實現trait
 
 我們可以為某些具體類型實現（impl）這個trait。而且要實現所有的成員函數。
@@ -87,6 +110,7 @@ struct Circle {
     radius: f64,
 }
 
+// 為Circle結構實作Shape特徵
 impl Shape for Circle {
     // Self 類型就是 Circle
     // self 的類型是 &Self,即 &Circle
@@ -105,12 +129,12 @@ fn main() {
 }
 ```
 
-### 類型的內在方法
+### 結構的匿名特徵(內在方法)
 
 另外，針對一個類型，我們可以直接對它impl來增加成員方法，無須trait名字（可視為該類型特有的匿名trait）。用這種方式定義的方法叫作這個<mark style="color:red;">類型的“內在方法”（inherent methods）</mark>。
 
 ```rust
-// 實現Circle類型的匿名trait, 類似class的概念
+// 實現Circle類型的匿名特徵, 類似class的概念
 impl Circle {
     fn get_radius(&self) -> f64 {
         self.radius
@@ -262,9 +286,13 @@ fn main() {
 
 ## 孤兒規則(orphan rule)
 
-但我們也不是隨隨便便就可以這麼做的，Rust對此有一個規定。在聲明trait和impl trait的時候，**Rust規定了一個Coherence Rule（一致性規則）或稱為Orphan Rule（孤兒規則）：**<mark style="background-color:red;">**impl塊要麼與trait的聲明在同一個的crate中，要麼與類型的聲明在同一個crate中**</mark><mark style="background-color:red;">。</mark>
+特徵定義與實現的位置(孤兒規則)。
 
-也就是說，如果trait來自於外部crate，而且類型也來自於外部crate，編譯器不允許你為這個類型impl這個trait。**它們之中必須至少有一個是在當前crate中定義的**。
+如果他人想要使用我們的pub特徵(trait)，則可以引入到他們的包(crate)中，然後再進行實現。
+
+Rust對此有一個規定。在聲明trait T和impl trait T for struct A的時候，**Rust規定了一個一致性規則或稱為Orphan Rule（孤兒規則）：**<mark style="background-color:red;">**impl塊要麼與trait的聲明在同一個的crate中，要麼與類型的聲明在同一個crate中**</mark><mark style="background-color:red;">。</mark><mark style="color:red;">如果你想要為類型 A 實現特徵 T，那麼 A 或者 T 至少有一個是在當前範疇中定義的</mark>。
+
+也就是說，如果特徵來自於外部包，而且結構也來自於外部包，編譯器不允許你為這個類型impl這個trait。**它們之中必須至少有一個是在當前crate中定義的**。(例如無法為 String 類型實現 Display 特徵，因為它們倆都定義在標準庫中)
 
 <mark style="color:red;">孤立規則是用來預防相依性專案，在新增新Trait實作時造成破壞</mark>，也就是說只有在當前區域Crate中而非外部Crate時，Rust才會允許Trait或是型別實作。
 
@@ -281,7 +309,7 @@ fn main() {
 
 比如說，我們寫了一個程式，引用了外部庫lib1和lib2，lib1中聲明了一個trait T，lib2中聲明了一個struct S，我們不能在自己的程式中針對S實現T。這也意味著，上游開發者在給別人寫庫的時候，尤其要注意，一些比較常見的標準庫中的trait，如Display Debug ToString Default等，應該盡可能地提供好。否則，使用這個庫的下游開發者是沒辦法幫我們把這些trait實現的。
 
-同理，如果是匿名impl，那麼這個impl塊必須與類型本身存在於同一個crate中。
+<mark style="color:red;">同理，如果是匿名impl，那麼這個impl塊必須與類型本身存在於同一個crate中。</mark>
 
 ### 可以對自定義類型上實現外部 trait與不可對外部類型實作外部trait
 
