@@ -47,4 +47,76 @@ fn main() {
     println!("This struct `{}` won't print...", Structure(3));
     // 改正 ^ 注釋掉此行。
 }
+
+```
+
+## 自訂類型進行自訂的格式化輸出
+
+在開發過程中，往往只要使用 #\[derive(Debug)] 對我們的自訂類型進行標註，即可實現列印輸出的功能。
+
+```rust
+#[derive(Debug)]
+struct Point{
+    x: i32,
+    y: i32
+}
+fn main() {
+    let p = Point{x:3,y:3};
+    println!("{:?}",p);
+}
+```
+
+為了使用者更好的閱讀理解我們的類型，此時就要為自訂類型實現 `std::fmt::Display` 特徵：
+
+```rust
+#![allow(dead_code)]
+
+use std::fmt;
+use std::fmt::{Display};
+
+#[derive(Debug,PartialEq)]
+enum FileState {
+  Open,
+  Closed,
+}
+
+#[derive(Debug)]
+struct File {
+  name: String,
+  data: Vec<u8>,
+  state: FileState,
+}
+
+impl Display for FileState {
+   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+     match *self {
+         FileState::Open => write!(f, "OPEN"),
+         FileState::Closed => write!(f, "CLOSED"),
+     }
+   }
+}
+
+impl Display for File {
+   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+      write!(f, "<{} ({})>",
+             self.name, self.state)
+   }
+}
+
+impl File {
+  fn new(name: &str) -> File {
+    File {
+        name: String::from(name),
+        data: Vec::new(),
+        state: FileState::Closed,
+    }
+  }
+}
+
+fn main() {
+  let f6 = File::new("f6.txt");
+  //...
+  println!("{:?}", f6);
+  println!("{}", f6);
+}
 ```
