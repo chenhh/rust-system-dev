@@ -1,8 +1,38 @@
 # 字串
 
-## s.to\_vec() or s.to\_owned()簡介
+## 簡介
 
 Rust的字串有點複雜，主要是跟所有權有關。Rust的字串涉及兩種類型，一種是`&str(slice類型)`，另外一種是`String`，為Rust 標准庫中集合（collections）的非常有用的資料結構。
+
+字串切片是一個胖指標（fat pointer），內容為指向一個記憶體位址以及指向內容的長度。
+
+```rust
+use std::mem;
+
+fn print_type_of<T>(_: &T) {
+    println!("{}", std::any::type_name::<T>());
+}
+
+fn main() {
+    let s = "Hello, world!"; // &str，string slice，字串常值無法變更。
+    println!("{s}, length:{}", s.len()); // Hello, world!, length:13
+    print_type_of(&s); // &str
+    println!("size: {}", mem::size_of_val(&s)); // 16
+
+    let s2 = String::from(s);
+    println!("{s2}, length:{}", s2.len()); // Hello, world!, length:13
+    print_type_of(&s2); // alloc::string::String
+    println!("size: {}", mem::size_of_val(&s2)); // 24
+}
+```
+
+那Rust的String又是什麼呢？ 基本上他就是一個Vec\<u8>的型態，也有是一個儲存格式良好（well formed）的向量，存放在堆積(heap)。
+
+String, \&str 都可有一個`.len()`的方法，這個方法回傳的不是字元數而是bytes的長度（記憶體用量）。
+
+由於\&str是個指標，所以\&str本身是無法修改的，必須是要String才能處理。
+
+## s.to\_vec() or s.to\_owned()簡介
 
 * Rust 中只有一種字串原生類型：`str`，而字串切片，它通常以被借用的形式出現，`&str`，因為是唯讀借用，所以**沒有所有權且不可變**。
 * 稱作 String 的類型是由標准庫提供的，而沒有寫進核心語言部分，它是可增長的、可變的、**有所有權**的UTF-8 編碼的字串類型，String 是一個 `Vec<u8>` 的封裝。
@@ -28,7 +58,7 @@ pub struct String {
 | 字串   | "hello"  | u8 array                 |
 | 位元字串 | b"hello" | ASCII array              |
 
-## \&str
+## 字串切片(\&str)
 
 * \&str是Rust的內置類型，<mark style="color:red;">不可修改指向的字串</mark>。\&str是對str的借用。
   * 那麼這麼String的所有者是誰？
