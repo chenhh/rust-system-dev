@@ -23,9 +23,6 @@ Deref和DerefMut都是Rust中的trait，用來對指標型別進行轉化，得�
 * 也可能`v`是一個裸指標，`&*v`下來相當於把不安全的裸指標轉換為普通的引用；
 * 也可能`v`是一個智慧指標，比如`Box<v>`，那`&*v`就相當於解出`&T`了；
 * 還有可能是`v`的類型實現了Deref trait，那`&*v`_就相當於呼叫&_(v.deref())
-
-
-
 * <mark style="color:red;">`*`</mark><mark style="color:red;">引用運算子對於沒有實現Dered的引用物件，返回其原始的物件</mark>。
 * 引用運算子對於實現Dered Trait的（非引用物件）操作是隱式的呼叫 其`deref()`方法，也就是從一個引用類型到另外一個引用類型。
 
@@ -44,12 +41,15 @@ fn main() {
 ### 智慧指標的解引用
 
 ```rust
+use std::ops::Deref;
+
 fn main() {
     let x = 5;
     let y = Box::new(x);
 
     assert_eq!(5, x);
-    assert_eq!(5, *y);    // 必須解引用才能比較值
+    assert_eq!(5, *y);           // 自動解引用
+    assert_eq!(5, *(y.deref())); // 手動解引用
 }
 ```
 
@@ -177,6 +177,8 @@ impl ops::Deref for String {
 自動解引用是為了方便程式設計師，在變數不滿足條件的情況下，自動對變數使用解引用。
 
 比如rust的庫中針對\&str實現了很多字串的操作，然而並沒有針對string進行實現，但是我們可以直接使用string進行字串操作，實際上是編譯器自動把\&string解引用為了\&str。
+
+### 三種 Deref 強制轉換
 
 Rust 在發現類型和 trait 實現滿足三種情況時會進行 Deref 強制轉換：
 
