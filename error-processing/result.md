@@ -18,6 +18,8 @@ type Option<T> = Result<T, ()>;
 
 如果你呼叫了 `Result::unwrap` 或 `Option::unwrap` ，`panic!`會分別在值為 Err 或 None 時發生，這用在程式碰到了無法回覆的錯誤。
 
+在不需要處理錯誤的場景，例如寫原型、示例時，我們不想使用 match 去匹配 Result\<T, E> 以獲取其中的 T 值，因為 match 的窮盡匹配特性，你總要去處理下 Err 分支。簡化這個過程的方式就是 unwrap 和 expect。
+
 ## is\_ok, is\_err方法判斷變數是否成功
 
 ```rust
@@ -231,6 +233,8 @@ let p: Person = match serde_json::from_str(data) {
 
 因此unwrap隱含了panic!。雖然與更顯式的版本沒有差異，但是危險在於其隱含特性，因為有時這並不是你真正期望的行為。
 
+
+
 ## try! 巨集
 
 在 `?` 運算子出現以前，相同的功能是使用 `try!` 巨集完成的。現在我們推薦使用 `?` 運算子，但是在老程式中仍然會看到 `try!`。
@@ -332,6 +336,86 @@ fn write_info(info: &Info) -> io::Result<()> {
     Ok(())
 }
 ```
+
+## 向上傳播錯誤
+
+該函數的呼叫者最終會對 Result\<String,io::Error> 進行再處理，至於怎麼處理就是呼叫者的事，如果是錯誤，它可以選擇繼續向上傳播錯誤。
+
+```rust
+use std::fs::File;
+use std::io::{self, Read};
+/*
+該函數返回一個 Result<String, io::Error> 類型，
+當讀取使用者名稱成功時，返回 Ok(String)，
+失敗時，返回 Err(io:Error)
+
+File::open 和 f.read_to_string 返回的 
+Result<T, E> 中的 E 就是 io::Error
+*/
+fn read_username_from_file() -> Result<String, io::Error> {
+    // 打開檔案，f是`Result<檔案控制代碼,io::Error>`
+    let f = File::open("hello.txt");
+
+    let mut f = match f {
+        // 打開檔案成功，將file控制代碼賦值給f
+        Ok(file) => file,
+        // 打開檔案失敗，將錯誤返回(向上傳播)
+        Err(e) => return Err(e),
+    };
+    // 建立動態字串s
+    let mut s = String::new();
+    // 從f檔案控制代碼讀取資料並寫入s中
+    match f.read_to_string(&mut s) {
+        // 讀取成功，返回Ok封裝的字串
+        Ok(_) => Ok(s),
+        // 將錯誤向上傳播
+        Err(e) => Err(e),
+    }
+}
+```
+
+可用?簡化。它的作用跟上面的 `match` 幾乎一模一樣。
+
+如果結果是 `Ok(T)`，則把 `T` 賦值給 `f`，如果結果是 `Err(E)`，則返回該錯誤，所以 `?` 特別適合用來傳播錯誤。
+
+雖然 ? 和 match 功能一致，但是事實上 ? 會更勝一籌.&#x20;
+
+```rust
+use std::fs::File;
+use std::io;
+use std::io::Read;
+
+fn read_username_from_file() -> Result<String, io::Error> {
+    let mut f = File::open("hello.txt")?;
+    let mut s = String::new();
+    f.read_to_string(&mut s)?;
+    Ok(s)
+}
+
+// ?運算子等效於以下程式
+let mut f = match f {
+    // 打開檔案成功，將file控制代碼賦值給f
+    Ok(file) => file,
+    // 打開檔案失敗，將錯誤返回(向上傳播)
+    Err(e) => return Err(e),
+};
+```
+
+想像一下，一個設計良好的系統中，肯定有自訂的錯誤特徵，錯誤之間很可能會存在上下級關係，例如標準庫中的 std::io::Error 和 std::error::Error，前者是 IO 相關的錯誤結構體，後者是一個最最通用的標準錯誤特徵，同時前者實現了後者，因此 std::io::Error 可以轉換為 std:error::Error。
+
+明白了以上的錯誤轉換，? 的更勝一籌就很好理解了，它可以自動進行類型提升（轉換）：
+
+```rust
+// File::open 報錯時返回的錯誤是 std::io::Error 類型，
+// 但是 open_file 函數返回的錯誤類型是 std::error::Error 的特徵物件，
+// 可以看到一個錯誤類型通過 ? 返回後，變成了另一個錯誤類型
+fn open_file() -> Result<File, Box<dyn std::error::Error>> {
+    let mut f = File::open("hello.txt")?;
+    Ok(f)
+}
+```
+
+根本原因是在於標準庫中定義的 From 特徵，該特徵有一個方法 from，用於把一個類型轉成另外一個類型，? 可以自動呼叫該方法，然後進行隱式類型轉換。因此只要函數返回的錯誤 ReturnError 實現了 From 特徵，那麼 ? 就會自動把 OtherError 轉換為 ReturnError。
 
 ## 主函數main可傳回Result
 
