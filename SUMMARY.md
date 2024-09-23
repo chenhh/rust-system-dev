@@ -45,6 +45,7 @@
   * [Rc引用計數](zhi-hui-zhi-biao-smart-pointer/rc-yin-yong-ji-shu.md)
   * [Arc](smart-pointer/arc.md)
   * [Cow(copy on write)](zhi-hui-zhi-biao-smart-pointer/cow-copy-on-write.md)
+  * [結構體自引用](zhi-hui-zhi-biao-smart-pointer/struct-self-reference.md)
 * [測試與性能測試](testing.md)
   * [斷言(assert)](testing/duan-yan-assert.md)
   * [性能測試(benchmark)](test-and-benchmark/benchmark.md)
