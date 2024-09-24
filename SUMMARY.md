@@ -61,6 +61,7 @@
   * [開檔(open)](kai-dang-open.md)
 * [日期與時間](ri-qi-yu-shi-jian.md)
 * [執行緒安全](thread-safe/README.md)
+  * [Send/Sync特徵](thread-safe/send-sync-trait.md)
   * [執行緒](thread-safe/zhi-hang-xu.md)
   * [管道(channel)](thread-safe/channel.md)
   * [狀態變數](thread-safe/zhuang-tai-bian-shu.md)
