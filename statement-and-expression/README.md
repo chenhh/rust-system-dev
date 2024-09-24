@@ -235,6 +235,35 @@ fn main() {
 }
 ```
 
+## if-let語法
+
+if let 語法讓我們以一種不那麼冗長的方式結合 if 和 let，來處理只匹配一個模式的值而忽略其他模式的情況。
+
+if let 語法獲取通過等號分隔的一個模式和一個表示式。它的工作方式與 match 相同。在這個例子中，模式是 Some(max)，max 繫結為 Some 中的值。接著可以在 if let 程式碼塊中使用 max 了，就跟在對應的 match 分支中一樣。模式不匹配時 if let 塊中的程式碼不會執行。
+
+使用 if let 意味著編寫更少程式碼，更少的縮排和更少的樣板程式碼。然而，這樣會失去 match 強制要求的窮盡性檢查。match 和 if let 之間的選擇依賴特定的環境以及增加簡潔度和失去窮盡性檢查的權衡取捨。
+
+<mark style="color:red;">可以認為 if let 是 match 的一個語法糖，它當值匹配某一模式時執行程式碼而忽略所有其他值</mark>。
+
+```rust
+fn main() {
+    // 如果值是 Some，我們希望列印出 Some 成員中的值，
+    // 這個值被繫結到模式中的 max 變數裡。
+    // 對於 None 值我們不希望做任何操作。
+    let config_max = Some(3u8);
+    match config_max {
+        Some(max) => println!("The maximum is configured to be {max}"),
+        _ => (), // 處理非Some的程式很多餘
+    }
+
+    // 與上面等價寫法
+    if let Some(max) = config_max {
+        println!("The maximum is configured to be {max}");
+    }
+}
+//The maximum is configured to be 3
+```
+
 ## loop (無窮迴圈)
 
 在Rust中，使用loop表示一個無限迴圈。loop{}和while true{}迴圈的區別在於，相比於其他的許多語言，Rust語言要做更多的靜態分析。loop和while true語句在執行時沒有什麼區別，它們主要是會影響編譯器內部的靜態分析結果。
@@ -373,7 +402,7 @@ fn main() {
     }
 
     // borrow
-    for val in array.iter() {
+    for val in &array {
         println!("The number is {}", val);
     }
     // 5, 4, 3, 2, 1

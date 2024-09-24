@@ -187,6 +187,3 @@ trait SomeTrait {
 
 trait object通過它調用成員的方法是通過vtable虛函數表來進行查找並調用。現在需要被查找的函數成了泛型函數，而泛型函數在Rust中是編譯階段自動展開的，generic\_fn函數實際上有許多不同的版本。這裡有一個根本性的衝突問題。Rust選擇的解決方案是，禁止使用trait object來調用泛型函數，泛型函數是從虛函數表中剔除了的。這個行為跟C++是一樣的。C++中同樣規定了類的虛成員函數不可以是template方法。
 
-## impl trait
-
-\[todo]
