@@ -119,3 +119,4 @@ Auto Trait有一個重要特點，就是編譯器允許用戶不用手寫impl，
 ## 參考資料
 
 * [\[知乎\] 多線程編程的秘密：Sync, Send, and 'Static](https://zhuanlan.zhihu.com/p/362285521)
+* [https://rustcc.gitbooks.io/rustprimer/content/marker/sendsync.html](https://rustcc.gitbooks.io/rustprimer/content/marker/sendsync.html)
