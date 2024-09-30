@@ -4,8 +4,6 @@
 
 在軟體開發過程中，如果一個變數總是保持不變，我們可以宣告為常量，如果一個變數全域性唯一，可以使用靜態變數。Rust語言中使用const, static來實現這2個場景，但與其他語言稍有不同，<mark style="color:red;">rust中的</mark><mark style="color:red;">`const`</mark> <mark style="color:red;"></mark><mark style="color:red;">和</mark><mark style="color:red;">`static`</mark><mark style="color:red;">不能一起使用</mark>。
 
-const 在 Rust 中是一個關鍵字，而且總是圍繞著常量表達式 (constant expressions) 和編譯期求值等話題。
-
 #### const有以下特點
 
 * 每個使用const常數的地方，相當於拷貝了一份const常數，所以如果有 3 個地方用到常數，則會呼叫3次該型別的drop函式。
@@ -18,6 +16,38 @@ const 在 Rust 中是一個關鍵字，而且總是圍繞著常量表達式 (con
 * 不可變static變數必須實現Sync trait，以實現跨執行緒存取。
 * 可變static 變數可以不實現 sync特質，對可變static的存取需要unsafe塊或unsafe函式中使用。
 * 該型別變數在多執行緒存取時，必現確保安全性，比如加鎖, 可變static 必現在unsafe中存取。
+
+## const變數
+
+如果變數值在程式中為常數，可宣告為const，通常會以<mark style="color:red;">大寫字母命名變數，而且一定要指定變數類型</mark>。
+
+在編譯時，會將變數值直接以常數取代(不佔用記憶體)。
+
+```rust
+fn main(){
+    const MY_VAR:i32 = 100;
+    println!("my var is {MY_VAR}");
+}
+```
+
+## static變數
+
+static為全局變數(生命週期)，而let定義的是區域變數，離開區域即銷毀。
+
+```rust
+static PI: f32 = 3.14159;
+static mut X: i32 = 10;
+
+fn main() {
+    println!("PI: {PI}");
+    // 修改static變數必須在unsafe區塊中
+    unsafe {
+        X = 100;
+        println!("X: {X}");
+    }
+}
+
+```
 
 ## const fn
 
