@@ -34,7 +34,7 @@
   * [生命週期(lifetime)](memory-management/lifetime.md)
   * [NLL(non-lexical-lifetime)](memory-management/non-lexical-lifetime.md)
   * [unsafe區塊](memory-management/unsafe.md)
-  * [裸指標(原始指標)](memory-management/raw-pointer.md)
+  * [原始指標](memory-management/raw-pointer.md)
 * [容器與迭代器](container/README.md)
   * [迭代器](container/iterator.md)
   * [vec](container/vec.md)
@@ -46,8 +46,8 @@
   * [Arc](smart-pointer/arc.md)
   * [Cow(copy on write)](zhi-hui-zhi-biao-smart-pointer/cow-copy-on-write.md)
   * [結構體自引用](zhi-hui-zhi-biao-smart-pointer/struct-self-reference.md)
-* [測試與性能測試](test-and-benchmark/README.md)
-  * [斷言(assert)](test-and-benchmark/duan-yan-assert.md)
+* [測試與性能測試](testing.md)
+  * [斷言(assert)](testing/duan-yan-assert.md)
   * [性能測試(benchmark)](test-and-benchmark/benchmark.md)
 * [錯誤處理](error-processing/README.md)
   * [Option](error-processing/option.md)
@@ -99,7 +99,3 @@
 ## Windows系統程式 <a href="#windows-system-programming" id="windows-system-programming"></a>
 
 * [參考資料](windows-system-programming/reference.md)
-
-## slint
-
-* [slint資源](slint/slint-zi-yuan.md)

@@ -65,5 +65,3 @@ let v1 = Color(0, 1, 2);
 // tuple struct也可用struct方式初始化
 let v2 = Point{0: 10, 1: 12, 2: 13};
 ```
-
-## 借用與引用
