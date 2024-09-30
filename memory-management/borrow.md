@@ -12,20 +12,24 @@
 
 <mark style="color:blue;">借用指標與普通指標的內部資料是一模一樣的，唯一的區別是語義層面上的。它的作用是告訴編譯器，它對指向的這塊記憶體區域</mark><mark style="color:red;">沒有所有權</mark>。
 
+[https://stackoverflow.com/questions/27852613/why-does-printing-a-pointer-print-the-same-thing-as-printing-the-dereferenced-po](https://stackoverflow.com/questions/27852613/why-does-printing-a-pointer-print-the-same-thing-as-printing-the-dereferenced-po)
+
 ```rust
 fn main() {
     let n = 5;
- 
+
     // Get the reference of n
     // nref變數存放n的記憶體地址
-    let n_ref = &n;  // &i32
- 
-    println!("{:p}", &n);       // 0x7fff24bd3e9c
-    println!("{:p}", n_ref);    // 0x7fff24bd3e9c
-    println!("{:p}", &n_ref);   // 0x7fff24bd3ea0
-    // Dereference n_ref to get n
-    println!("{}", *n_ref);     // 5，借用(指標)取值要先解引用
- }
+    let n_ref = &n; // &i32
+
+    println!("{:p}", &n); // 0x7fff24bd3e9c
+    println!("{:p}", n_ref); // 0x7fff24bd3e9c
+    println!("{:p}", &n_ref); // 0x7fff24bd3ea0
+    // 印出引用的值時，可使用*取值，或者直接使用變數
+    // 因為T與&T實作Display時都是直接取值
+    println!("{}", *n_ref); // 5，借用(指標)取值要先解引用
+    println!("{}", n_ref);
+}
 ```
 
 ### 唯讀的借用
