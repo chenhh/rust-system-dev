@@ -1,10 +1,10 @@
 # 迭代器
 
-在Rust中，迭代器共分為三個部分：迭代器、介面卡、消費者。
+在Rust中，迭代器共分為三個部分：<mark style="background-color:red;">迭代器(iterator)、介面卡(adapter)、消費者(consumer)</mark>。
 
 其中，迭代器本身提供了一個惰性的序列，介面卡對這個序列進行諸如篩選、拼接、轉換尋找等操作，消費者則在前兩者的基礎上生成最後的數值集合。
 
-消費者是迭代器上一種特殊的操作，其主要作用就是將迭代器轉換成其他類型的值，而非另一個迭代器。&#x20;
+消費者是迭代器上一種特殊的操作，其主要作用就是將迭代器轉換成其他類型的值，而非另一個迭代器。
 
 而介面卡，則是對迭代器進行遍歷，並且其生成的結果是另一個迭代器，可以被鏈式呼叫直接呼叫下去。
 
@@ -224,7 +224,7 @@ for item in &container {}
 for item in &mut container{}
 ```
 
-Rust的IntoIterator trait實際上就是for語法的擴展介面。如果我們需要讓各種自訂容器也能在for迴圈中使用，那就可以借鑒標準庫中的寫法，自行實現這個trait即可。
+Rust的IntoIterator trait實際上就是for語法的擴展介面。如果我們需要讓各種自訂容器也能在for迴圈中使用，那就可以借鑒標準庫中的寫法，自行實現這個特徵即可。
 
 ## 無限迭代器
 
@@ -240,7 +240,7 @@ let inf_seq = (1..).into_iter();
 
 迭代器負責生產，而消費者則負責將生產出來的東西最終做一個轉化。
 
-取第幾個值所用的 .nth()函數，還有用來尋找值的 .find() 函數，呼叫下一個值的next()函數。
+取第幾個值所用的 `.nth()`函數，還有用來尋找值的 `.find()` 函數，呼叫下一個值的`next()`函數。
 
 ### collect方法
 
@@ -248,7 +248,7 @@ let inf_seq = (1..).into_iter();
 
 ```rust
 fn main() {
-    // 解法1，手動指定v的容器
+    // 解法1，手動指定v的容器, 類型_讓編譯器自動判斷
     let v: Vec<_> = (1..20).collect();
     println!("{:?}", v);
     
@@ -284,7 +284,7 @@ fold的輸出結果的類型，最終是和base的類型是一致的（如果bas
 
 ```rust
 fn main() {
-    // map為lazy eval，不會實作動作，必須有consumer才能編譯
+    // map為lazy eval，不會實際動作，必須有consumer才能編譯
     let m: Vec<_> = (1..5).map(|x| x + 1).collect();
     println!("{:?}", m); // [2, 3, 4, 5]
 }
@@ -296,7 +296,7 @@ fn main() {
 
 ```rust
 fn main() {
-    // filter為lazy eval，不會實作動作，必須有consumer才能編譯
+    // filter為lazy eval，不會實際動作，必須有consumer才能編譯
     let v: Vec<_> = (1..20).filter(|x| x % 2 == 0).collect();
     println!("{:?}", v); // [2, 4, 6, 8, 10, 12, 14, 16, 18]
 }
