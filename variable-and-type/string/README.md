@@ -159,8 +159,8 @@ String類型，這個型別管理被分配到**堆積**上的資料，所以能�
 
 ### 新建字串
 
-* 使用`String::new()`創建一個空的字串。&#x20;
-* 使用`String::from("...")`創建一個字串。&#x20;
+* 使用`String::new()`創建一個空的字串。
+* 使用`String::from("...")`創建一個字串。
 * 在實現了Display特性的物件上調用`to_string`方法得到一個字串。
 
 ```rust
@@ -404,7 +404,7 @@ fn main() {
 
 hello 是一個部分字串的引用，由一個額外的`[0..5]`部分指定。可以使用一個由中括號中的 \[starting\_index..ending\_index] 指定的 range 創建一個切片。
 
-![hello world slice](../.gitbook/assets/hello\_world\_slice-min.png)
+![hello world slice](../../.gitbook/assets/hello\_world\_slice-min.png)
 
 ## String，＆str，Vec 和＆\[u8]的慣用轉換
 
@@ -470,4 +470,3 @@ fn main() {
 
 * 手動將\&str轉化為String類型是件麻煩事，這是設計函數的大障礙。
 * 應該讓介面的使用者決定如何建立有所有權的資料，你不要簡單地到處接收\&str類型的變數然後自己去轉換它們。
-
