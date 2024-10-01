@@ -87,8 +87,8 @@ fn main() {
 
 ## 容量和重新分配
 
-vector 的容量(capacity)是為將新增到 vector 上的任何 future 元素分配的空間量。請勿將其與 vector 的長度(length)混淆，後者指定 vector 中的實際元素數量。
+vector 的容量(capacity)是為將新增到 vector 上的任何 future 元素分配的空間量。請勿將其與 vector 的長度(length)混淆，後者指定 vector 中的實際元素數量(註：與C++ STL中的vector行為相同)。
 
-&#x20;<mark style="color:red;">如果 vector 的長度超過其容量，則其容量將自動增加，但必須重新分配其元素</mark>。
+<mark style="color:red;">如果 vector 的長度超過其容量，則其容量將自動增加，但必須重新分配其元素</mark>。
 
 例如，容量為 10 且長度為 0 的 vector 將是一個空的 vector，具有 10 個以上元素的空間。將 10 個或更少的元素壓入 vector 不會改變其容量或引起重新分配。 但是，如果 vector 的長度增加到 11，則必須重新分配，這可能會很慢。因此，建議盡可能使用 `Vec::with_capacity` 來預先指定 vector 希望達到的大小。
