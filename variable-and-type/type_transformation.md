@@ -1,5 +1,58 @@
 # 類型轉換
 
+## 常用轉換
+
+Rust中類型非常嚴格，即使i32與i64都無法直接計算，必須先轉型。
+
+常用規則如下：
+
+* 數值類型轉換後可以使用(通常是記憶體較短轉為較長的類型)，而浮點數轉整數會無條件捨去，而非四捨五入。
+* 字串轉為數值資料，可用`x.trim().parse.unwrap()`或`x.trim().parse::<i32>().unwrap()`。
+* 數值轉字串類型，使用`x.to_string()`或者`format!`。
+* char轉為數值類型，使用`x.to_digit(10).unwrap()`，其中10表示10進位。
+* 字串轉為bytes類型，使用`x.as_bytes()`。
+* bytes轉為字串類型，使用`String::from_utf8(x.to_vec()).unwrap()`。
+
+```rust
+fn main() {
+    // 數值資料轉換
+    let x1: i32 = 10;
+    let x2: f32 = 20.5;
+    let result = x1 + x2 as i32;
+    println!("{result}"); // 30而不是31
+    
+    // 字串轉數值
+    let x1: String = "10".to_string();
+    let x2: f32 = 20.5;
+    let result = x1.trim().parse::<f32>().unwrap() + x2;
+    println!("{result}"); // 30.5
+    
+    // 數值轉字串
+    let x1: f32 = 20.5;
+    let result = x1.to_string() + "元";
+    let result2 = format!("{}元", x1.to_string());
+    println!("{result}, {result2}"); // 20.5元, 20.5元
+    
+    // char轉數值
+    let x1 = '9';
+    let result = x1.to_digit(10).unwrap(); // 10進位
+    println!("{result}"); // 9
+    let x1 = 'f';
+    let result = x1.to_digit(16).unwrap(); //16進位
+    println!("{result}"); // 15
+    
+    // 字串轉bytes
+    let x1 = "中文";
+    println!("{:?}", x1.as_bytes()); // [228, 184, 173, 230, 150, 135]
+    
+    // bytes轉string
+    let x2 = String::from_utf8(x1.as_bytes().to_vec()).unwrap();
+    println!("{x2}"); // 中文
+    
+} 
+
+```
+
 ## 強制類型轉換
 
 在一些特定場景中，類型會被隱式地強制轉換。這種轉換通常導致類型被 “弱化”，主要針對指標和生命週期。主要目的是讓 Rust 適用於更多的場景，並且基本上是無害的。
@@ -22,7 +75,7 @@
 
 * let 表示式，靜態變數或者常數：`let x: U = e`。
 * 函數的參數：`takes_a_U(e)`。
-* 函數返回值：`fn foo() -> U {e}`。&#x20;
+* 函數返回值：`fn foo() -> U {e}`。
 * 結構體初始化：`Foo { some_u: e }`。
 * 陣列初始化：`let x: [U; 10] = [e, ...]`。
 * 元組初始化：`let x: (U, ..) = (e, ..)`。
