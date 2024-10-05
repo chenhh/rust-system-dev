@@ -74,7 +74,7 @@
   * [死結-哲學家問題](thread-safe/si-jie-zhe-xue-jia-wen-ti.md)
   * [crossbeam](thread-safe/crossbeam.md)
   * [rayon](thread-safe/rayon.md)
-* [非同(異)步程式](fei-tong-yi-bu-cheng-shi/README.md)
+* [非同(異)步程式](fei-tong-yi-bu-cheng-shi.md)
   * [同步與非同步](fei-tong-yi-bu-cheng-shi/sync-async.md)
 * [FFI](ffi/README.md)
   * [cffi](ffi/cffi.md)

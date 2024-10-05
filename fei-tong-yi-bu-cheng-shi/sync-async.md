@@ -86,6 +86,223 @@ Rust 的 Future 就是一個可並行任務的抽象表示。而 Executor 就是
 
 <figure><img src="../.gitbook/assets/image (6).png" alt="" width="563"><figcaption><p>Future任務流程</p></figcaption></figure>
 
+但這個文字流程有個問題：poll() 只會執行一次嗎？如果會執行數次，那 poll() 下次會在什麼時候執行？這裡就得提到 Rust 的 waker 機制了。每一次 poll()，Executor 都會給這個任務一個 context。裡面有一個 waker，可以用來提醒 Executor「可以執行 poll() 了。」
+
+倘若如果我們可以等到作業完成，再執行 wake() 呢？要這麼做，我們就得先知道「工作什麼時候才完成？」如果任務是用 callback 或 event 告知任務狀態的，那就是在收到 event、或 callback 觸發進行呼叫。
+
+## async 函式、區塊和 await
+
+Rust 中 Future 與 Executor 的理論基礎，但實務上沒有這麼麻煩。事實上在 Rust 中，用 async 函式和 block 是非常直覺的。
+
+```rust
+// 異步版本
+sync fn make_breakfast() -> Toast {
+  let toast = bake_toast().await;
+  let butter = prepare_peanut_butter().await;
+
+  toast.apply(butter);
+  toast
+}
+
+// 同步版本
+fn make_breakfast() -> Toast {
+  let toast = bake_toast();
+  let butter = prepare_peanut_butter();
+
+  toast.apply(butter);
+  toast
+}
+```
+
+雖然整體上「做早餐」還是循序執行的（先烤完吐司、才準備花生醬），但做早餐這件事情因為已經是非同步的了，所以你可以在做早餐的時候做其他事情。
+
+可發現到 .await 剛好就是「任務切換點」。.await 之後，你可以去做其他事情（而不是空等）。等到烤箱聲音響了之後 (wake()) 之後再回來做剩下的事情。
+
+所以整體上 async 函式是比較高效的，但我們要怎麼讓整個任務更高效呢（在 async 裡面一次性執行更多工？）
+
+<figure><img src="../.gitbook/assets/image (8).png" alt="" width="375"><figcaption><p>非同步版本</p></figcaption></figure>
+
+<figure><img src="../.gitbook/assets/image (10).png" alt="" width="375"><figcaption><p>同步版本</p></figcaption></figure>
+
+## 在 async 函式裡面並行執行數個任務 (futures)
+
+希望在一個 async 裡面一次性執行數個任務。這裡我們可以借助 tokio 的 join!() 工具巨集，表示「我希望這兩個任務同時操作」，就像是把這兩個任務融合為一了。
+
+```rust
+async fn make_breakfast() -> Toast {
+  let (toast, butter) = tokio::join!(
+    // 要注意這裡不需要 .await，
+    // await 的事情 `join!()` 會處理。
+    bake_toast(),
+    prepare_peanut_butter()
+  );
+
+  toast.apply(butter);
+  toast
+}
+```
+
+<figure><img src="../.gitbook/assets/image (11).png" alt="" width="563"><figcaption><p>併發處理任務</p></figcaption></figure>
+
+換一種現實中也常遇到的例子：你希望早餐可以在小孩上學前做完，如果沒做完就不要繼續做了。所以我們想要設定一個計時器，如果計時到了還沒做完就直接取消；反之就繼續做：
+
+<figure><img src="../.gitbook/assets/image (12).png" alt="" width="563"><figcaption><p>定時任務并行</p></figcaption></figure>
+
+可以用 tokio::select!()——同時等「做早餐」跟「計時器」，回傳完成速度最快的任務（分支），而取消剩下沒做完的任務（分支）。
+
+```rust
+// Option 包含「有」或「沒有」兩種可能。如果計時器到了，
+// 吐司還沒完成，那就沒有早餐；反之，就有早餐。
+async fn make_breakfast_with_timer() -> Option<Toast> {
+  tokio::select! {
+    // 如果早餐先完成，那就有早餐。
+    toast = make_breakfast() => Some(toast),
+
+    // 如果時間先到，那就沒早餐。
+    _ = timer() => None,
+  }
+}
+
+/// 一個設定在 30 分鐘的計時器
+async fn timer() {
+  tokio::time::sleep(
+    std::time::Duration::from_secs(30 /* min */ * 60 /* sec */)
+  ).await
+}
+
+async fn make_breakfast() -> Toast {
+  let (toast, butter) = tokio::join!(
+    bake_toast(),
+    prepare_peanut_butter()
+  );
+
+  toast.apply(butter);
+  toast
+}
+```
+
+## await 只能在 async function 裡面執行
+
+是 .await 只能在 async block 或 async function 裡面使用。也就是說，你不能在同步函式（包括 main()）裡面呼叫非同步函式：
+
+```rust
+fn main() {
+  // 會編譯錯誤！
+  let file_content = make_breakfast().await;
+
+  // 還是不行 😄
+  let file_content = async {
+    make_breakfast().await
+  }.await; /* async block 也需要 await */
+}
+
+```
+
+既然每個呼叫者都必須是 async 的，那是誰呼叫第一個 async 函式呢？ 這就得提到 Async Runtime 了。
+
+## 從 Future 看 async 和 await
+
+async fn 其實展開來看，就是一個回傳 Future 的函式：
+
+```rust
+struct ReadFileFuture { ... }
+
+impl Future for ReadFileFuture {
+  type Output = String;
+
+  fn poll(...) { ... }
+}
+
+fn read_file(path: &Path) -> ReadFileFuture {}
+```
+
+而 await 的大致意思就是「沒完成就說整個函式沒完成；完成就繼續」：
+
+```rust
+// 把這個函式的 context 轉交給 read_to_string
+let content_status = tokio::fs::read_to_string(path).poll(cx);
+
+let content = match content_status {
+  // 如果這個 feature 沒完成，就剩下的 async 也就無法繼續。
+  Poll::Pending => return Poll::Pending,
+
+  // 反之，把值拿回來
+  Poll::Ready(c) => c,
+}
+```
+
+實際上這部分還有許多地方需要考慮：包括要怎麼在下次呼叫 poll() 的時候，知道現在要繼續執行哪個 Future。
+
+## Rust 的 async runtime
+
+實務上你不需要自己寫一個 executor，而是使用現成的 async runtime（執行階段、執行時）。一個 async runtime 除了 executor 之外，還有提供很多功能（比如上文提及的 thread pool、工具巨集和函式，以及檔案讀寫、channel 等等常用功能的非同步對應方法）。
+
+常見的 async runtime 有 tokio、async-std 和 smol，其中又以 tokio 和 async-std 為大宗。
+
+## 讓 main() 變成 async 函式的起源地
+
+那 main() 原則上就是組態 runtime，讓 runtime 準備 executor 的地方。
+
+```rust
+// 手動設定
+fn main() {
+  // 設定多執行緒的 tokio runtime。
+  tokio::runtime::Builder::new_multi_thread()
+    // 啟用所有功能。
+    .enable_all()
+    // 建構 runtime。
+    .build()
+    // 如果 runtime 建構失敗就停住整個程式。
+    .unwrap()
+    // async 函式的起源地——堵塞 (blocking)，
+    // 讓整個 main() 等待這個 async 函式完成。
+    .block_on(async {
+        println!("Hello world");
+    })
+
+  // 然後程式就可以結束了。
+}
+
+// 巨集設定
+#[tokio::main]
+async fn main() {
+  println!("Hello, World!");
+}
+```
+
+## 讓一個任務 (Future) 變成一個綠色執行緒 (Green Thread)——spawn
+
+然大部分的情況下，在 單執行緒「並行」就已經很足夠快了。倘若這個任務耗時很長，你希望開另一條執行緒「平行」專門處理這個任務，那就可以用 spawn：
+
+```rust
+let handle = tokio::task::spawn(async {
+  /* 現在這裡面的東西，都在獨立的 thread 裡面跑了！ */
+});
+```
+
+[`tokio::task::spawn`](https://docs.rs/tokio/latest/tokio/task/fn.spawn.html) 雖然用起來很像建立 OS thread 的 `std::thread::spawn`，但 **spawn 裡面不要放高耗時的同步函式**——除非你樂見整個 runtime 被卡在一件任務上面（或者是直接把 runtime 搞死，直接 panic！）
+
+那要怎麼在非同步函式裡面，開另一個 thread 跑同步函式呢？你可以用接下來會提到的 `tokio::task::spawn_blocking`。
+
+## 在非同步函式裡面呼叫高耗時同步函式——spawn\_blocking
+
+除了開一個 `std::thread::spawn` OS thread 跑這種函式之外，你也可以用\
+[`tokio::task::spawn_blocking`](https://docs.rs/tokio/latest/tokio/task/fn.spawn\_blocking.html) 開一個 **可以 await** 的同步 _blocking_ 堵塞函式。
+
+```rust
+let _this_returns_42 = tokio::task::spawn_blocking(|| {
+  for i in 0..114514 {
+    for j in 0..1919810 {}
+  }
+
+  42
+}).await;
+```
+
+這樣子跑高耗時的函式之時，照樣可以執行其他不用堵塞的任務。同理，你也可以把這個套進去 `join!` 並行完成，可是 **這樣建立出的 thread 是取消不了的——不只是單純的 `select!`，還包含 `.abort()`** 。因此還是盡量選擇並善用非同步函式。
+
+
+
 ## 參考資料
 
 [https://blog.pan93.com/what-is-rust-async/](https://blog.pan93.com/what-is-rust-async/)\
