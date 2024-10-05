@@ -63,8 +63,6 @@ draw2 u8: 8
 */
 ```
 
-
-
 ```rust
 trait Foo {
     fn method(&self) -> String;
@@ -157,7 +155,7 @@ impl<T> Screen<T>
 
 與靜態分發相對應的是動態分發(dynamic dispatch)，在這種情況下，直到執行階段，才能確定需要呼叫什麼方法。之前程式碼中的關鍵字 <mark style="color:red;">dyn 正是在強調這一“動態”的特點</mark>。
 
-<figure><img src="../.gitbook/assets/image.png" alt="" width="375"><figcaption><p>靜態/動態分發</p></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (7).png" alt="" width="375"><figcaption><p>靜態/動態分發</p></figcaption></figure>
 
 如 \&dyn Draw、Box 雖然特徵物件沒有固定大小，但它的引用類型的大小是固定的，它由兩個指標組成（ptr 和 vptr），因此佔用兩個指標大小。
 
@@ -169,9 +167,9 @@ impl<T> Screen<T>
 
 並不是所有的特徵都能作為trait物件使用。
 
-如果一個特徵是物件安全(object safe)的，它需要滿足：方法有Self: Sized約束， 或者&#x20;
+如果一個特徵是物件安全(object safe)的，它需要滿足：方法有Self: Sized約束， 或者
 
-同時滿足以下所有條件：&#x20;
+同時滿足以下所有條件：
 
 * 沒有泛型參數。
 * 除了self之外的其它參數和返回值不能使用Self類型。
