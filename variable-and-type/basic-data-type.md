@@ -91,37 +91,38 @@ if a >= b {
 
 ```rust
 use std::mem;
-fn main(){
+fn main() {
     //char以單引號包住, 可以直接嵌入任何 unicode 字符
     //char佔用4 bytes的空間
-    let love = '愛'; 
+    let love: char = '愛';
     println!("love={}, size={}", love, mem::size_of_val(&love));
-    
-    let c1 = '\n';   // 分行符號, 佔用4bytes
+
+    let c1: char = '\n'; // 分行符號, 佔用4bytes
     println!("{}, size={}", c1, mem::size_of_val(&c1));
-    
+
     let c2 = '\x7f'; // 8 bit 字元變數, 佔用4bytes
     println!("{}, size={}", c2, mem::size_of_val(&c2));
-    
+
     let c3 = '\u{7FFF}'; // unicode字元, 佔用4bytes
     println!("{}, size={}", c3, mem::size_of_val(&c3));
-    
+
     /* 可以使用一個字母b在字元或者字串前面，
      * 代表這個字面量存儲在u8類型陣列中，
      * 這樣佔用空間比char型陣列要小一些。
      */
-    let x :u8 = 1;
-    println!("{}, size={}", x, mem::size_of_val(&x));   // 1 byte
-    
-    let y :u8 = b'A';
-    println!("{}, size={}", y, mem::size_of_val(&y));   // 1 byte
-    
-    let s :&[u8;5] = b"hello";
+    let x: u8 = 1;
+    println!("{}, size={}", x, mem::size_of_val(&x)); // 1 byte
+
+    let y: u8 = b'A';
+    println!("{}, size={}", y, mem::size_of_val(&y)); // 1 byte
+
+    let s: &[u8; 5] = b"hello";
     println!("{:?}, size={}", s, mem::size_of_val(&s)); // 8 bytes
-    
-    let r :&[u8;14] = br#"hello \n world"#;
+
+    let r: &[u8; 14] = br#"hello \n world"#;
     println!("{:?}, size={}", r, mem::size_of_val(&r)); // 8 bytes
 }
+
 ```
 
 ## 整數類型
