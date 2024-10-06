@@ -82,8 +82,8 @@ fn main(){
     // 由String建構&str
     let cs = s.as_str();
     let cs2 = s.to_string();
-    println!("{cs}, {cs2}");
-    
+    let cs3 = &s;
+    println!("{cs}, {cs2}, {cs3}");    
 }
 ```
 
@@ -150,13 +150,28 @@ fn main() {
 
 ## 字串切片(\&str)：截取部份字串
 
-*
+只有ascii字串常值可以使用下標方式取切片，unicode字串要特別處理。
 
 ```rust
 fn main() {
     // 因為字串是 UTF-8 串流，所以並不支援使用索引來存取
     let s: &str = "hello";
     println!("The first letter of s is {}", s[0]); // ERROR!!!
+}
+
+fn main() {
+    // unicode字串取切片比較麻煩
+    let s = "今天天氣很好";
+    // 要先用take，再用skip，此時index才會和切片的[start, end)一致
+    // 如果是用先用skip再用take，則take的index要修改為end-start
+    let substr: String = s.chars().take(4).skip(1).collect();
+
+    // ascii可直接取切片
+    let s2 = "hello world";
+    let substr2 = &s2[1..4];
+
+    println!("{substr}"); // 天天氣
+    println!("{substr2}"); // ell
 }
 ```
 
@@ -165,17 +180,27 @@ fn main() {
 這樣設計有一個缺點，就是不能支援O(1）時間複雜度的索引操作。如果我們要找一個字串s內部的第n個字元，不能直接通過s\[n]得到，這一點跟其他許多語言不一樣。在Rust中，這樣的需求可以通過下面的語句實現：
 
 ```rust
+use std::mem;
+use std::mem::size_of_val;
+fn print_type_of<T>(_: &T) {
+    println!("{}", std::any::type_name::<T>());
+}
+
 fn main() {
     let hachiko: &str = "忠犬ハチ公";
 
+    // 轉成bytes, 每個位元為8bytes
     for b in hachiko.as_bytes() {
-        print!("{}, ", b);
+        println!("{b}, size:{}", mem::size_of_val(&b));
+        print_type_of(&b);  // &u8, fat pointer
     }
     // 229, 191, 160, 231, 138, 172, 227, 131, 143, 227, 131, 129, 229, 133, 172,
     println!("");
 
+    // 轉成chars iterator，每個字元為4 bytes
     for c in hachiko.chars() {
-        print!("{}, ", c);
+        println!("{c}, sizeof:{}", mem::size_of_val(&c));
+        print_type_of(&c);  // char
     }
     // 忠, 犬, ハ, チ, 公,
 
@@ -183,15 +208,15 @@ fn main() {
 
     // 可以使用以下的方法達到類似於索引的功能
     let dog = hachiko.chars().nth(1); // kinda like hachiko[1]
-    println!("{:?}", dog); // Some('犬')
+    println!("{dog:?}"); // Some('犬')
     
     // 將字串以單字切割後，再收集成為vector的元素
     let data: Vec<_> = hachiko.chars().collect();
-    println!("{:?}", data );
+    println!("{data:?}");
 }
 ```
 
-它的時間複雜度是O（n），因為utf-8是變長編碼，如果我們不從頭開始過一遍，根本不知道第n個字元的位址在什麼地方。但是，綜合來看，選擇utf-8作為內部預設編碼格式是缺陷最少的一種方式了。相比其他的編碼格式，它有相當多的優點。
+它的時間複雜度是O(n），因為utf-8是變長編碼，如果我們不從頭開始過一遍，根本不知道第n個字元的位址在什麼地方。但是，綜合來看，選擇utf-8作為內部預設編碼格式是缺陷最少的一種方式了。相比其他的編碼格式，它有相當多的優點。
 
 \[T]是DST類型，對應的str是DST類型。&\[T]是陣列切片類型，對應的\&str是字串切片類型：
 
@@ -206,17 +231,7 @@ fn main() {
 }
 ```
 
-\&str為胖指標，它內部實際上包含了一個指向字串片段頭部的指標和一個長度。所以，它跟C/C++的字串不同：C/C++裡面的字串以'\0'結尾，而Rust的字串是可以中間包含'\0'字元的。
-
-```rust
-fn main() {
-    // &str為fat pointer，2個usize，第一個存ptr address, 第二個存array長度
-    println!("Size of pointer: {}", std::mem::size_of::<*const ()>()); // 8
-    println!("Size of &str : {}", std::mem::size_of::<&str>());        // 16
-}
-```
-
-### 轉換為String
+### \&str轉換為String
 
 ```rust
 fn main() {
@@ -224,6 +239,10 @@ fn main() {
   // 使用to_string將&str轉為String
   greet_str(my_str);
   greet_string(&my_str.to_string());
+  
+  // String傳入&str函數，只要用&即可
+  let s2 = my_str.to_string();
+  greet_str(&s2);
   
 }
 
@@ -301,26 +320,39 @@ fn main() {
 
 ### 串接多個字串
 
+規則如下：
+
+* String類型可以串接\&str，不可以連接String，但可以連接\&String(會轉形為\&str)。
+* \&str不可以連接\&str、String，必須先使用to\_owned轉成String且複製\&str內容。
+
 使用+符號，且將String手動轉為\&str。
+
+<mark style="background-color:red;">規則很複雜，建議全部以format!或是String陣列方式，再用push方式處理</mark>。
 
 ```rust
 fn main() {
     let s1 = String::from("tic");
-    let s2 = String::from("tac");
-    let s3 = String::from("toe");
+    let s2 = "tac";
+    let s3 = "toe".to_string();
 
-    let s = s1 + "-" + &s2 + "-" + &s3;
+    let s = s1 + "-" + s2 + "-" + &s3;
     println!("{s}"); // tic-tac-toe
+    
+    // to_owned: 複製&str且轉為String
+    let s = s2.to_owned() + "-" + &s2;
+    println!("{s}"); // tac-tac
 }
 ```
 
-使用format!巨集
+### 使用format!巨集
+
+類似python的f-string，可處理不同類型的資料，不須轉型，且語法與println!相同。
 
 ```rust
 fn main() {
     let s1 = String::from("tic");
-    let s2 = String::from("tac");
-    let s3 = String::from("toe");
+    let s2 = "tac";
+    let s3 = "toe".to_string();
 
     let s = format!("{s1}-{s2}-{s3}");
     println!("{s}"); // tic-tac-toe
