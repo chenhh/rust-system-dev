@@ -12,7 +12,13 @@ Rust的字元固定使用4 bytes儲存unicode。
 
 <mark style="background-color:red;">如果將字串變數傳參數給函數時，\&str的字度固定只有16 bytes，而String類型會將字串複製後再傳入，較浪費時間和記憶體</mark>。
 
-## 字串切片：字串字面值
+## 字串切片(\&str)：字串常值
+
+\&str是Rust的內置類型，<mark style="color:red;">不可修改指向的字串</mark>。\&str是對str的借用。
+
+那麼這麼字串(str)的所有者是誰？<mark style="color:blue;">字串常值是引用自“預分配文字(preallocated text)”的字串切片</mark>，這個預分配文字存儲在可執行程式的唯讀記憶體中。換句話說，這是裝載我們程式的記憶體並且不依賴於在堆積上分配的緩沖區。
+
+<mark style="color:red;">**Rust的字串內部預設是使用utf-8編碼格式的。而內置的char類型是4位元組長度的，存儲的內容是Unicode Scalar Value**</mark>。所以，Rust裡面的字串不能視為char類型的陣列，而更接近u8類型(無號8位元整數而非utf-8)的陣列。
 
 <figure><img src="../../.gitbook/assets/image (13).png" alt="" width="177"><figcaption><p>字串切片&#x26;str記錄字串的記憶體位址</p></figcaption></figure>
 
@@ -81,7 +87,7 @@ fn main(){
 }
 ```
 
-### s.to\_vec() or s.to\_owned()簡介
+### 字串常值與字串的所有權
 
 Rust 中只有一種字串原生類型：`str`，而字串切片，它通常以被借用的形式出現，`&str`，因為是唯讀借用，所以**沒有所有權且不可變**。
 
@@ -89,13 +95,14 @@ Rust 中只有一種字串原生類型：`str`，而字串切片，它通常以�
 
 <mark style="color:red;">當 Rustacean 們談到 Rust 的 “字串”時，它們通常指的是</mark> <mark style="color:red;">`String`</mark> <mark style="color:red;">和字串</mark> <mark style="color:red;">`slice &str`</mark> <mark style="color:red;">類型，而不僅僅是其中之一</mark>。<mark style="background-color:red;">String 和字串 slice 都是 UTF-8 編碼的</mark>。
 
-如果用C++來對比，Rust的String類型類似於`std::string`，而Rust的\&str類型類似於`std::string_view`。
+如果用C++來對比，Rust的`String`類型類似於`std::string`，而Rust的`&str`類型類似於`std::string_view`。
 
-但是一般地，保守來講，如果我們正在構建的API不需要擁有或者修改使用的文字，那麼應該使用\&str而不是String。
+但是一般地，保守來講，如果我們正在構建的API不需要擁有或者修改使用的文字，那麼應該使用`&str`而不是`String`。
 
 Rust 標准庫中還包含一系列其他字串類型，比如 OsString、OsStr、CString 和 CStr。對應著它們提供的所有權和可借用的字串變體。
 
 ```rust
+// 此處的u8為8 bits(1 byte)的無號整數類型
 pub struct String {
     vec: Vec<u8>,
 }
@@ -107,7 +114,7 @@ pub struct String {
 | ---- | -------- | ------------------------ |
 | 字元   | 'H'      | unicode(UTF-16), 4 bytes |
 | 位元組  | b'H'     | ASCII, 1byte             |
-| 字串   | "hello"  | u8 array                 |
+| 字串常值 | "hello"  | u8 array                 |
 | 位元字串 | b"hello" | ASCII array              |
 
 ```rust
@@ -134,19 +141,16 @@ fn main() {
 
     // 位元切片
     let s = b"hello";
-    print_type_of(&s); // &[u8, 5]
+    print_type_of(&s); // &[u8; 5]
     println!("sizeof: {}", size_of_val(&s)); // 8
 }
 ```
 
 
 
-## 字串切片(\&str)
+## 字串切片(\&str)：截取部份字串
 
-* \&str是Rust的內置類型，<mark style="color:red;">不可修改指向的字串</mark>。\&str是對str的借用。
-  * 那麼這麼String的所有者是誰？
-  * <mark style="color:blue;">字串字面量有點特殊。他們是引用自“預分配文字(preallocated text)”的字串切片</mark>，這個預分配文字存儲在可執行程式的唯讀記憶體中。換句話說，這是裝載我們程式的記憶體並且不依賴於在堆積上分配的緩沖區。
-* <mark style="color:red;">**Rust的字串內部預設是使用utf-8編碼格式的。而內置的char類型是4位元組長度的，存儲的內容是Unicode Scalar Value**</mark>。所以，Rust裡面的字串不能視為char類型的陣列，而更接近u8類型的陣列。
+*
 
 ```rust
 fn main() {
