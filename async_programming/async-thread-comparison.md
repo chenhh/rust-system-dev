@@ -1,4 +1,6 @@
-# 非同(異)步程式
+# 非同步與執行緒比較
+
+
 
 ## async vs 其它並發模型(concurrent model)
 
@@ -12,6 +14,8 @@ Rust 經過權衡取捨後，最終選擇了同時提供多執行程和 async：
 
 * 前者通過標准庫實現，當你無需那麼高的並發時，例如需要並行(parallel)計算時，可以選擇它，優點是執行緒內的代碼執行效率更高、實現更直觀更簡單。
 * 後者通過語言特性 + 標准庫 + 三方庫的方式實現，在你需要高並發(concurrent)、異步 I/O 時，選擇它就對了。
+
+<figure><img src="../.gitbook/assets/image (14).png" alt="" width="563"><figcaption><p>Coroutine</p></figcaption></figure>
 
 ## async: Rust vs 其它語言
 
