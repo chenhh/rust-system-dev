@@ -320,6 +320,5 @@ let _this_returns_42 = tokio::task::spawn_blocking(|| {
 ## 參考資料
 
 * [https://blog.pan93.com/what-is-rust-async/](https://blog.pan93.com/what-is-rust-async/)
-* [https://shihyu.github.io/rust\_hacks/ch100/00.html](https://shihyu.github.io/rust\_hacks/ch100/00.html)\
-
-* [Tokio學習筆記](https://skyao.io/learning-tokio/docs/introduction.html)\
+* [https://shihyu.github.io/rust\_hacks/ch100/00.html](https://shihyu.github.io/rust\_hacks/ch100/00.html)
+* [https://rustmagazine.github.io/rust\_magazine\_2021/chapter\_1/rust\_async.html](https://rustmagazine.github.io/rust\_magazine\_2021/chapter\_1/rust\_async.html)\
