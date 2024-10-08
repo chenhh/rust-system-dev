@@ -74,12 +74,16 @@
   * [死結-哲學家問題](thread-safe/si-jie-zhe-xue-jia-wen-ti.md)
   * [crossbeam](thread-safe/crossbeam.md)
   * [rayon](thread-safe/rayon.md)
-* [非同(異)步程式](fei-tong-yi-bu-cheng-shi.md)
-  * [同步與非同步](fei-tong-yi-bu-cheng-shi/sync-async.md)
 * [FFI](ffi/README.md)
   * [cffi](ffi/cffi.md)
 * [資料處理polars](zi-liao-chu-li-polars.md)
 * [參考資料](reference.md)
+
+## 非同(異)步程式 <a href="#async_programming" id="async_programming"></a>
+
+* [非同步與執行緒比較](async\_programming/async-thread-comparison.md)
+* [同步與非同步基礎](async\_programming/sync-async-basic.md)
+* [Page 1](async\_programming/page-1.md)
 
 ## 標準庫 <a href="#std-lib" id="std-lib"></a>
 
