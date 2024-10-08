@@ -1,4 +1,18 @@
-# 同步與非同步
+# 同步與非同步基礎
+
+非同步程式解決等待的問題。
+
+一般的程式，其實大部分都在處理等待問題，像是 GUI 程式，使用者按了一個按鈕後，不可能完全卡在那邊等待其他的程式跑完，又像是API server 經由網路呼叫一個第三方的外部程式，如果在那邊等待，是不是浪費了很多 CPU資源。
+
+這時可以直接用執行緒操作，避免主程式被卡住的情況，而其實執行緒也算是一種非同步程式的模型，而且現今的程式語言也有更好語法去使用它們，像是用 Future or Promise。
+
+在瞭解完要解決什麼問題後，需要知道的是不同解法之間的差異。如python在非同步流程控制上比較多重點在 callback, eventloop, coroutine 還有最後衍生出來的 async/await。
+
+但取而代之的就是，程式會有點難寫難讀，所以就有了 libev, libevent, libuv 這類函式庫幫忙處理 非同步IO 這部分，使用這類的函式庫，上層程式很簡單就可以使用回調(callback)函數與之互動，等到 socket 的 file descriptor 被觸發時再去呼叫回調函數繼續處理下去。
+
+很快就有人發現可以寫出 callback hell 這種程式，非同步程式 (主要談callback) 到這邊就變成語法的改進了，希望能夠把程式寫得更漂亮更易讀一點，所以就有了 promise 或是協程(coroutine)的方法與其結合，在協程中會把控制權從函數中切換回主程式中，某種程度跟 eventloop 就很相似，所以可以利用協程的特性加上非阻塞I/O 成為更好的框架，而程式也會變得像是同步程式，不過要注意一但有程式是阻塞IO 或是CPU密集的任務，就會把這個執行緒卡住，最後提到的 async/await 只不過是語法的變形，其實跟協程的概念是很相似的，可以讓整個程式更好寫易讀，然後背後又能高效率的處理 IO密集問題。
+
+如果非同步程式只是處理網路IO 的話，應該是不會有太大的問題。但如果有個CPU密集的任務，最好還是要能生成行程/執行緒去處理，或是利用佇列丟給其它的程式去處理。所以一旦楚這些架構後，才能知道採取哪種方式處理問題是比較好的。
 
 ## 名詞解釋
 
@@ -307,8 +321,5 @@ let _this_returns_42 = tokio::task::spawn_blocking(|| {
 
 * [https://blog.pan93.com/what-is-rust-async/](https://blog.pan93.com/what-is-rust-async/)
 * [https://shihyu.github.io/rust\_hacks/ch100/00.html](https://shihyu.github.io/rust\_hacks/ch100/00.html)\
-
-
-<!---->
 
 * [Tokio學習筆記](https://skyao.io/learning-tokio/docs/introduction.html)\
