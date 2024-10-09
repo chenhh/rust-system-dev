@@ -83,7 +83,7 @@
 
 * [非同步與執行緒比較](async\_programming/async-thread-comparison.md)
 * [同步與非同步基礎](async\_programming/sync-async.md)
-* [Page 1](async\_programming/page-1.md)
+* [非同步程式](async\_programming/async\_prog.md)
 
 ## 標準庫 <a href="#std-lib" id="std-lib"></a>
 
