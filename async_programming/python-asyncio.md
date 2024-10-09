@@ -34,6 +34,49 @@ asyncio要明確地使用@coroutine、yield from，而後來Python 3.5改用asyn
 
 asyncio本身主要有兩個對象：直接使用（end-user）的開發者與框架設計者。龐大的API文件中，大部份都是給框架設計者看的，直接使用的開發者只要了解async與await關鍵字的使用時機即可。
 
+```python
+# -*- coding: UTF-8 -*-
+# python 3.11
+import asyncio
+import time
+
+
+def block_dosomething(i):
+    print(f"第 {i} 次開始")
+    time.sleep(1)
+    print(f"第 {i} 次結束")
+
+
+def block_main():
+    start = time.time()
+    for i in range(5):
+        block_dosomething(i + 1)
+    # 5 secs
+    print(f"block time: {(time.time() - start):.2f} (s)")
+
+
+async def dosomething(i):
+    print(f"第 {i} 次開始")
+    await asyncio.sleep(1)
+    print(f"第 {i} 次結束")
+
+
+def async_main():
+    start = time.time()
+    # 包裝成tasks, 不可直接傳coroutine
+    tasks = (asyncio.create_task(dosomething(i + 1)) for i in range(5))
+    asyncio.run(asyncio.wait(tasks))
+    # 1 sec
+    print(f"async time: {(time.time() - start):.2f} (s)")
+
+
+if __name__ == "__main__":
+    block_main()
+    async_main()
+```
+
+
+
 
 
 
