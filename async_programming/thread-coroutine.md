@@ -71,7 +71,7 @@ CPU bound：任務本身涉及大量CPU、GPU計算，比如3D製圖、AI模型�
 
 <figure><img src="../.gitbook/assets/image (1).png" alt="" width="563"><figcaption><p>協程工作切換</p></figcaption></figure>
 
-
+<figure><img src="../.gitbook/assets/image (18).png" alt="" width="540"><figcaption><p>函數與協程執行時的切換流程</p></figcaption></figure>
 
 ## 參考資料
 
