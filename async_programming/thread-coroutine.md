@@ -78,3 +78,4 @@ CPU bound：任務本身涉及大量CPU、GPU計算，比如3D製圖、AI模型�
 ## 參考資料
 
 * [https://medium.com/gogolook-tech/kotlin-coroutines-%E5%85%A5%E9%96%80%E6%A6%82%E5%BF%B5-coroutine-vs-thread-e7d112b0d8ba](https://medium.com/gogolook-tech/kotlin-coroutines-%E5%85%A5%E9%96%80%E6%A6%82%E5%BF%B5-coroutine-vs-thread-e7d112b0d8ba)
+* [https://superfastpython.com/coroutines-less-memory-threads/](https://superfastpython.com/coroutines-less-memory-threads/)

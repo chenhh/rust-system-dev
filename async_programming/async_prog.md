@@ -1,12 +1,6 @@
 # 非同步程式
 
-## Python AsyncIO
-
-AsyncIO 的概念最早起源於 JavaScript 的 async/await 語法。它在單執行緒中實現了類似於多執行緒的效果，採用類似協程的方式在背景執行。由事件循環（event loop）在有空閒時檢查各個背景任務是否有返回結果，適合處理涉及網路傳輸的 I/O bound 任務。
-
-例如 API 伺服器。Server首先接受多個使用者的請求，然後等到處理完後自動回傳給使用者。若API Server不支援 AsyncIO的話，可能會導致對使用者來說的請求處理時間過長，遲遲沒有等不到回應。
-
-由於受限Python 全域鎖GIL(Global Interpreter Lock) 的特性，當我們打算在Python運行多執行緒的程式碼時所有的執行緒都會被鎖住，導致沒辦法執行，效果相當於單執行緒。
+##
 
 ## python的非同步函數（協程）
 

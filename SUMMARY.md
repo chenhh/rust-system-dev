@@ -85,6 +85,7 @@
 * [同步與非同步基礎](async\_programming/sync-async.md)
 * [執行緒與協程](async\_programming/thread-coroutine.md)
 * [非同步程式](async\_programming/async\_prog.md)
+* [python asyncio](async\_programming/python-asyncio.md)
 
 ## 標準庫 <a href="#std-lib" id="std-lib"></a>
 
