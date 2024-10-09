@@ -22,6 +22,14 @@ description: 線程與協程
 
 <figure><img src="../.gitbook/assets/image (17).png" alt="" width="563"><figcaption><p>平行與并行</p></figcaption></figure>
 
+I/O bound：任務本身是透過網際網路去傳送請求，這時就會受到寫入/讀取的速度限制，任何牽涉到網路讀取和寫入，都屬於I/O bound的一種。
+
+CPU bound：任務本身涉及大量CPU、GPU計算，比如3D製圖、AI模型訓練、本地解壓縮檔案等都屬於CPU bound的一種。
+
+<figure><img src="../.gitbook/assets/image.png" alt="" width="563"><figcaption><p>CPU bound與IO bound程式</p></figcaption></figure>
+
+我們運行的程式碼就是程式，當你啟動某應用程式，實際上就是讓程式生成行程(Process)並執行程式，一個程式可以開出多個行程，每條進程都有一個獨立的id(PID)，而一個行程可以開出多個執行緒(Thread)，線程即為電腦運行軟體的最小單位，是程式碼實際實行的地方，並且執行緒之間可以共享記憶體，統一由行程管理。
+
 ## 非同步程式
 
 非同步程式設計模型可避免等待耗時操作完成所產生的效能瓶頸問題及提升程式的回應性，尤其對使用者高度互動或是 IO 密集的程式非常重要。一般不會希望使用者在應用程式中執行耗時操作時，發生整個應用程式卡住的狀況，透過非同步程式設計可以實現應用程式在處理耗時操作的同時能繼續處理其它工作。
@@ -58,6 +66,10 @@ description: 線程與協程
 <figure><img src="../.gitbook/assets/image (16).png" alt="" width="540"><figcaption><p>協程為輕量級的執行緒</p></figcaption></figure>
 
 所建立的協程會透過函式庫或框架跟底層的執行緒去互動。所以協程是程式上的邏輯並行，實際在底層運作不一定是並行，還是需要看作業系統跟硬體的環境。
+
+協程讓我們可以在單執行緒的情況下達到類似多執行緒的效果，相較於執行緒更小的執行單位，屬於純應用層的執行單位，作業系統並不知道有它的存在，但它和執行緒一樣有自己的記憶體空間，要注意的是協程的目的只是讓非阻塞的操作能夠被同步執行，如果程式本身是CPU bound的話那就一樣會被阻塞住。
+
+<figure><img src="../.gitbook/assets/image (1).png" alt="" width="563"><figcaption><p>協程工作切換</p></figcaption></figure>
 
 
 

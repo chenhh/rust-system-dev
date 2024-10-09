@@ -48,7 +48,7 @@
 
 就以早餐來說，「同步」就像是等吐司烤完之後，才去準備花生醬（每件任務循序漸進地執行）；「非同步」就像是吐司正在烤的時候，就先準備花生醬（每件任務並行地執行）。
 
-<figure><img src="../.gitbook/assets/image.png" alt="" width="563"><figcaption><p>同步與非同步任務</p></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (2).png" alt="" width="563"><figcaption><p>同步與非同步任務</p></figcaption></figure>
 
 ## 並行 (Concurrency) 與平行 (Parallelism) <a href="#bing-xing-concurrency-yu-ping-xing-parallelism" id="bing-xing-concurrency-yu-ping-xing-parallelism"></a>
 
@@ -58,13 +58,13 @@
 
 。我們可以把「你」和「你媽」比擬為 **CPU 核心 (core)** ，分配給你和你媽的一大堆獨立任務叫做 **執行緒 (thread)** 。**並行** 就是工作單元自己用非同步的方式處理任務；**平行** 就是分配其他工作單元處理任務。
 
-<figure><img src="../.gitbook/assets/image (1).png" alt=""><figcaption><p>平行與併行</p></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (1) (1).png" alt=""><figcaption><p>平行與併行</p></figcaption></figure>
 
 ## 執行緒池 (thread pool)
 
 電腦的核心是有限的。那要怎麼高效的把一大堆執行緒，都分配到這些 CPU 上呢？通常把這個「分配」叫做排程 (scheduling，排程）。首先，最簡單的做法就是自己跟系統開執行緒（通常我們把這種執行緒叫做 OS thread）。
 
-<figure><img src="../.gitbook/assets/image (2).png" alt="" width="563"><figcaption><p>執行緒池</p></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (2) (1).png" alt="" width="563"><figcaption><p>執行緒池</p></figcaption></figure>
 
 ```rust
 // OS thread in rust
