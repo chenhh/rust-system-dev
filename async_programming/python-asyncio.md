@@ -10,6 +10,8 @@ AsyncIO 的概念最早起源於 JavaScript 的 async/await 語法。它在單�
 
 由於受限Python 全域鎖GIL(Global Interpreter Lock) 的特性，當我們打算在Python運行多執行緒的程式碼時所有的執行緒都會被鎖住，導致沒辦法執行，效果相當於單執行緒。
 
+<figure><img src="../.gitbook/assets/image (20).png" alt="" width="451"><figcaption><p>python asyncio</p></figcaption></figure>
+
 ## yield的歷史
 
 探討asyncio的文件中經常看到對協程的探討，基本上都是從yield的介紹開始，而yield最常的作用之一，就是作為生成器（Generator）。需要時才產生一個值，這是產生器（Generator）的概念。
@@ -30,9 +32,20 @@ AsyncIO 的概念最早起源於 JavaScript 的 async/await 語法。它在單�
 
 asyncio要明確地使用@coroutine、yield from，而後來Python 3.5改用async與await，至於一個可以await的協程，就是awaitable物件。
 
+## 協程 (Coroutine)&#x20;
+
+協程是一個比較特殊的函式， 也是為瞭解決單執行緒應用之中的等待浪費資源問題， 與常規函式不同，協程可以在適當的時機暫停、恢復和互動執行，這種能力使得協程特別適合處理非同步的任務，比如 I/O 操作、網路請求等需要等待的工作。
+
+
+
 ## 使用asyncio
 
 asyncio本身主要有兩個對象：直接使用（end-user）的開發者與框架設計者。龐大的API文件中，大部份都是給框架設計者看的，直接使用的開發者只要了解async與await關鍵字的使用時機即可。
+
+async與await 這兩個語法糖主要是讓我們更直觀的標示非同步的函式與執行的進入點。
+
+* <mark style="background-color:red;">async：用來宣告函式能夠有非同步的功能</mark>。 <mark style="color:red;">以async定義的函數為協程</mark>。
+* <mark style="background-color:red;">await：用來標記非同步的執行</mark>。將所有權交出，不會阻塞，可執行其它(在事件迴圈中)的非同步程式，等待執行結果回傳後再繼續執行下去。
 
 ```python
 # -*- coding: UTF-8 -*-
