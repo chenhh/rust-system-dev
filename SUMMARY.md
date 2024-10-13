@@ -107,3 +107,7 @@
 ## Windows系統程式 <a href="#windows-system-programming" id="windows-system-programming"></a>
 
 * [參考資料](windows-system-programming/reference.md)
+
+## 實務技巧 <a href="#tech-tips" id="tech-tips"></a>
+
+* [release如何去除常數偵錯資訊](tech-tips/release-ru-he-qu-chu-chang-shu-zhen-cuo-zi-xun.md)
