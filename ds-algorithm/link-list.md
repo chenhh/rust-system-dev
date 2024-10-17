@@ -77,4 +77,5 @@ fn main() {
 
 鏈表在safe rust裡確實十分複雜，其概念跟借用規則背道而馳，要完全safe，且實現很優雅的的鏈表相當不容易。以下為大量的範本。
 
-[https://github.com/rust-unofficial/too-many-lists](https://github.com/rust-unofficial/too-many-lists)
+* \[github] [https://github.com/rust-unofficial/too-many-lists](https://github.com/rust-unofficial/too-many-lists)。
+* \[文件] [https://rust-unofficial.github.io/too-many-lists/](https://rust-unofficial.github.io/too-many-lists/)。
