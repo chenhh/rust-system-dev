@@ -2,7 +2,9 @@
 
 ## Python AsyncIO
 
-Python是3.4以後，在標準上逐步加入了asyncio、async與await等支援。
+Python是3.4以後，在標準上逐步加入了asyncio、async與await等支援。為了簡化並更好地標識非同步IO，從Python 3.5開始引入了新的語法async和await，可以讓coroutine的程式碼更簡潔易讀。
+
+<mark style="color:red;">asyncio模組內部實現了EventLoop，把需要執行的協程扔到EventLoop中執行，就實現了非同步IO</mark>。
 
 AsyncIO 的概念最早起源於 JavaScript 的 async/await 語法。它在單執行緒中實現了類似於多執行緒的效果，採用類似協程的方式在背景執行。由事件循環（event loop）在有空閒時檢查各個背景任務是否有返回結果，適合處理涉及網路傳輸的 I/O bound 任務。
 
@@ -36,16 +38,26 @@ asyncio要明確地使用@coroutine、yield from，而後來Python 3.5改用asyn
 
 協程是一個比較特殊的函式， 也是為瞭解決單執行緒應用之中的等待浪費資源問題， 與常規函式不同，協程可以在適當的時機暫停、恢復和互動執行，這種能力使得協程特別適合處理非同步的任務，比如 I/O 操作、網路請求等需要等待的工作。
 
+```python
+import asyncio
 
+// 函數前宣告async即為coroutine
+async def myfunc():
+    await asyncio.sleep(1)
+    print('hello')
+
+// coroutine必須用run執行，無法直接執行函數
+asyncio.run(myfunc())
+```
 
 ## 使用asyncio
 
-asyncio本身主要有兩個對象：直接使用（end-user）的開發者與框架設計者。龐大的API文件中，大部份都是給框架設計者看的，直接使用的開發者只要了解async與await關鍵字的使用時機即可。
+asyncio本身主要有兩個對象：直接使用（end-user）的開發者與框架設計者。龐大的API文件中，大部份都是給框架設計者看的，<mark style="background-color:red;">直接使用的開發者只要了解async與await關鍵字的使用時機即可</mark>。
 
 async與await 這兩個語法糖主要是讓我們更直觀的標示非同步的函式與執行的進入點。
 
 * <mark style="background-color:red;">async：用來宣告函式能夠有非同步的功能</mark>。 <mark style="color:red;">以async定義的函數為協程</mark>。
-* <mark style="background-color:red;">await：用來標記非同步的執行</mark>。將所有權交出，不會阻塞，可執行其它(在事件迴圈中)的非同步程式，等待執行結果回傳後再繼續執行下去。
+* <mark style="background-color:red;">await：用來標記非同步的執行</mark>。將所有權交出(還給原行程/執行緒?)，不會阻塞，可執行其它(在事件迴圈中)的非同步程式，等待(事件迴圈)執行結果回傳後再繼續執行下去。
 
 ```python
 # -*- coding: UTF-8 -*-
@@ -56,7 +68,7 @@ import time
 
 def block_dosomething(i):
     print(f"第 {i} 次開始")
-    time.sleep(1)
+    time.sleep(1)    // 會在此處阻塞
     print(f"第 {i} 次結束")
 
 
@@ -64,7 +76,7 @@ def block_main():
     start = time.time()
     for i in range(5):
         block_dosomething(i + 1)
-    # 5 secs
+    # 5 secs，因為每次呼叫函數都阻塞1秒
     print(f"block time: {(time.time() - start):.2f} (s)")
 
 
@@ -79,7 +91,7 @@ def async_main():
     # 包裝成tasks, 不可直接傳coroutine
     tasks = (asyncio.create_task(dosomething(i + 1)) for i in range(5))
     asyncio.run(asyncio.wait(tasks))
-    # 1 sec
+    # 1 sec, 因為每次呼叫函數時，只要sleep就釋放所有權處理下一個函數，因此等待時間重疊。
     print(f"async time: {(time.time() - start):.2f} (s)")
 
 
@@ -98,3 +110,4 @@ if __name__ == "__main__":
 
 * [https://www.ithome.com.tw/voice/107416](https://www.ithome.com.tw/voice/107416)
 * [https://www.ithome.com.tw/voice/138875](https://www.ithome.com.tw/voice/138875)
+* [https://docs.python.org/zh-tw/3/library/asyncio.html](https://docs.python.org/zh-tw/3/library/asyncio.html)
