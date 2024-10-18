@@ -249,6 +249,93 @@ asyncio.run(main())
 
 可以使用 asyncio.wait\_for() 為 awaitables(coroutine, Task, Future) 設定 1 個時限。
 
+```python
+import asyncio
+
+
+async def do_async_job():
+    await asyncio.sleep(2)
+    print('never print')
+
+
+async def main():
+    try:
+        await asyncio.wait_for(do_async_job(), timeout=1)
+    except asyncio.TimeoutError:
+        print('timeout!')
+
+
+if __name__ == '__main__':
+    asyncio.run(main())
+    # timeout!
+```
+
+我們可以利用 asyncio.wait\_for() 為某個工作設定時限，當該工作超出時限時，捕捉 TimeoutError 執行備選方案。
+
+```python
+import asyncio
+
+
+async def do_async_job():
+    await asyncio.sleep(2)
+    print("do async job 1")
+
+async def do_async_job_2nd_plan():
+    await asyncio.sleep(1)
+    print("do async job 2")
+
+
+async def main():
+    try:
+        await asyncio.wait_for(do_async_job(), timeout=1)
+    except asyncio.TimeoutError:
+        await asyncio.wait_for(do_async_job_2nd_plan(), timeout=2)
+
+
+if __name__ == '__main__':
+    asyncio.run(main())
+    # do async job 2
+
+```
+
+## asyncio.to\_thread()
+
+由於事件迴圈負責執行非同步的工作，為了發揮事件迴圈最大效能，我們都需要確保每一個協程中都需要有 await 的存在，或者想辦法將執行時間很長的部分轉為協程，使得事件迴圈能夠有機會切換執行其他工作的機會，否則事件迴圈遇到執行特別時間長的程式碼，又沒有 await 能夠讓事件迴圈能夠轉為執行其他工作時，就會造成事件迴圈阻塞。
+
+```python
+import asyncio
+import threading
+
+from time import sleep
+
+
+def hard_work():
+    print('thread id:', threading.get_ident())
+    sleep(3)
+
+
+async def do_async_job():
+    hard_work()
+    await asyncio.sleep(1)
+    print('job done!')
+
+
+async def main():
+    task1 = asyncio.create_task(do_async_job())
+    task2 = asyncio.create_task(do_async_job())
+    task3 = asyncio.create_task(do_async_job())
+    await asyncio.gather(task1, task2, task3)
+
+
+if __name__ == '__main__':
+    # ask1, task2, task3 其實都各花 3 秒在 sleep ，
+    # 同時也阻塞其他工作的進行，因此造成這個範例花費約 9 秒
+    asyncio.run(main())
+
+```
+
+
+
 ## asyncio.run()的行為
 
 簡單來說，asyncio.run會取得事件迴圈、透過run\_until\_complete執行指定的協程，這會阻斷直到指定的（主）協程完成（也就是執行完該協程函式定義的流程），之後會收集尚未沒完成的任務（主協程中可能又建立了其他任務，然而沒有await這些任務），取消這些任務（會在各協程函式中引發CancelledError），然後，再次使用run\_until\_complete執行這些任務（等待CancelledError善後處理完成），最後關閉迴圈。
@@ -308,3 +395,4 @@ if __name__ == "__main__":
 * [https://www.ithome.com.tw/voice/138875](https://www.ithome.com.tw/voice/138875)
 * [https://docs.python.org/zh-tw/3/library/asyncio.html](https://docs.python.org/zh-tw/3/library/asyncio.html)
 * [https://myapollo.com.tw/blog/asyncio-how-event-loop-works/](https://myapollo.com.tw/blog/asyncio-how-event-loop-works/)
+* [https://myapollo.com.tw/blog/begin-to-asyncio/](https://myapollo.com.tw/blog/begin-to-asyncio/)
