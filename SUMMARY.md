@@ -86,6 +86,7 @@
 * [執行緒與協程](async\_programming/thread-coroutine.md)
 * [非同步程式](async\_programming/async\_prog.md)
 * [python asyncio](async\_programming/python-asyncio.md)
+* [tokio](async\_programming/tokio.md)
 
 ## 標準庫 <a href="#std-lib" id="std-lib"></a>
 
