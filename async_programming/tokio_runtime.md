@@ -126,6 +126,87 @@ fn main() {
 
 可手動創建執行緒，並在不同執行緒內創建互相獨立的runtime。
 
+```rust
+use std::thread;
+use std::time::Duration;
+use tokio::runtime::Runtime;
+
+fn main() {
+    // 在第一個執行緒內創建一個多執行緒的runtime
+    let t1 = thread::spawn(|| {
+        let rt = Runtime::new().unwrap();
+        thread::sleep(Duration::from_secs(10));
+    });
+
+    // 在第二個執行緒內創建一個多執行緒的runtime
+    let t2 = thread::spawn(|| {
+        let rt = Runtime::new().unwrap();
+        thread::sleep(Duration::from_secs(10));
+    });
+
+    t1.join().unwrap();
+    t2.join().unwrap();
+}
+```
+
+## 在非同步runtime中執行非同步任務
+
+多數時候，非同步任務是一些帶有網絡IO操作的任務。而在介紹tokio用法時，只需使用tokio的非同步計時器即可解釋清楚，如tokio::time::sleep()。
+
+std::time也提供了sleep()，但它會阻塞整個執行緒，而tokio::time中的sleep()則只是讓它所在的任務放棄CPU並進入調度隊列等待被喚醒，它不會阻塞任何執行緒，它所在的執行緒仍然可被用來執行其它非同步任務。
+
+```rust
+use chrono::Local;
+use tokio::runtime::Runtime;
+
+fn main() {
+    let rt = Runtime::new().unwrap();
+    rt.block_on(async {
+        println!("before sleep: {}", Local::now().format("%F %T.%3f"));
+        tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+        println!("after sleep: {}", Local::now().format("%F %T.%3f"));
+    });
+}
+
+// 等價程式碼
+#[tokio::main]
+async fn main() {
+   
+    println!("before sleep: {}", Local::now().format("%F %T.%3f"));
+     // 只是定義了Future，此時尚未執行
+    let task = tokio::time::sleep(tokio::time::Duration::from_secs(2));
+     // ...
+     // 開始執行task任務，並等待它執行完成
+     task.await;
+    println!("after sleep: {}", Local::now().format("%F %T.%3f"));
+}
+
+/*
+before sleep: 2024-10-19 09:11:35.620
+after sleep: 2024-10-19 09:11:37.622
+*/
+
+```
+
+block\_on函數(會阻塞目前執行緒，是等待異步任務完成，而不是等待runtime中的所有任務都完成)要求一個Future物件作為參數，可以像上面一樣直接使用一個async {}來定義一個Future。每一個Future都是一個已經定義好但尚未執行的非同步任務，每一個非同步任務中可能會包含其它子任務。
+
+這些非同步任務不會直接執行，需要先將它們放入到runtime環境，然後在合適的地方通過Future的await來執行它們。await可以將已經定義好的非同步任務立即加入到runtime的任務隊列中等待調度執行，於此同時，await會等待該非同步任務完成才返回。
+
+block\_on也有返回值，其返回值為其所執行異步任務的返回值。
+
+```rust
+use tokio::{runtime::Runtime, time};
+
+fn main() {
+    let rt = Runtime::new().unwrap();
+    let res: i32 = rt.block_on(async {
+        time::sleep(time::Duration::from_secs(2)).await;
+        3
+    });
+    println!("{}", res); // 3
+}
+```
+
 
 
 ## 參考資料
