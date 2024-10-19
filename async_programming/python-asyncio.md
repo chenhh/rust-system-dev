@@ -188,6 +188,12 @@ if __name__ == '__main__':
     time_elapsed(main_gather)
 ```
 
+### 建立任務的方法
+
+asyncio.create\_task vs loop.create\_task vs asyncio.ensure\_future。
+
+從 Python 3.7 開始可以統一的使用更高階的asyncio.create\_task。
+
 ### 任務可以取消
 
 從結果可以發現執行 task.cancel() 之前， 任務就已經開始執行了，這是由於 await asyncio.sleep(5) 給了 事件迴圈切換執行 cancel\_me() 的機會，所以我們才會看到在 cancel\_me(): sleep 出現在 main(): call cancel 之前。
@@ -289,6 +295,8 @@ asyncio.gather() 方法，其傳入參數為 \*aws 即代表 awaitable 物件，
 
 asyncio.gather() 作用在於執行多個 awaitable 物件（一樣是透過 event loop），並收集每 1 個的回傳值存於一個串列(list)中。因此實務上可以將多個執行相同任務的 coroutines, Tasks 或者 Futures 一起交由 asyncio.gather() 執行。
 
+asyncio.gather方法的名字說明了它的用途，gather 的意思是「蒐集」，也就是能夠收集協程的結果，而且要注意，<mark style="color:red;">它會按輸入協程的順序儲存的對應協程的執行結果</mark>。
+
 ```python
 import asyncio
 import threading
@@ -300,7 +308,7 @@ async def do_async_job() -> int:
     print(datetime.now().isoformat(), 'thread id', threading.current_thread().ident)
     return random.randint(1, 10)
 
-async def main():
+async def main() ->None:
     # 依順序進行，每一次都會sleep，沒有切換工作
     # await do_async_job()
     # await do_async_job()
@@ -314,9 +322,28 @@ async def main():
     for v in return_values:
         print(f'result => {v}')
 
+    # 也可用list包裝
+    jobs = [do_async_job() for _ in range(3)]
+    return_values = await asyncio.gather(*jobs)
+    for v in return_values:
+        print(f'result2 => {v}')
+
 
 asyncio.run(main())
 ```
+
+## asyncio.wait()
+
+* asyncio.gather 封裝任務的全程黑盒，只告訴你協程結果。&#x20;
+* asyncio.wait 會返回封裝的任務 (包含已完成和掛起的任務)，如果你關注協程執行結果你需要從對應 任務實例裡面用 result 方法自己拿。
+* asyncio.wait支援選擇返回的時機。
+
+asyncio.wait支援一個接收參數return\_when，在預設情況下，asyncio.wait會等待全部任務完成 (return\_when='ALL\_COMPLETED')，它還支援 FIRST\_COMPLETED（第一個協程完成就返回）和 FIRST\_EXCEPTION（出現第一個異常就返回）
+
+在大部分情況下，用 asyncio.gather 是足夠的，如果你有特殊需求，可以選擇 asyncio.wait，例如：
+
+* 需要拿到封裝好的任務，以便取消或者新增成功回呼等業務上需要 。
+* FIRST\_COMPLETED/FIRST\_EXCEPTION 即返回的
 
 ## 設定時限(Timeouts)
 
