@@ -26,7 +26,7 @@ I/O bound：任務本身是透過網際網路去傳送請求，這時就會受�
 
 CPU bound：任務本身涉及大量CPU、GPU計算，比如3D製圖、AI模型訓練、本地解壓縮檔案等都屬於CPU bound的一種。
 
-<figure><img src="../.gitbook/assets/image.png" alt="" width="563"><figcaption><p>CPU bound與IO bound程式</p></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (3).png" alt="" width="563"><figcaption><p>CPU bound與IO bound程式</p></figcaption></figure>
 
 我們運行的程式碼就是程式，當你啟動某應用程式，實際上就是讓程式生成行程(Process)並執行程式，一個程式可以開出多個行程，每條進程都有一個獨立的id(PID)，而一個行程可以開出多個執行緒(Thread)，線程即為電腦運行軟體的最小單位，是程式碼實際實行的地方，並且執行緒之間可以共享記憶體，統一由行程管理。
 
@@ -71,7 +71,7 @@ CPU bound：任務本身涉及大量CPU、GPU計算，比如3D製圖、AI模型�
 
 協程讓我們可以在單執行緒的情況下達到類似多執行緒的效果，相較於執行緒更小的執行單位，屬於純應用層的執行單位，作業系統並不知道有它的存在，但它和執行緒一樣有自己的記憶體空間，要注意的是協程的目的只是讓非阻塞的操作能夠被同步執行，如果程式本身是CPU bound的話那就一樣會被阻塞住。
 
-<figure><img src="../.gitbook/assets/image (1).png" alt="" width="563"><figcaption><p>協程工作切換</p></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (1) (1).png" alt="" width="563"><figcaption><p>協程工作切換</p></figcaption></figure>
 
 <figure><img src="../.gitbook/assets/image (18).png" alt="" width="540"><figcaption><p>函數與協程執行時的切換流程</p></figcaption></figure>
 

@@ -14,6 +14,8 @@ AsyncIO 的概念最早起源於 JavaScript 的 async/await 語法。它在單�
 
 <figure><img src="../.gitbook/assets/image (20).png" alt="" width="451"><figcaption><p>python asyncio</p></figcaption></figure>
 
+<figure><img src="../.gitbook/assets/image.png" alt="" width="405"><figcaption><p>非同步程式在Requests發出後，所有權交回給主行程/執行緒，等待Response完成後再通知主行程</p></figcaption></figure>
+
 ## yield的歷史
 
 探討asyncio的文件中經常看到對協程的探討，基本上都是從yield的介紹開始，而yield最常的作用之一，就是作為生成器（Generator）。需要時才產生一個值，這是產生器（Generator）的概念。
@@ -48,7 +50,7 @@ asyncio本身主要有兩個對象：直接使用（end-user）的開發者與�
 
 async與await 這兩個語法糖主要是讓我們更直觀的標示非同步的函式與執行的進入點。
 
-* <mark style="background-color:red;">async：用來宣告函式能夠有非同步的功能</mark>。 <mark style="color:red;">以async定義的函數為協程</mark>。
+* <mark style="background-color:red;">async：用來宣告函式能夠有非同步的功能</mark>。 <mark style="color:red;">以async定義的函數為協程</mark>。凡是用async def 定義的 都要用await去呼叫。不可以直接使用。如果直接呼叫，只會返回一個協程物件。
 * <mark style="background-color:red;">await：用來標記非同步的執行，只能存在於協程內</mark>。將所有權交出(還給原行程/執行緒?)，不會阻塞，可執行其它(在事件迴圈中)的非同步程式，等待(事件迴圈)執行結果回傳後再繼續執行下去。
 * 另 1 個關於 await 語法的重點是 <mark style="color:red;">await 之後只能接 awaitables 物件</mark>，例如 coroutine 或者是之後會介紹到的 Task, Future 以及有實作 **await**() 方法 的物件，所以不是所有的物件或操作都能夠用 await 進行暫停。
 
@@ -70,29 +72,50 @@ if __name__ == '__main__':
     asyncio.run(myfunc())
 ```
 
-## Event loop
+## 事件迴圈(event loop)
 
-Event loop 是 asyncio 模組的核心，用以負責執行非同步(asynchronous)的工作。
+事件迴圈是 asyncio 模組的核心，用以負責執行非同步(asynchronous)的工作。
 
-而實際上 event loop 是 1 個 Python 類別 BaseEventLoop ，正如其名， event loop 關鍵運作部分是 1 個無窮迴圈（原始碼），不斷地 loop 進行排程/執行非同步任務、回呼函式(callbacks)等工作， I/O 類的工作十分適合以非同步方式交由 event loop 執行，例如網路通訊、檔案讀寫等等，以利 event loop 進行工作切換。
+而實際上事件迴圈是 Python 類別 BaseEventLoop ，正如其名， 事件迴圈關鍵運作部分是 1 個無窮迴圈（原始碼），不斷地 loop 進行排程/執行非同步任務、回調函式(callbacks)等工作， I/O 類的工作十分適合以非同步方式交由事件迴圈執行，例如網路通訊、檔案讀寫等等，以利 event loop 進行工作切換。
 
-原則上，我們不需針對 event loop 進行太多操作與干涉。可以使用 [asyncio.get\_running\_loop()](https://docs.python.org/3/library/asyncio-eventloop.html#asyncio.get\_running\_loop) 或者 [asyncio.get\_event\_loop()](https://docs.python.org/3/library/asyncio-eventloop.html#asyncio.get\_event\_loop) 即可取得 event loop 實例(instance)以進行操作。
+原則上，我們不需針對事件迴圈進行太多操作與干涉。可以使用 [asyncio.get\_running\_loop()](https://docs.python.org/3/library/asyncio-eventloop.html#asyncio.get\_running\_loop) 或者 [asyncio.get\_event\_loop()](https://docs.python.org/3/library/asyncio-eventloop.html#asyncio.get\_event\_loop) 即可取得 event loop 實例(instance)以進行操作。
+
+### 事件迴圈流程
+
+非同步程式要處理的是IO-bound的問題。
+
+同步程式中，如果要取得A、B、C、D四個資料，就要A->B->C->D按照順序執行。
+
+如果是非同步的程式， A–> B–> C–> D 基本上就是類似先丟出需求之後再去等回應。
+
+簡單的說事件迴圈就是：
+
+1. 建立事件迴圈。
+2. 在事件迴圈上註冊任務(Tasks)。
+
+<mark style="color:red;">既然非同步程式可以在多個任務之間切換，一定有個列表包含所有的任務，而這個任務列表和機制就稱為事件迴圈</mark>。
+
+<figure><img src="../.gitbook/assets/image (1).png" alt="" width="466"><figcaption><p>事件迴圈任務列表輪詢</p></figcaption></figure>
+
+<figure><img src="../.gitbook/assets/image (2).png" alt="" width="469"><figcaption><p>事件迴圈任務完成後執行回調函數(必須是非阻塞函數)</p></figcaption></figure>
 
 ## Awaitables物件
 
 awaitables 關鍵字就代表著以下 3 種 Python 物件(objects)，也是 await 語法適用的對象：
 
 * 協程(coroutines)
-* Tasks - asyncio.Task&#x20;
+* 任務(asks) - asyncio.Task&#x20;
 * Futures - asyncio.Future
 
 asyncio 很多函式/方法(method)所需要的參數多半是上述 3 種不同類型的物件之一，因此一定要注意其差別，如果是 3 種皆可，通常會在文件中以 aw , \*aws 或者 awaitables 說明。
 
-### Tasks
+### 任務(tasks)
 
-在事件迴圈中，工作的執行是以 Task 為單位， 事件迴圈一次僅會執行 1 個 Task, 如果某個 Task 正在等待執行結果，也就是執行到 await 的地方，那麼事件迴圈將會暫停(suspend)並將之進行排程，接著切換執行其他 Task，回呼函數(callback)或者執行某些 I/O 相關的操作。
+在事件迴圈中，工作的執行是以任務為單位， 事件迴圈一次僅會執行一個任務，如果某個 任務正在等待執行結果，也就是執行到 await 的地方，那麼事件迴圈將會暫停(suspend)並將之進行排程，接著切換執行其他任務，回調函數(callback)或者執行某些 I/O 相關的操作。
 
-我們可以將 Task 視為是協程的再包裝，因此可以看到 asyncio.create\_task() 函數接受的參數必須是 協程。
+我們可以將任務視為是協程的再包裝，因此可以看到`asyncio.create_task(coroutine)` 函數接受的參數必須是協程。
+
+任務是非同步執行的單位，負責作為事件迴圈和協程物件的溝通介面，經過任務物件的包裝才能被事件迴圈執行。
 
 ```python
 # -*- coding: UTF-8 -*-
@@ -115,7 +138,47 @@ if __name__ == '__main__':
     asyncio.run(coro())
 ```
 
-task可以取消。
+```python
+# -*- coding: UTF-8 -*-
+
+import asyncio
+import time
+
+
+async def say_after(delay: int, what: str) -> None:
+    await asyncio.sleep(delay)
+    print(what)
+
+
+async def main_coroutine() -> None:
+    start = time.time()
+    await say_after(1, 'hello')
+    await say_after(2, 'world')
+    print(f"used: {time.time() - start:.2f} s")
+    # coroutine沒經過task包裝不會節省時間
+    # 3秒
+
+
+async def main_task() -> None:
+    start = time.time()
+    task1 = asyncio.create_task(
+        say_after(1, 'hello'))
+    task2 = asyncio.create_task(
+        say_after(2, 'world'))
+    await task1
+    await task2
+    print(f"used: {time.time() - start:.2f} s")
+    # 經過task包裝可節省時間
+    # 2秒
+
+
+if __name__ == '__main__':
+    asyncio.run(main_coroutine())
+    asyncio.run(main_task())
+
+```
+
+### task可以取消
 
 從結果可以發現執行 task.cancel() 之前， task 就已經開始執行了，這是由於 await asyncio.sleep(5) 給了 event loop 切換執行 cancel\_me() 的機會，所以我們才會看到在 cancel\_me(): sleep 出現在 main(): call cancel 之前。
 
@@ -396,3 +459,4 @@ if __name__ == "__main__":
 * [https://docs.python.org/zh-tw/3/library/asyncio.html](https://docs.python.org/zh-tw/3/library/asyncio.html)
 * [https://myapollo.com.tw/blog/asyncio-how-event-loop-works/](https://myapollo.com.tw/blog/asyncio-how-event-loop-works/)
 * [https://myapollo.com.tw/blog/begin-to-asyncio/](https://myapollo.com.tw/blog/begin-to-asyncio/)
+* [https://www.dongwm.com/post/understand-asyncio-1/#asyncio%E5%B9%B6%E5%8F%91%E7%9A%84%E6%AD%A3%E7%A1%AE/%E9%94%99%E8%AF%AF%E5%A7%BF%E5%8A%BF](https://www.dongwm.com/post/understand-asyncio-1/#asyncio%E5%B9%B6%E5%8F%91%E7%9A%84%E6%AD%A3%E7%A1%AE/%E9%94%99%E8%AF%AF%E5%A7%BF%E5%8A%BF)
