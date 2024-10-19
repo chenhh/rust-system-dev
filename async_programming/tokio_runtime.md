@@ -207,6 +207,39 @@ fn main() {
 }
 ```
 
+## spawn: 向runtime中添加新的非同步任務
+
+有時候，定義要執行的非同步任務時，並未身處runtime內部。例如定義一個非同步函數，此時可以使用tokio::spawn()來生成非同步任務。
+
+```rust
+use std::thread;
+
+use chrono::Local;
+use tokio::{self, runtime::Runtime, time};
+
+fn now() -> String {
+    Local::now().format("%F %T").to_string()
+}
+
+// 在runtime外部定義一個異步任務，且該函數返回值不是Future類型
+fn async_task() {
+    println!("create an async task: {}", now());
+    tokio::spawn(async {
+        time::sleep(time::Duration::from_secs(2)).await;
+        println!("async task over: {}", now());
+    });
+}
+
+fn main() {
+    let rt1 = Runtime::new().unwrap();
+    rt1.block_on(async {
+        // 調用函數，該函數內創建了一個異步任務，將在當前runtime內執行
+        async_task();
+    });
+}
+
+```
+
 
 
 ## 參考資料
