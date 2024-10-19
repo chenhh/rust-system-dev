@@ -74,7 +74,9 @@ if __name__ == '__main__':
 
 ## 事件迴圈(event loop)
 
-事件迴圈是 asyncio 模組的核心，用以負責執行非同步(asynchronous)的工作。
+事件迴圈是 asyncio 模組的核心(可視為任務的調度員)，用以負責執行非同步(asynchronous)的工作。事件迴圈實例提供了註冊、取消和執行任務和回呼的方法。
+
+把一些非同步函數 (就是任務，Task，一會就會說到) 註冊到這個事件循環上，事件迴圈會循環執行這些函數 (但同時只能執行一個)，當執行到某個函數時，如果它正在等待 I/O 返回(或是其它await函數)，事件迴圈會暫停它的執行去執行其他的函數；當某個函數完成 I/O 後會恢復，下次循環到它的時候繼續執行。因此，這些非同步函數可以協同 (Cooperative) 運行：這就是事件迴圈的目標。
 
 而實際上事件迴圈是 Python 類別 BaseEventLoop ，正如其名， 事件迴圈關鍵運作部分是 1 個無窮迴圈（原始碼），不斷地 loop 進行排程/執行非同步任務、回調函式(callbacks)等工作， I/O 類的工作十分適合以非同步方式交由事件迴圈執行，例如網路通訊、檔案讀寫等等，以利 event loop 進行工作切換。
 
@@ -117,6 +119,8 @@ asyncio 很多函式/方法(method)所需要的參數多半是上述 3 種不同
 
 任務是非同步執行的單位，負責作為事件迴圈和協程物件的溝通介面，經過任務物件的包裝才能被事件迴圈執行。
 
+<mark style="background-color:red;">直接 await task 不會對並行有幫助</mark>。
+
 ```python
 # -*- coding: UTF-8 -*-
 import asyncio
@@ -151,40 +155,46 @@ async def say_after(delay: int, what: str) -> None:
 
 
 async def main_coroutine() -> None:
-    start = time.time()
     await say_after(1, 'hello')
     await say_after(2, 'world')
-    print(f"used: {time.time() - start:.2f} s")
-    # coroutine沒經過task包裝不會節省時間
-    # 3秒
+    # coroutine沒經過task包裝不會節省時間, 3秒
 
 
-async def main_task() -> None:
-    start = time.time()
+async def main_create_task() -> None:
     task1 = asyncio.create_task(
         say_after(1, 'hello'))
     task2 = asyncio.create_task(
         say_after(2, 'world'))
     await task1
     await task2
-    print(f"used: {time.time() - start:.2f} s")
-    # 經過task包裝可節省時間
-    # 2秒
+    # 經過task包裝可節省時間, 2秒
+
+async def main_gather() -> None:
+    c1 = say_after(1, 'hello')
+    c2 = say_after(2, 'world')
+    await asyncio.gather(c1, c2)
+    # 使用gather可節省時間, 2秒
+
+
+def time_elapsed(func: callable) -> None:
+    start = time.perf_counter()
+    asyncio.run(func())
+    print(f"used: {time.perf_counter() - start:.2f} s")
 
 
 if __name__ == '__main__':
-    asyncio.run(main_coroutine())
-    asyncio.run(main_task())
-
+    time_elapsed(main_coroutine)
+    time_elapsed(main_create_task)
+    time_elapsed(main_gather)
 ```
 
-### task可以取消
+### 任務可以取消
 
-從結果可以發現執行 task.cancel() 之前， task 就已經開始執行了，這是由於 await asyncio.sleep(5) 給了 event loop 切換執行 cancel\_me() 的機會，所以我們才會看到在 cancel\_me(): sleep 出現在 main(): call cancel 之前。
+從結果可以發現執行 task.cancel() 之前， 任務就已經開始執行了，這是由於 await asyncio.sleep(5) 給了 事件迴圈切換執行 cancel\_me() 的機會，所以我們才會看到在 cancel\_me(): sleep 出現在 main(): call cancel 之前。
 
 如果把 await asyncio.sleep(5) 註解掉就會看到 cancel\_me() 連執行的機會都沒有就被取消了。
 
-換言之，在呼叫 asyncio.create\_task() 後， event loop 就已經接收到有 1 個 Task 需要執行，只是該 coroutine 需要有機會被 event loop 切換執行，而剛好 await asyncio.sleep(5) 恰好給了 event loop 切換執行的機會。
+換言之，在呼叫 asyncio.create\_task() 後， 事件迴圈就已經接收到有 1 個 Task 需要執行，只是該 協程需要有機會被事件迴圈切換執行，而剛好 await asyncio.sleep(5) 恰好給了事件迴圈切換執行的機會。
 
 ```python
 # -*- coding: UTF-8 -*-
@@ -238,7 +248,7 @@ if __name__ == '__main__':
 
 ### Futures
 
-Task 繼承自 Future, 因此 Future 是相對底層(low-level)的 awaitable Python 物件，用以代表非同步操作的最終結果，一般並不需要自己創造 Future 物件進行操作，多以 coroutine 與 Task 為主。
+Task 繼承自 Future，因此 Future 是相對底層(low-level)的 awaitable Python 物件，用以代表非同步操作的最終結果，一般並不需要自己創造 Future 物件進行操作，多以 coroutine 與 Task (界面比較容易使用)為主。
 
 不過仍有些 asyncio 模組的函式會回傳 Future 物件 ，例如 asyncio.run\_coroutine\_threadsafe() 回傳的就是 Future 物件。
 
@@ -272,6 +282,8 @@ if __name__ == '__main__':
 ```
 
 ## asyncio.gather()
+
+asyncio.gather 用來並行運行任務。
 
 asyncio.gather() 方法，其傳入參數為 \*aws 即代表 awaitable 物件，所以我們可以同時傳入 coroutine, Task 甚至 Future 物件皆可， asyncio.gather() 會自動處理 awaitables, 例如將 coroutine 統一轉為 Task。
 
@@ -400,6 +412,14 @@ if __name__ == '__main__':
 
 
 ## asyncio.run()的行為
+
+asyncio.run 是 Python 3.7 新加的語法。等同於以下的寫法：
+
+```python
+loop = asyncio.get_event_loop()
+loop.run_until_complete(main())
+loop.close()
+```
 
 簡單來說，asyncio.run會取得事件迴圈、透過run\_until\_complete執行指定的協程，這會阻斷直到指定的（主）協程完成（也就是執行完該協程函式定義的流程），之後會收集尚未沒完成的任務（主協程中可能又建立了其他任務，然而沒有await這些任務），取消這些任務（會在各協程函式中引發CancelledError），然後，再次使用run\_until\_complete執行這些任務（等待CancelledError善後處理完成），最後關閉迴圈。
 
