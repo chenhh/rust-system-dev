@@ -38,6 +38,8 @@ asyncio要明確地使用@coroutine、yield from，而後來Python 3.5改用asyn
 
 ## 協程 (Coroutine)&#x20;
 
+又稱為微執行緒，在一個執行緒中執行，執行函數時可以隨時中斷，由程式（使用者）自身控制，執行效率極高，與多執行緒比較，沒有切換執行緒的開銷和多執行緒鎖機制。
+
 協程是一個比較特殊的函式， 也是為瞭解決單執行緒應用之中的等待浪費資源問題， 與常規函式不同，協程可以在適當的時機暫停、恢復和互動執行，這種能力使得協程特別適合處理非同步的任務，比如 I/O 操作、網路請求等需要等待的工作。
 
 async def 明確告知 Python 該函式/方法具有非同步執行的能力，即定義為協程。
@@ -110,6 +112,51 @@ awaitables 關鍵字就代表著以下 3 種 Python 物件(objects)，也是 awa
 * Futures - asyncio.Future
 
 asyncio 很多函式/方法(method)所需要的參數多半是上述 3 種不同類型的物件之一，因此一定要注意其差別，如果是 3 種皆可，通常會在文件中以 aw , \*aws 或者 awaitables 說明。
+
+### Awaitable抽象類
+
+只要一個類實現了\_\_await\_\_方法，那麼通過它構造出來的實例就是一個Awaitable：
+
+```python
+class Awaitable(metaclass=ABCMeta):
+    __slots__ = ()
+
+    @abstractmethod
+    def __await__(self):
+        yield
+
+    @classmethod
+    def __subclasshook__(cls, C):
+        if cls is Awaitable:
+            return _check_methods(C, "__await__")
+        return NotImplemented
+```
+
+可以看到，Coroutine類也繼承了Awaitable，而且實現了send，throw和close方法。所以await一個呼叫非同步函數返回的協程對像是合法的。
+
+```python
+class Coroutine(Awaitable):
+    __slots__ = ()
+
+    @abstractmethod
+    def send(self, value):
+        ...
+
+    @abstractmethod
+    def throw(self, typ, val=None, tb=None):
+        ...
+
+    def close(self):
+        ...
+        
+    @classmethod
+    def __subclasshook__(cls, C):
+        if cls is Coroutine:
+            return _check_methods(C, '__await__', 'send', 'throw', 'close')
+        return NotImplemented
+```
+
+
 
 ### 任務(tasks)
 
@@ -507,3 +554,4 @@ if __name__ == "__main__":
 * [https://myapollo.com.tw/blog/asyncio-how-event-loop-works/](https://myapollo.com.tw/blog/asyncio-how-event-loop-works/)
 * [https://myapollo.com.tw/blog/begin-to-asyncio/](https://myapollo.com.tw/blog/begin-to-asyncio/)
 * [https://www.dongwm.com/post/understand-asyncio-1/#asyncio%E5%B9%B6%E5%8F%91%E7%9A%84%E6%AD%A3%E7%A1%AE/%E9%94%99%E8%AF%AF%E5%A7%BF%E5%8A%BF](https://www.dongwm.com/post/understand-asyncio-1/#asyncio%E5%B9%B6%E5%8F%91%E7%9A%84%E6%AD%A3%E7%A1%AE/%E9%94%99%E8%AF%AF%E5%A7%BF%E5%8A%BF)
+* [https://www.dongwm.com/post/149/](https://www.dongwm.com/post/149/)
