@@ -13,7 +13,7 @@ tokio = {version = "1.4", features = ["full"]}
 
 ## 建立tokio Runtime
 
-要使用tokio，需要先建立它提供的非同步執行時環境(Runtime)，然後在這個Runtime中執行非同步任務。(類似python asyncio的事件迴圈)。
+要使用tokio，需要先建立它提供的非同步執行時環境(Runtime)，然後在這個Runtime中執行非同步任務。(包含了類似python asyncio的事件迴圈，但功能更多)。
 
 tokio提供了兩種工作模式的執行環境：
 
@@ -23,6 +23,27 @@ tokio提供了兩種工作模式的執行環境：
 這裡的所說的執行緒是Rust執行緒，而每一個Rust執行緒都是一個OS執行緒。
 
 IO併發類任務較多時，單一線程的runtime性能不如多線程的runtime，但因為多線程runtime使用了多線程，使得線程間的通信變得更為複雜，也加重了線程間切換的開銷，使得有些情況下的性能不如使用單線程runtime。因此，在要求極限性能的時候，建議測試兩種工作模式的性能差距來選擇更優解。
+
+### runtime的內部流程
+
+<mark style="color:red;">非同步Runtime提供了非同步IO驅動、非同步計時器等非同步API，還提供了任務的排程器(scheduler)和Reactor事件迴圈(Event Loop)。</mark>每當建立一個Runtime時，就在這個Runtime中建立好了一個Reactor和一個Scheduler，同時還建立了一個任務佇列。&#x20;
+
+從這一點看來，非同步執行時和作業系統的程序排程方式是類似的，只不過現代作業系統的程序排程邏輯要比非同步執行時的排程邏輯複雜的多。
+
+當一個非同步任務需要執行，這個任務要被放入到可執行的任務佇列(就緒佇列)，然後等待被排程，當一個非同步任務需要阻塞時(對應那些在同步環境下會阻塞的操作)，它被放進阻塞佇列。
+
+阻塞佇列中的每一個被阻塞的任務，都需要等待Reactor收到對應的事件通知(比如IO完成的通知、睡眠完成的通知等)來喚醒它。當該任務被喚醒後，它將被放入就緒佇列，等待排程器的排程。
+
+就緒佇列中的每一個任務都是可執行的任務，可隨時被排程器排程選中。排程時會選擇哪一個任務，是排程器根據排程演算法去決定的。某個任務被排程選中後，排程器將分配一個執行緒去執行該任務。
+
+大方向上來說，有兩種排程策略：<mark style="background-color:red;">搶佔式排程和協作式排程</mark>。
+
+* 搶佔式排程策略，排程器會在合適的時候(排程規則決定什麼是合適的時候)強行切換當前正在執行的排程單元(例如程序、執行緒)，避免某個任務長時間霸佔CPU從而導致其它任務出現飢餓。
+* 協作式排程策略則不會強行切斷當前正在執行的單元，只有執行單元執行完任務或主動放棄CPU，才會將該執行單元重新排隊等待下次排程，這可能會導致某個長時間計算的任務霸佔CPU，但是可以讓任務充分執行儘早完成，而不會被中斷。
+
+對於面向大眾使用的作業系統(如Linux)通常採用搶佔式排程策略來保證系統安全，避免惡意程式霸佔CPU。而對於語言層面來說，通常採用協作式排程策略，這樣既有底層OS的搶佔式保底，又有協作式的高效。<mark style="color:red;">tokio的排程策略是協作式排程策略</mark>。
+
+也可以簡單粗暴地去理解非同步排程：任務剛出生時，放進任務佇列尾部，排程器總是從任務佇列的頭部選擇任務去執行，執行任務時，如果任務有阻塞操作，則該任務總是會被放入到任務佇列的尾部。如果任務佇列的第一個任務都是阻塞的(即任務之前被阻塞但目前尚未完成)，則排程器直接將它重新放回佇列的尾部。因此，排程器總是從前向後一次又一次地輪詢這個任務佇列。當然，排程演算法通常會比這種簡單的方式要複雜的多，它可能會採用多個任務佇列，多種挑選標準，且佇列不是簡單的佇列，而是更高效的資料結構。
 
 #### 使用tokio::runtime建立Runtime(使用預設參數)
 
@@ -240,8 +261,154 @@ fn main() {
 
 ```
 
+除了tokio::spawn()，runtime自身也能spawn，因此，也可以傳遞runtime(注意，要傳遞runtime的引用)，然後使用runtime的spawn()。
 
+```rust
+use tokio::{runtime::Runtime, time};
+
+fn async_task(rt: &Runtime) {
+    rt.spawn(async {
+        println!("runtime spawn.");
+        time::sleep(time::Duration::from_secs(10)).await;
+    });
+}
+
+fn main() {
+    let rt = Runtime::new().unwrap();
+    rt.block_on(async {
+        async_task(&rt);
+    });
+}
+```
+
+## 進入runtime: 非阻塞的enter()
+
+`block_on()`是進入runtime的主要方式，會阻塞當前執行緒。
+
+`enter()`進入runtime時，不會阻塞當前執行緒，它會返回一個EnterGuard。EnterGuard沒有其它作用，它僅僅只是宣告從它開始的所有非同步任務都將在runtime上下文中執行，直到刪除該EnterGuard。
+
+刪除EnterGuard並不會刪除runtime，只是釋放之前的runtime上下文宣告。因此，刪除EnterGuard之後，可以宣告另一個EnterGuard，這可以再次進入runtime的上下文環境。
+
+```rust
+use chrono::Local;
+use std::thread;
+use tokio::{self, runtime::Runtime, time};
+
+fn now() -> String {
+    Local::now().format("%F %T").to_string()
+}
+
+fn main() {
+    let rt = Runtime::new().unwrap();
+
+    // 進入runtime，但不阻塞當前執行緒
+    let guard1 = rt.enter();
+
+    // 生成的非同步任務將放入當前的runtime上下文中執行
+    tokio::spawn(async {
+        time::sleep(time::Duration::from_secs(3)).await;
+        println!("task1 sleep over: {}", now());
+    });
+
+    // 釋放runtime上下文，這並不會刪除runtime
+    drop(guard1);
+
+    // 可以再次進入runtime
+    let guard2 = rt.enter();
+    tokio::spawn(async {
+        time::sleep(time::Duration::from_secs(1)).await;
+        println!("task2 sleep over: {}", now());
+    });
+
+    drop(guard2);
+
+    // 阻塞當前執行緒，等待非同步任務的完成
+    // 必須等久一點，不然main thread會先完成
+    thread::sleep(std::time::Duration::from_secs(4));
+    println!("main thread complete.");
+}
+
+/*
+task2 sleep over: 2024-10-20 02:50:57
+task1 sleep over: 2024-10-20 02:50:59
+main thread complete.
+*/
+```
+
+## tokio的兩種執行緒：worker thread和blocking thread
+
+tokio提供了兩種功能的執行緒：
+
+* 用於非同步任務的工作執行緒(worker thread) 。
+* 用於同步任務的阻塞執行緒(blocking thread)。
+
+單個執行緒或多個執行緒的runtime，指的都是工作執行緒，即只用於執行非同步任務的執行緒，這些任務主要是IO密集型的任務。tokio預設會將每一個工作執行緒均勻地繫結到每一個CPU核心上。
+
+但是，有些必要的任務可能會長時間計算而佔用執行緒，甚至任務可能是同步的，它會直接阻塞整個執行緒(比如thread::time::sleep())，這類任務如果計算時間或阻塞時間較短，勉強可以考慮留在非同步佇列中，但如果任務計算時間或阻塞時間可能會較長，它們將不適合放在非同步佇列中，因為它們會破壞非同步排程，使得同執行緒中的其它非同步任務處於長時間等待狀態，也就是說，這些非同步任務可能會被餓很長一段時間。
+
+例如，直接在runtime中執行阻塞執行緒的操作，由於這類阻塞操作不在tokio系統內，tokio無法識別這類執行緒阻塞的操作，tokio只能等待該執行緒阻塞操作的結束，才能重新獲得那個執行緒的管理權。換句話說，worker thread被執行緒阻塞的時候，它已經脫離了tokio的控制，在一定程度上破壞了tokio的排程系統。
+
+因此，tokio提供了這兩類不同的執行緒。worker thread只用於執行那些非同步任務，非同步任務指的是不會阻塞執行緒的任務。而一旦遇到本該阻塞但卻不會阻塞的操作(如使用tokio::time::sleep()而不是std::sleep())，會直接放棄CPU，將執行緒交還給排程器，使該執行緒能夠再次被排程器分配到其它非同步任務。blocking thread則用於那些長時間計算的或阻塞整個執行緒的任務。
+
+<mark style="color:red;">blocking thread預設是不存在的，只有在呼叫了spawn\_blocking()時才會建立一個對應的blocking thread</mark>。
+
+blocking thread不用於執行非同步任務，因此runtime不會去排程管理這類執行緒，它們在本質上相當於一個獨立的thread::spawn()建立的執行緒，它也不會像block\_on()一樣會阻塞當前執行緒。它和獨立執行緒的唯一區別，是blocking thread是在runtime內的，可以在runtime內對它們使用一些非同步操作，例如await。
+
+```rust
+use chrono::Local;
+use std::thread;
+use tokio::{self, runtime::Runtime, time};
+
+fn now() -> String {
+    Local::now().format("%F %T").to_string()
+}
+
+fn main() {
+    let rt1 = Runtime::new().unwrap();
+    // 建立一個blocking thread，可立即執行(由作業系統排程系統決定何時執行)
+    // 注意，不阻塞當前執行緒
+    let task = rt1.spawn_blocking(|| {
+        println!("in task: {}", now());
+        // 注意，是執行緒的睡眠，不是tokio的睡眠，因此會阻塞整個執行緒
+        thread::sleep(std::time::Duration::from_secs(3))
+    });
+
+    // 小睡1毫秒，讓上面的blocking thread先執行起來
+    std::thread::sleep(std::time::Duration::from_millis(1));
+    println!("not blocking: {}", now());
+
+    // 可在runtime內等待blocking_thread的完成
+    rt1.block_on(async {
+        task.await.unwrap();
+        println!("after blocking task: {}", now());
+    });
+}
+/*
+not blocking: 2024-10-20 03:00:14
+in task: 2024-10-20 03:00:14
+after blocking task: 2024-10-20 03:00:17
+*/
+
+```
+
+需注意，blocking thread生成的任務雖然繫結了runtime，但是它不是非同步任務，不受tokio排程系統控制。因此，如果在block\_on()中生成了blocking thread或普通的執行緒，block\_on()不會等待這些執行緒的完成。
+
+```rust
+rt.block_on(async{
+  // 生成一個blocking thread和一個獨立的thread
+  // block on不會阻塞等待兩個執行緒終止，因此block_on在這裡會立即返回
+  rt.spawn_blocking(|| std::thread::sleep(std::time::Duration::from_secs(10)));
+  thread::spawn(||std::thread::sleep(std::time::Duration::from_secs(10)));
+});
+```
+
+tokio允許的blocking thread佇列很長(預設512個)，且可以在runtime build時通過max\_blocking\_threads()組態最大長度。如果超出了最大佇列長度，新的任務將放在一個等待佇列中進行等待(比如當前已經有512個正在執行的任務，下一個任務將等待，直到有某個blocking thread空閒)。
+
+blocking thread執行完對應任務後，並不會立即釋放，而是繼續保持活動狀態一段時間，此時它們的狀態是空閒狀態。當空閒時長超出一定時間後(可在runtime build時通過thread\_keep\_alive()組態空閒的超時時長)，該空閒執行緒將被釋放。
+
+blocking thread有時候是非常友好的，它像獨立執行緒一樣，但又和runtime繫結，它不受tokio的排程系統排程，tokio不會把其它任務放進該執行緒，也不會把該執行緒內的任務轉移到其它執行緒。換言之，它有機會完完整整地發揮單個執行緒的全部能力，而不像worker執行緒一樣，可能會被排程器打斷。
 
 ## 參考資料
 
 * [https://shihyu.github.io/rust\_hacks/ch100/00.html](https://shihyu.github.io/rust\_hacks/ch100/00.html)
+* [https://tokio.rs/blog/2019-10-scheduler](https://tokio.rs/blog/2019-10-scheduler)
