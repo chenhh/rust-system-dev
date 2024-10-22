@@ -70,6 +70,15 @@ fn main() {
     while let Some(i) = iter.next() {
         println!("{i}");
     }
+
+    // 因為iter是借用，所以仍可印出v的內容
+    println!("{:?}", v);
+
+    // into_iter會把所有權給print
+    v.into_iter().for_each(|x| print!("{x} "));
+
+    // 所有權被into_iter移走了
+    //println!("{:?}", v);
 }
 ```
 
