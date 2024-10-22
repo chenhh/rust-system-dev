@@ -2,6 +2,8 @@
 
 在Rust中，迭代器共分為三個部分：<mark style="background-color:red;">迭代器(iterator)、介面卡(adapter)、消費者(consumer)</mark>。
 
+<mark style="color:red;">大多數for迴圈的內容可用迭代器的方式改寫</mark>。
+
 其中，迭代器本身提供了一個惰性的序列，介面卡對這個序列進行諸如篩選、拼接、轉換尋找等操作，消費者則在前兩者的基礎上生成最後的數值集合。
 
 消費者是迭代器上一種特殊的操作，其主要作用就是將迭代器轉換成其他類型的值，而非另一個迭代器。
@@ -162,23 +164,34 @@ use std::collections::HashMap;
 fn main() {
     // 1..10 Range為迭代器，呼叫next()走訪元素
     for i in 1..10 {
-        print!("{} ", i);
+        print!("{i} ");
     }
-
+    println!("");
+    // 等價寫法
+    (1..10).for_each(|x| print!("{x} "));
+    println!("");
+    
     let v = vec![1, 2, 3, 4, 5, 6, 7, 8, 9];
     // borrow of vec
     // Vec沒有實現Iterator，而是實現IntoIterator
     for i in &v {
-        print!("{i}\t");
+        print!("{i} ");
     }
     println!("");
+    // 等價寫法
+    v.iter().for_each(|x| print!("{x} "));
+    println!("");
+
     let map: HashMap<i32, char> = [(1, 'a'), (2, 'b'), (3, 'c')].iter().cloned().collect();
     // borrow of map
     for (k, v) in &map {
         println!("{k} : {v}");
     }
+    println!("");
+    // 等價寫法
+    map.iter().for_each(|(k, v)| println!("{k} : {v}"));
+    println!("");
 }
-
 ```
 
 ```rust
@@ -240,11 +253,40 @@ let inf_seq = (1..).into_iter();
 
 迭代器負責生產，而消費者則負責將生產出來的東西最終做一個轉化。
 
-取第幾個值所用的 `.nth()`函數，還有用來尋找值的 `.find()` 函數，呼叫下一個值的`next()`函數。
+* 取第幾個值所用的 `.nth()`函數
+* 用來尋找值的 `.find()` 函數
+* 呼叫下一個值的`next()`函數。
+
+### any方法
+
+any用來遍歷迭代器，查詢是否存在滿足條件的元素。any只要找到了滿足條件的元素，就停止遍歷， 即不會繼續Consume迭代的元素。
+
+```rust
+fn main() {
+    let id = "Iterator";
+    assert_eq!(id.chars().any(char::is_uppercase), true);
+    assert_eq!(id.chars().any(char::is_uppercase), false); //error
+}
+```
+
+### all方法
+
+all用來判定是否迭代器的所有元素都滿足某個條件。當存在一個元素不滿足條件，就不必繼續下去了，因為一定會返回false。
+
+```rust
+fn main() {
+    let a = [1, 2, 3];
+    let mut iter = a.iter();
+    assert!(!iter.all(|&x| x != 2));
+    assert_eq!(iter.next(), Some(&3));
+}
+```
 
 ### collect方法
 
 一個典型的消費者就是collect。此方法負責將迭代器裡面的所有資料取出。
+
+它將迭代器通過next方法獲得的元素，”蒐集”起來，收集到指定的集合容器中。
 
 ```rust
 fn main() {
@@ -260,19 +302,50 @@ fn main() {
 
 collect只知道將迭代器收集到一個實現了 FromIterator 的類型中去，但是，事實上實現這個 trait 的類型有很多（Vec, HashMap等），因此，collect沒有一個上下文來判斷應該將v按照什麼樣的方式收集，必須手動指定類型。
 
+```rust
+// 常見命令列獲取入參
+let args: Vec<String> = std::env::args().collect() ;
+let args: HashSet<String> = std::env::args().collect();
+let args: BTreeSet<String> = std::env::args().collect();
+let args: LinkedList<String> = std::env::args().collect();
+let args: HashMap<String, usize> = std::env::args().zip(0..).collect();
+```
+
+因為collect轉成vector是最常見的一種用法，很容易讓人產生誤解，即collect是用來完成iterator到vector轉換的。這種理解是不對的。只要我們願意，我們可以將迭代器轉成各種不同類型的collection。因為這些類型都實現了std::iter::FromIterator trait，它會呼叫該trait的from\_iter方法。
+
 ### fold方法
 
-fold函數即為map-reduce中的reduce函數。
+[https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.fold](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.fold)
+
+摺疊器，即遍歷迭代器的所有元素，通過執行執行的運算，最終摺疊成一個元素。
 
 ```rust
 // fold(base, |accumulator, element| .. )
 fn main() {
     let m = (1..20).fold(0, |add, x| add + x);
     println!("m={m}"); // 190
+
+    let a = [1, 2, 3, 4];
+
+    println!("count:{}", a.iter().fold(0, |n, _| n + 1)); // 4
+    println!("sum:{}", a.iter().fold(0, |n, e| n + e)); // 10
+    println!("multiple:{}", a.iter().fold(1, |n, e| n * e)); //24
+
+    println!("count:{}", a.iter().count()); //4
+    println!("sum:{}", a.iter().sum::<u32>()); //10
+    println!("multiple:{}", a.iter().product::<u32>()); //24
 }
 ```
 
 fold的輸出結果的類型，最終是和base的類型是一致的（如果base的類型沒指定，那麼可以根據前面m的類型進行反推，除非m的類型也未指定）。
+
+fold是個通用的方法，對於的常用的fold方法，Rust有提供了專門的方法：
+
+* count：迭代器中元素的個數。
+* sum：迭代器中所有元素之和。
+* product：迭代器中所有元素的乘積。
+* max：迭代器中最大的元素（Iterator必須實現了std::cmp::Ord）。
+* min：迭代器中最小的元素（Iterator必須實現了std::cmp::Ord）。
 
 ## 介面卡
 
@@ -282,11 +355,37 @@ fold的輸出結果的類型，最終是和base的類型是一致的（如果bas
 
 [map](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.map)接受一個閉包函數，對迭代器的每一個元素使用此函數。
 
+[https://doc.rust-lang.org/std/iter/trait.Iterator.html?search=add#method.map](https://doc.rust-lang.org/std/iter/trait.Iterator.html?search=add#method.map)
+
 ```rust
 fn main() {
     // map為lazy eval，不會實際動作，必須有consumer才能編譯
     let m: Vec<_> = (1..5).map(|x| x + 1).collect();
     println!("{:?}", m); // [2, 3, 4, 5]
+    
+    // 等效寫法
+    (1..5).map(|x| x + 1).for_each(|x| print!("{x} "));
+}
+```
+
+### for\_each方法
+
+對迭代器的每個元素調用閉包。這等效於在迭代上使用 for 迴圈，儘管閉包無法實現 break 和 continue。
+
+在處理較長迭代器鏈末尾的項時for\_each可能更清晰。在某些情況下，for\_each也可能比迴圈更快，因為它將在 Chain 等適配器上使用內部反覆運算。
+
+<mark style="color:red;">map 是用於對每個元素做一些事情，並將其傳遞出去，而 for\_each 是當你看到每個元素時做一些事情。 另外， map 不做任何事情，除非你使用 collect 這樣的方法</mark>。
+
+* [https://doc.rust-lang.org/std/iter/trait.Iterator.html?search=add#method.for\_each](https://doc.rust-lang.org/std/iter/trait.Iterator.html?search=add#method.for\_each)
+
+```rust
+// for 迴圈可能更乾淨，但for_each保持具有較長反覆運算器的函數式樣式
+fn main() {
+    (0..5)
+        .flat_map(|x| x * 100..x * 110)
+        .enumerate()
+        .filter(|&(i, x)| (i + x) % 3 == 0)
+        .for_each(|(i, x)| println!("{i}:{x}"));
 }
 ```
 
