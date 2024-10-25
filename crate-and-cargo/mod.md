@@ -2,16 +2,36 @@
 
 ## 簡介
 
-mod（模組）是用於在crate內部繼續進行分層和封裝的機制。模組內部又可以包含模組。Rust中的模組是一個典型的樹形結構。每個crate會自動產生一個跟當前crate同名的模組，作為這個樹形結構的根節點。
+mod（模組）是用於在crate(基本編譯單元)內部繼續進行分層和封裝的機制。模組內部又可以包含模組。Rust中的模組是一個典型的樹形結構。每個crate會自動產生一個跟當前crate同名的模組，作為這個樹形結構的根節點。
 
-寫模組的目的一是為了分隔邏輯塊，二是為了提供適當的函數，或物件供外部訪問。<mark style="color:red;">而模組中的內容，默認是私有的，只有模組內部能訪問</mark>。
+寫模組的目的一是為了分隔邏輯塊，二是為了提供適當的函數，或物件供外部訪問。<mark style="color:red;">而模組中的內容預設是私有的，只有模組內部能訪問</mark>。
+
+## Mod 和 Use 的區別
+
+關鍵字 use 用於將模組的內容匯入當前範圍。這意味著它將使模組中的所有函式都可以從此時開始呼叫。
+
+mod 僅將另一個模組中的單個專案匯入當前範圍，因此可以根據需要呼叫或引用它，而不必擔心從現在開始可以訪問該模組中的任何其他內容。
+
+<mark style="background-color:red;">它們之間的主要區別在於 use 從外部庫匯入模組，而 mod 建立只能在當前檔案中使用的內部模組</mark>。
+
+### use 的特點
+
+* 你可以使用 self 關鍵字將通用父模組和你想要使用的任何其他東西引入名稱空間。&#x20;
+* 為避免身份問題，請使用 as 關鍵字進行更改。&#x20;
+* 你可以使用類似 glob 的語法將多個物件帶入當前名稱空間：`use std::path::{self, Path, PathBuf};`
+
+### mod 概念
+
+模組允許你將程式碼組織到單獨的檔案中。它們將你的程式碼劃分為可以在其他模組或程式中匯入和使用的邏輯部分。簡而言之，mod 用於指定模組和子模組，以便你可以在當前的 .rs 檔案中使用它們，這可能很複雜。
+
+### pub與use關鍵字
 
 為了讓外部能使用模組中 item，需要使用 pub 關鍵字。外部引用的時候，使用 use 關鍵字。
 
 關於模組的一些要點：
 
 * 每個 crate 中，預設實現了一個隱式的根模組（root module）；
-* 模組的命名風格也是 lower\_snake\_case，跟其它的 Rust 的識別碼一樣；&#x20;
+* 模組的命名風格也是 lower\_snake\_case，跟其它的 Rust 的識別碼一樣；
 * 模組可以巢狀； 模組中可以寫任何合法的 Rust 程式碼；
 
 在一個crate內部創建新模組的方式有下面幾種。
@@ -125,8 +145,8 @@ Rust 的模組支援層級結構，但這種層級結構本身與檔案系統目
 
 Rust 的多層模組遵循如下兩條規則：
 
-1. 優先尋找xxx.rs 檔案&#x20;
-   * main.rs、lib.rs、mod.rs中的mod xxx; 默認優先尋找同級目錄下的 xxx.rs 檔案；&#x20;
+1. 優先尋找xxx.rs 檔案
+   * main.rs、lib.rs、mod.rs中的mod xxx; 默認優先尋找同級目錄下的 xxx.rs 檔案；
    * 其他檔案yyy.rs中的mod xxx;默認優先尋找同級目錄的yyy目錄下的 xxx.rs 檔案；
 2. 如果 xxx.rs 不存在，則尋找 xxx/mod.rs 檔案，即 xxx 目錄下的 mod.rs 檔案。
 
@@ -253,6 +273,8 @@ mod top_mod {
 // pub use ::top_mod::inner_mod1::inner_mod2::method3;
 ```
 
+
+
 ## use關鍵字
 
 Rust裡面的路徑有不同寫法，它們代表的含義如下：
@@ -338,3 +360,7 @@ fn call() {
 use std::result::Result as StdResult;
 use std::io::Result as IoResult;
 ```
+
+
+
+[https://blog.csdn.net/wowotuo/article/details/107591501](https://blog.csdn.net/wowotuo/article/details/107591501)
