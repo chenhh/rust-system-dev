@@ -4,7 +4,9 @@
 
 Rust標準庫中還提供了另外一種執行緒之間的通信方式:mpsc。存儲在[`std::sync::mpsc`](https://rustwiki.org/zh-CN/std/sync/mpsc/index.html)這個模組中。
 
-<mark style="background-color:blue;">mpsc代表的是Multi-producer，single consumer FIFO queue，即多生產者單消費者先進先出佇列(queue)</mark>。這種執行緒之間的通信方式是在不同執行緒之間建立一個通信“管道”（channel），一邊發送消息，一邊接收消息，完成資訊交流。
+<mark style="background-color:blue;">mpsc代表的是Multi-producer，single consumer FIFO queue，即多生產者單消費者先進先出佇列(queue)</mark>。這種執行緒之間的通信方式是在不同執行緒之間建立一個通信“管道”（channel），一邊發送消息(傳送者, transmitter)，一邊接收消息(接收者, receiver)，完成資訊交流。
+
+程式碼中的一部分會呼叫傳送者的方法來傳送你想要傳遞的資料，然後另一部分的程式碼會檢查接收者收到的訊息。當傳送者或接收者有一方被釋放掉時，該通道就會被關閉。
 
 該模塊通過通道提供基於訊息的通訊，具體定義為以下三種類型：
 

@@ -8,7 +8,7 @@ description: 線程
 
 Rust不僅在沒有自動垃圾回收（Garbage Collection）的條件下實現了記憶體安全，而且實現了執行緒安全。Rust編譯器可以在編譯階段避免所有的資料競爭（Data Race）問題。這也是Rust的核心競爭力之一。
 
-<mark style="color:red;">Rust語言本身並不知曉“執行緒”“併發”具體是什麼，而是抽象出了一些更高級的概念Send/Sync特徵(</mark><mark style="color:red;">實現此Trait的類型變數的引用可以安全在執行緒間共享。執行緒間轉移變數必須支援Send, 共享變數必須支援Sync)</mark><mark style="color:red;">，用來描述類型在併發環境下的特性</mark>。
+<mark style="color:red;">Rust語言本身並不知曉“執行緒”“併發”具體是什麼，而是抽象出了一些更高級的概念Send/Sync特徵(實現此Trait的類型變數的引用可以安全在執行緒間共享。執行緒間轉移變數必須支援Send, 共享變數必須支援Sync)，用來描述類型在併發環境下的特性</mark>。
 
 `std::thread::spawn`函數就是一個普通函數，編譯器沒有對它做任何特殊處理。它能保證執行緒安全的關鍵是，它對參數有合理的約束條件。這樣的設計使得Rust在執行緒安全方面具備非常好的擴展性。
 
@@ -16,11 +16,11 @@ Rust不僅在沒有自動垃圾回收（Garbage Collection）的條件下實現�
 
 * 競爭條件（Race conditions），多個執行緒以不一致的順序訪問資料或資源。
 * 死鎖（Deadlocks），兩個執行緒相互等待對方，這會阻止兩者繼續運行。
-* 只會發生在特定情況且難以穩定重現和修復的 bug.&#x20;
+* 只會發生在特定情況且難以穩定重現和修復的 bug.
 
 ## 執行緒(thread)
 
-執行緒是作業系統能夠進行調度的最小單位，它是行程 (process)中的實際運作單位，每個滿程至少包含一個執行緒。
+執行緒是作業系統能夠進行調度的最小單位，它是行程 (process)中的實際運作單位，每個行程至少包含一個以上的執行緒。
 
 <mark style="color:red;">簡單的說，將所要執行的工作打包(通常寫成函數或閉包)，再將工作做為參數傳進執行緒中，待執行緒完成後傳回結果</mark>。
 
@@ -43,17 +43,18 @@ use std::time::Duration;
 
 fn main() {
     // 此範例是在1個thread中產生1~10的迴圈
-    thread::spawn(|| {
+    let handle = thread::spawn(|| {
         for i in 1..10 {
-            println!("數字 {} 出現在產生的執行緒中！", i);
+            println!("數字 {i} 出現在產生的執行緒中！");
             thread::sleep(Duration::from_millis(5));
         }
     });
 
     for i in 1..5 {
-        println!("數字 {} 出現在主執行緒中！", i);
+        println!("數字 {i} 出現在主執行緒中！");
         thread::sleep(Duration::from_millis(1));
     }
+    // 等待子執行緒完成
     handle.join().unwrap();
 }
 /*
@@ -82,6 +83,7 @@ fn main() {
 */
 
 // 以下範例是產生10個threads
+// 以下範例是產生10個threads
 use std::thread;
 use std::time::Duration;
 
@@ -90,7 +92,7 @@ fn main() {
     for i in 1..10 {
         handles.push(thread::spawn(move || {
             let tid = thread::current().id();
-            println!("TID: {:?}, 數字 {i} 出現在產生的執行緒中！", tid);
+            println!("TID: {tid:?}, 數字 {i} 出現在產生的執行緒中！");
             thread::sleep(Duration::from_millis(5));
         }));
     }
@@ -135,4 +137,3 @@ resume child thread
 child thread finished
 */
 ```
-
