@@ -6,4 +6,4 @@
 * [Effective Rust中文版](https://rustx-labs.github.io/effective-rust-cn/)。
 * [深入RUST標準庫](https://github.com/Warrenren/inside-rust-std-library)
 * [Rust boom(Awesome Rust (Rust 資源 | 學習 | 書 )](https://rust-boom.github.io/rust-boom/)。
-
+* 簡單英語學 Rust [https://dieterplex.github.io/easy\_rust\_cht/Chapter\_0.html](https://dieterplex.github.io/easy\_rust\_cht/Chapter\_0.html)
