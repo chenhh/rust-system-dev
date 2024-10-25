@@ -112,3 +112,4 @@
 ## 實務技巧 <a href="#tech-tips" id="tech-tips"></a>
 
 * [release如何去除常數偵錯資訊](tech-tips/release-ru-he-qu-chu-chang-shu-zhen-cuo-zi-xun.md)
+* [use 和 extern crate 的區別](tech-tips/use-he-extern-crate-de-qu-bie.md)
