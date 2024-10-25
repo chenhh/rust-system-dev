@@ -26,6 +26,7 @@
   * [trait物件](trait/trait-object.md)
 * [函數](function/README.md)
   * [閉包(closure)](statement-and-expression/closure.md)
+  * [Fn, FnMut, FnOnce的區別](function/fn-fnmut-fnonce-details.md)
   * [巨集](function/macro.md)
 * [記憶體管理](memory-management/README.md)
   * [借用和引用(borrow and reference)](memory-management/borrow.md)
