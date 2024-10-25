@@ -1,5 +1,12 @@
 # Send/Sync特徵
 
+## 簡介
+
+* Send 表示資料能安全地被 move 到另一個執行緒。
+* Sync 表示資料能在多個執行緒中被同時安全地訪問。
+
+這裡“安全”指不會發生資料的競爭 (race condition)。
+
 ## 執行緒安全
 
 執行緒安全是指一個 共享變數同時被多個執行緒執行，這個共享變數的值是一個可預期的結果而且每次執行的結果都一致的話，這個共享變數就是執行緒安全，而不會因為開啟多執行緒之後破壞了共享變數最後的結果。
@@ -51,9 +58,9 @@ fn main() {
 
 傳統C/C++需要依賴程式師不犯錯誤來保證執行緒安全；而Rust是由工具自動保證的。
 
-## Send, Sync trait簡介
+## Send, Sync特徵簡介
 
-Rust執行緒安全背後的功臣是兩個特殊的trait。
+Rust執行緒安全背後的實作是兩個特殊的特徵。
 
 * [std::marker::Sync](https://doc.rust-lang.org/std/marker/trait.Sync.html)：如果類型`T`實現了`Sync`類型，那說明在不同的執行緒中使用`&T`訪問同一個變數(共享記憶體)是安全的。
 * [std::marker::Send](https://doc.rust-lang.org/std/marker/trait.Send.html)：如果類型`T`實現了`Send`類型，那說明這個類型的變數在不同的執行緒中傳遞所有權是安全的。
@@ -71,9 +78,9 @@ where F: FnOnce() -> T, F: Send + 'static, T: Send + 'static
 
 在Rust中，執行緒安全是預設行為，大部分類型在單執行緒中是可以隨意共用的，但是沒辦法直接在多執行緒中共用。也就是說，只要程式師不濫用unsafe，Rust編譯器就可以檢查出所有具有“資料競爭”潛在風險的程式碼。凡<mark style="color:red;">是通過了編譯檢查的程式碼，Rust可以保證，絕對不會出現“執行緒不安全”的行為</mark>。如此一來，多執行緒程式碼和單執行緒程式碼就有了嚴格的分野。一般情況下，我們不需要考慮多執行緒的問題。即便是萬一不小心在多執行緒中訪問了原本只設計為單執行緒使用的程式碼，編譯器也會報錯。
 
-## Send trait
+## Send 特徵
 
-<mark style="color:red;">根據定義：如果類型T實現了Send trait，那說明這個類型的變數在不同執行緒中傳遞所有權是安全的</mark>。究竟具備什麼特點的類型才滿足Send約束？
+<mark style="color:red;">根據定義：如果類型T實現了Send特徵 ，那說明這個類型的變數在不同執行緒中傳遞所有權是安全的</mark>。究竟具備什麼特點的類型才滿足Send約束？
 
 <mark style="background-color:red;">**如果一個類型可以安全地從一個執行緒move進入另一個執行緒，那它就是Send類型**</mark>。比如：普通的數字類型是`Send`，因為我們把數字move進入另一個執行緒之後，兩個執行緒同時執行也不會造成什麼安全問題。
 
@@ -87,7 +94,7 @@ where F: FnOnce() -> T, F: Send + 'static, T: Send + 'static
 
 但是相對的是，`Arc<T>`類型是符合`Send`的（當然需要`T：Send`）。為什麼呢？因為Arc類型內部的引用計數用的是“原子計數”，對它進行增減操作，不會出現多執行緒資料競爭。所以，多個執行緒擁有指向同一個變數的Arc指標是可以接受的。
 
-## sync trait
+## sync特徵
 
 <mark style="color:red;">Sync的定義是，如果類型</mark><mark style="color:red;">`T`</mark><mark style="color:red;">實現了</mark><mark style="color:red;">`Sync`</mark> <mark style="color:red;">trait，那說明在不同的執行緒中使用</mark><mark style="color:red;">`&T`</mark><mark style="color:red;">（唯讀）訪問同一個變數是安全的</mark>。
 

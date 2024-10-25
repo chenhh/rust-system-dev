@@ -14,9 +14,9 @@ Rust不僅在沒有自動垃圾回收（Garbage Collection）的條件下實現�
 
 因為執行緒是同時運行的，所以無法預先保證不同執行緒中的程式碼的執行順序。這會導致諸如此類的問題：
 
-* 競爭條件（Race conditions），多個執行緒以不一致的順序訪問資料或資源。
-* 死鎖（Deadlocks），兩個執行緒相互等待對方，這會阻止兩者繼續運行。
-* 只會發生在特定情況且難以穩定重現和修復的 bug.
+* <mark style="background-color:red;">競爭條件（Race conditions）</mark>，多個執行緒以不一致的順序訪問資料或資源。
+* <mark style="background-color:red;">死鎖（Deadlocks）</mark>，兩個執行緒相互等待對方，這會阻止兩者繼續運行。
+* 只會發生在特定情況且難以穩定重現和修復的錯誤。
 
 ## 執行緒(thread)
 
