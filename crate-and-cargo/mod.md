@@ -2,39 +2,41 @@
 
 ## 簡介
 
-mod（模組）是用於在crate(基本編譯單元)內部繼續進行分層和封裝的機制。模組內部又可以包含模組。Rust中的模組是一個典型的樹形結構。每個crate會自動產生一個跟當前crate同名的模組，作為這個樹形結構的根節點。
+<mark style="color:red;">Rust模組其實就是命名空間，</mark>用關鍵詞mod表示。它的作用是把一個crate的程式碼劃分成可管理的部分。每一個crate都有一個頂層的匿名根命名空間, 根空間下面的命名空間可以任意巢狀，這樣構成一個樹形結構。
+
+模組內部又可以包含模組。Rust中的模組是一個典型的樹形結構。每個crate會自動產生一個跟當前crate同名的模組，作為這個樹形結構的根節點。
 
 寫模組的目的一是為了分隔邏輯塊，二是為了提供適當的函數，或物件供外部訪問。<mark style="color:red;">而模組中的內容預設是私有的，只有模組內部能訪問</mark>。
 
-## Mod 和 Use 的區別
+## 從Rust編譯來理解
 
-關鍵字 use 用於將模組的內容匯入當前範圍。這意味著它將使模組中的所有函式都可以從此時開始呼叫。
+Rust編譯器只接受一個.rs檔案作為輸入，並且只生成一個crate。
 
-mod 僅將另一個模組中的單個專案匯入當前範圍，因此可以根據需要呼叫或引用它，而不必擔心從現在開始可以訪問該模組中的任何其他內容。
+生成的crate分兩種，原始檔中有main函數會生成可執行檔案，無main函數則生成函式庫。
 
-<mark style="background-color:red;">它們之間的主要區別在於 use 從外部庫匯入模組，而 mod 建立只能在當前檔案中使用的內部模組</mark>。
+```rust
+// 生成可執行檔
+// hello.rs
+fn main() {
+    println!("hello, rust");
+}
+```
 
-### use 的特點
+```rust
+// 生成函式庫，必須加pub關鍵字才可被外部使用
+// hello.rs
+pub fn hello() {
+    println!("hello, rust");
+}
+```
 
-* 你可以使用 self 關鍵字將通用父模組和你想要使用的任何其他東西引入名稱空間。&#x20;
-* 為避免身份問題，請使用 as 關鍵字進行更改。&#x20;
-* 你可以使用類似 glob 的語法將多個物件帶入當前名稱空間：`use std::path::{self, Path, PathBuf};`
+
 
 ### mod 概念
 
 模組允許你將程式碼組織到單獨的檔案中。它們將你的程式碼劃分為可以在其他模組或程式中匯入和使用的邏輯部分。簡而言之，mod 用於指定模組和子模組，以便你可以在當前的 .rs 檔案中使用它們，這可能很複雜。
 
-### pub與use關鍵字
-
-為了讓外部能使用模組中 item，需要使用 pub 關鍵字。外部引用的時候，使用 use 關鍵字。
-
-關於模組的一些要點：
-
-* 每個 crate 中，預設實現了一個隱式的根模組（root module）；
-* 模組的命名風格也是 lower\_snake\_case，跟其它的 Rust 的識別碼一樣；
-* 模組可以巢狀； 模組中可以寫任何合法的 Rust 程式碼；
-
-在一個crate內部創建新模組的方式有下面幾種。
+## 在一個crate內部創建新模組的方式
 
 ### 一個檔中創建內嵌模組
 
@@ -323,92 +325,7 @@ mod top_mod {
 
 
 
-## use關鍵字
+## 參考資料
 
-Rust裡面的路徑有不同寫法，它們代表的含義如下：
-
-### 以::開頭的路徑，代表全域路徑。它是從crate的根部開始算。
-
-```rust
-mod top_mod1 {
-    pub fn f1() {}
-}
-mod top_mod2 {
-    pub fn call() {
-        // 當前crate下的top_mod1
-        ::top_mod1::f1();
-        // 也可以明確寫出crate
-        crate::top_mod1::f1();
-    }
-}
-```
-
-### 以super關鍵字開頭的路徑是相對路徑。它是從上層模組開始算的
-
-```rust
-mod top_mod1 {
-    pub fn f1() {}
-    mod inner_mod1 {
-        pub fn call() {
-            // 當前模組 inner_mod1 的父級模組中的f1函數
-            super::f1(); 
-        }
-    }
-}
-```
-
-### 以self關鍵字開頭的路徑是相對路徑。它是從當前模組開始算的
-
-```rust
-mod top_mod1 {
-    pub fn f1() {}
-    pub fn call() {
-        // 當前模組 top_mod1中的f1函數
-        self::f1(); 
-    }
-}
-```
-
-## 簡化作用域
-
-如果我們需要經常重複性地寫很長的路徑，那麼可以使用use語句把相應的元素引入到當前的作用域中來。
-
-### 可以用大括弧，一句話引入多個元素
-
-```rust
-// 這句話引入了io / Read / Write 三個名字
-use std::io::{self, Read, Write}; 
-```
-
-### use語句的大括弧可以嵌套使用
-
-```rust
-use a::b::{c, d, e::{f, g::{h, i}} };
-```
-
-### use語句可以使用星號，引入所有的元素
-
-```rust
-// 這句話引入了 std::io::prelude下面所有的名字
-use std::io::prelude::*; 
-```
-
-### use語句不僅可以用在模組中，還可以用在函數、trait、impl等地方
-
-```rust
-fn call() {
-    use std::collections::HashSet;
-    let s = HashSet::<i32>::new();
-}
-```
-
-### use語句允許使用as重命名，避免名字衝突
-
-```rust
-use std::result::Result as StdResult;
-use std::io::Result as IoResult;
-```
-
-
-
-[https://blog.csdn.net/wowotuo/article/details/107591501](https://blog.csdn.net/wowotuo/article/details/107591501)
+* [https://tonydeng.github.io/2019/10/28/rust-mod/](https://tonydeng.github.io/2019/10/28/rust-mod/)
+* [https://blog.csdn.net/wowotuo/article/details/107591501](https://blog.csdn.net/wowotuo/article/details/107591501)

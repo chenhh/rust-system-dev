@@ -57,6 +57,7 @@
   * [panic](error-processing/panic.md)
 * [crate與cargo](crate-and-cargo/README.md)
   * [mod](crate-and-cargo/mod.md)
+  * [use](crate-and-cargo/use.md)
   * [第三方套件](crate-and-cargo/third-party-crate.md)
 * [路徑與IO](lu-jing-yu-io.md)
   * [開檔(open)](kai-dang-open.md)
