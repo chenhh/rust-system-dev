@@ -36,9 +36,13 @@ mod 僅將另一個模組中的單個專案匯入當前範圍，因此可以根�
 
 在一個crate內部創建新模組的方式有下面幾種。
 
-* 一個檔中創建內嵌模組。直接使用mod關鍵字即可，模組內容包含到大括弧內部：
+### 一個檔中創建內嵌模組
+
+直接使用mod關鍵字即可，模組內容包含到大括弧內部：
 
 ```rust
+// main.rs
+// 頂層的mod aaa和fn main為同一層，可直接使用
 mod aaa {
     const X: i32 = 10;
     // 必須加上pub才可被外部呼叫
@@ -47,6 +51,8 @@ mod aaa {
         // bbb中的函數也要加上pub在此處才可被呼叫
         bbb::print_bbb();
     }
+    // mod bbb在mod aaa內為private，
+    // 不可被外部直接呼叫，只能在內部使用
     mod bbb {
         pub fn print_bbb() {
             println!("bbb");
@@ -54,18 +60,60 @@ mod aaa {
     }
 }
 mod ccc {
+    // print_ccc在mod ccc為private
     fn print_ccc() {
         println!("{}", 25);
     }
 }
 
-fn main(){
-    aaa::print_aaa();   // aaa bbb
+fn main() {
+    aaa::print_aaa(); // aaa bbb
+    // aaa::bbb::print_bbb(); error, bbb為pricate
+    // ccc::print_ccc();   //error print_ccc為private
 }
 ```
 
-* 獨立的一個檔就是一個模組。檔案名即是模組名。
-* 一個資料夾也可以創建一個模組。資料夾內部要有一個mod.rs文 件，這個檔就是這個模組的入口。
+### <mark style="color:red;">獨立的一個檔就是一個模組。檔案名即是模組名</mark>
+
+```bash
+.
+├── main.rs
+├── mylib.rs
+└── my_nestedlib.rs
+```
+
+```rust
+//main.rs
+// 必須先宣告mod，之後使用use時才找的到
+mod my_nestedlib;
+mod mylib;
+
+// 宣告使用mod
+use my_nestedlib::nested;
+use mylib::hello;
+
+fn main() {
+    nested::nested_hello(); //hello nested lib
+    hello(); // hello mylib
+}
+
+// my_nestedlib.rs
+pub mod nested {
+    pub fn nested_hello() {
+        println!("hello nested lib");
+    }
+}
+
+
+// mylib.rs
+pub fn hello()  {
+    println!("hello mylib");
+}
+```
+
+### 一個資料夾也可以創建一個模組
+
+資料夾內部要有一個mod.rs文 件，這個檔就是這個模組的入口。
 
 使用哪種方式編寫模組取決於當時的場景。
 
