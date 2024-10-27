@@ -2,7 +2,7 @@
 
 ## 簡介
 
-Rust標準庫中還提供了另外一種執行緒之間的通信方式:mpsc。存儲在[`std::sync::mpsc`](https://rustwiki.org/zh-CN/std/sync/mpsc/index.html)這個模組中。
+Rust標準庫中還提供了另外一種執行緒之間的(阻塞)通信方式:mpsc。存儲在[`std::sync::mpsc`](https://rustwiki.org/zh-CN/std/sync/mpsc/index.html)這個模組中。
 
 <mark style="background-color:blue;">mpsc代表的是Multi-producer，single consumer FIFO queue，即多生產者單消費者先進先出佇列(queue)</mark>。這種執行緒之間的通信方式是在不同執行緒之間建立一個通信“管道”（channel），一邊發送消息(傳送者, transmitter)，一邊接收消息(接收者, receiver)，完成資訊交流。
 
@@ -81,7 +81,7 @@ fn main() {
     }
     // drop(tx);
     while let Ok(r) = rx.recv() {
-        println!("received {}", r);
+        println!("received {r}");
     }
 }
 /*
@@ -95,6 +95,7 @@ received 1
 received 2
 received 3
 received 4
+...
 */
 ```
 
