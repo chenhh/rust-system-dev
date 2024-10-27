@@ -77,7 +77,7 @@ use std::io::{self, Read, Write};
 use a::b::{c, d, e::{f, g::{h, i}} };
 ```
 
-### use語句可以使用星號，引入所有的元素
+### use語句可以使用星號，引入所有的公開元素
 
 ```rust
 // 這句話引入了 std::io::prelude下面所有的名字
@@ -98,6 +98,29 @@ fn call() {
 ```rust
 use std::result::Result as StdResult;
 use std::io::Result as IoResult;
+```
+
+## 使用 pub use 重匯出名稱
+
+在這個修改之前，外部程式碼需要使用路徑 `restaurant::front_of_house::hosting::add_to_waitlist()`。
+
+現在只要用`restaurant::hosting::add_to_waitlist()`即可。
+
+```rust
+// restaurant crate
+// lib.rs
+mod front_of_house {
+    pub mod hosting {
+        pub fn add_to_waitlist() {}
+    }
+}
+
+// 將內部的crate::front_of_house::hosting模組重新匯出成hosting
+pub use crate::front_of_house::hosting;
+
+pub fn eat_at_restaurant() {
+    hosting::add_to_waitlist();
+}
 ```
 
 

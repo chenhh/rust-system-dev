@@ -15,6 +15,11 @@
 
 <mark style="color:red;">可以不使用use關鍵字，單純使用mod與完整路徑呼叫crate內部的函數</mark>。
 
+## 路徑有兩種形式
+
+* <mark style="background-color:red;">絕對路徑（absolute path）</mark>是以 crate 根（root）開頭的全路徑；對於外部 crate 的程式碼，是以 crate 名開頭的絕對路徑，對於當前 crate 的程式碼，則以字面值 crate 開頭。&#x20;
+* <mark style="color:red;">相對路徑（relative path）</mark>從當前模組開始，以 self、super 或定義在當前模組中的識別碼開頭。
+
 ## 從Rust編譯來理解
 
 Rust編譯器只接受一個.rs檔案作為輸入，並且只生成一個crate。
@@ -355,10 +360,12 @@ mod top_mod {
 mod worker;
 
 fn main() {
-    // mod的hello
-    worker::hello();
+    // mod的hello, 
+    worker::hello();    //相對路徑
+    crate::worker::hello(); //絕對路徑
+
     // 呼叫lib.rs內的hello
-    mod_example::hello();
+    mod_example::hello();//相對路徑
 }
 
 // 方法二，和一般mod相同，使用mod lib再呼叫
