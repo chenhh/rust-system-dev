@@ -6,7 +6,12 @@
 
 模組內部又可以包含模組。Rust中的模組是一個典型的樹形結構。每個crate會自動產生一個跟當前crate同名的模組，作為這個樹形結構的根節點。
 
-寫模組的目的一是為了分隔邏輯塊，二是為了提供適當的函數，或物件供外部訪問。<mark style="color:red;">而模組中的內容預設是私有的，只有模組內部能訪問</mark>。
+寫模組的目的：
+
+1. 為了分隔邏輯塊。
+2. 為了提供適當的函數，或物件供外部訪問。
+
+<mark style="color:red;">而模組中的內容預設是私有的，只有模組內部能訪問</mark>。
 
 ## 從Rust編譯來理解
 
@@ -16,7 +21,7 @@ Rust編譯器只接受一個.rs檔案作為輸入，並且只生成一個crate�
 
 ```rust
 // 生成可執行檔
-// hello.rs
+// main.rs
 fn main() {
     println!("hello, rust");
 }
@@ -24,21 +29,41 @@ fn main() {
 
 ```rust
 // 生成函式庫，必須加pub關鍵字才可被外部使用
-// hello.rs
+// lib.rs
 pub fn hello() {
     println!("hello, rust");
 }
 ```
 
+### mod搜尋順序
 
+在 Rust 裡試著使用 mod 關鍵字要來宣告一個模組的時候，這會試著請編譯器試著找看看有沒有對應的檔案或模組，例如：
 
-### mod 概念
+1. 使用 mod say\_something; 這樣寫的時候，編譯器會試著找 say\_something.rs 或是 say\_something/mod.rs 檔案。
+2. &#x20;如果找到了 say\_something.rs 檔案，編譯器會把裡面的程式碼當做 say\_something 模組並引入到目前的檔案裡。&#x20;
+3. 同樣的，如果找到了 say\_something/mod.rs 檔案，編譯器也會把裡面的程式碼當做 say\_something 模組引入當前這個檔案裡。
+
+## mod 概念
 
 模組允許你將程式碼組織到單獨的檔案中。它們將你的程式碼劃分為可以在其他模組或程式中匯入和使用的邏輯部分。簡而言之，mod 用於指定模組和子模組，以便你可以在當前的 .rs 檔案中使用它們，這可能很複雜。
 
-## 在一個crate內部創建新模組的方式
+使用哪種方式編寫模組取決於當時的場景。
 
-### 一個檔中創建內嵌模組
+* 如果我們需要創建一個小型子模組，比如單元測試模組，那麼直接寫到一個檔內部就非常簡單而且直觀；
+* 如果一個模組內容相對有點多，那麼把它單獨寫到一個檔內是更容易維護的；
+* 如果一個模組的內容太多了，那麼把它放到一個資料夾中就更合理，因為我們可以把真正的內容繼續分散到更小的子模組中，而在mod.rs中直接重新匯出（re-export）。這樣mod.rs的源碼就大幅簡化，不影響外部的調用者。
+
+## 在內部創建新模組的方式
+
+### 同一個檔中創建內嵌模組
+
+```bash
+.
+├── Cargo.lock
+├── Cargo.toml
+├── src
+│   ├── main.rs
+```
 
 直接使用mod關鍵字即可，模組內容包含到大括弧內部：
 
@@ -75,28 +100,31 @@ fn main() {
 }
 ```
 
-### <mark style="color:red;">獨立的一個檔就是一個模組。檔案名即是模組名</mark>
+### <mark style="color:red;">獨立的一個檔就是一個模組</mark>
+
+<mark style="color:red;">檔案名即是模組名。</mark>
 
 ```bash
 .
-├── main.rs
-├── mylib.rs
-└── my_nestedlib.rs
+├── Cargo.lock
+├── Cargo.toml
+├── src
+│   ├── main.rs
+│   ├── mylib.rs
+│   └── my_nestedlib.rs
+
 ```
 
 ```rust
 //main.rs
-// 必須先宣告mod，之後使用use時才找的到
+// 宣告mod後即可備使用(只能呼叫pub)
 mod my_nestedlib;
 mod mylib;
 
-// 宣告使用mod
-use my_nestedlib::nested;
-use mylib::hello;
-
 fn main() {
-    nested::nested_hello(); //hello nested lib
-    hello(); // hello mylib
+    // 必須用全名呼叫函數
+    my_nestedlib::nested::nested_hello(); //hello nested lib
+    mylib::hello(); // hello mylib
 }
 
 // my_nestedlib.rs
@@ -115,77 +143,35 @@ pub fn hello()  {
 
 ### 一個資料夾也可以創建一個模組
 
-資料夾內部要有一個mod.rs文 件，這個檔就是這個模組的入口。
+資料夾內部要有一個mod.rs文 件，這個檔就是這個模組的入口，而資料夾名稱就是mod名稱。
 
-使用哪種方式編寫模組取決於當時的場景。
+如果同一資料夾內有同名的檔案與資料夾(add.rs與add directory)時，使用`mod add;`會出現錯誤。
 
-* 如果我們需要創建一個小型子模組，比如單元測試模組，那麼直接寫到一個檔內部就非常簡單而且直觀；
-* 如果一個模組內容相對有點多，那麼把它單獨寫到一個檔內是更容易維護的；
-* 如果一個模組的內容太多了，那麼把它放到一個資料夾中就更合理，因為我們可以把真正的內容繼續分散到更小的子模組中，而在mod.rs中直接重新匯出（re-export）。這樣mod.rs的源碼就大幅簡化，不影響外部的調用者。
-
-## 範例
-
-比如，我們有一個crate內部包含了兩個模組，一個是caller一個是worker。我們可以有幾種方案來實現。
-
-### 方案一：直接把所有程式碼都寫到lib.rs裡面
+```bash
+Cargo.toml
+- src
+    - add/
+        - add_one.rs
+        - mod.rs
+    - main.rs
+```
 
 ```rust
-// <lib.rs>
-mod caller {
-    fn call() {}
+// src/main.rs
+mod add;
+
+fn main() {
+    print!("{}", add::add_one::add_one(0));
 }
-mod worker {
-    fn work1() {}
-    fn work2() {}
-    fn work3() {}
+
+// src/add/mod.rs
+pub mod add_one;
+
+// src/add/add_one.rs
+pub fn add_one (base: u32) -> u32 {
+  base + 1
 }
 ```
-
-### 方案二：把模組分到兩個不同的檔中
-
-通常，我們會在單獨的檔案中寫模組內容，然後使用 mod 關鍵字來載入那個檔案作為我們的模組。
-
-模組分別叫作caller.rs和worker.rs。那麼我們的項目就有了三個檔，它們的內容分別是：
-
-```rust
-// <lib.rs>
-mod caller;
-mod worker;
-
-// <caller.rs>
-// caller.rs 中，沒有使用 mod caller {} 這樣包裹起來，
-// 是因為 mod caller; 相當於把 caller.rs 檔案用 mod caller {} 包裹起來了
-fn call() {}
-
-// <worker.rs>
-fn work1() {}
-fn work2() {}
-fn work3() {}
-```
-
-<mark style="color:blue;">因為lib.rs是這個crate的入口，我們需要在這裡聲明它的所有子模組，否則caller.rs和worker.rs都不會被當成這個項目的程式碼編譯</mark>。
-
-### 方案三：如果worker.rs這個檔包含的內容太多，我們還可以繼續分成幾個檔
-
-```rust
-// <lib.rs>
-mod caller;
-mod worker;
-// <caller.rs>
-fn call() {}
-// <worker/mod.rs>
-mod worker1;
-mod worker2;
-mod worker3;
-// <worker/worker1.rs>
-fn work1() {}
-// <worker/worker2.rs>
-fn work2() {}
-// <worker/worker3.rs>
-fn work3() {}
-```
-
-這樣就把一個模組繼續分成了幾個小模組。而且worker模組的拆分其實是不影響caller模組的，只要我們在worker模組中把它子模組內部的東西重新匯出（re-export）就可以了。這個是可見性控制的內容。
 
 ## 多檔案模組的層級關係
 
@@ -322,6 +308,45 @@ mod top_mod {
 // Error:
 // pub use ::top_mod::inner_mod1::inner_mod2::method3;
 ```
+
+## 同一資料夾內有main.rs與lib.rs
+
+<mark style="color:red;">使用crate::function呼叫定義在lib內的函數</mark>。
+
+```
+| mod_example
+├── Cargo.lock
+├── Cargo.toml
+├── src
+│   ├── lib.rs
+│   ├── main.rs
+│   └── worker.rs
+
+```
+
+```rust
+// /mod_example/src/main.rs
+mod worker;
+
+fn main() {
+    // mod的hello
+    worker::hello();
+    // 呼叫lib.rs內的hello
+    mod_example::hello();
+}
+
+// /mod_example/src/lib.rs
+pub fn hello(){
+    println!("hello lib");
+}
+
+// /mod_example/src/worker.rs
+pub fn hello() {
+    println!("worker file");
+}
+```
+
+
 
 
 
