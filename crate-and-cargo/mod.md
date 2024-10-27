@@ -13,6 +13,8 @@
 
 <mark style="color:red;">而模組中的內容預設是私有的，只有模組內部能訪問</mark>。
 
+<mark style="color:red;">可以不使用use關鍵字，單純使用mod與完整路徑呼叫crate內部的函數</mark>。
+
 ## 從Rust編譯來理解
 
 Rust編譯器只接受一個.rs檔案作為輸入，並且只生成一個crate。
@@ -182,11 +184,26 @@ Rust 的模組支援層級結構，但這種層級結構本身與檔案系統目
 Rust 的多層模組遵循如下兩條規則：
 
 1. 優先尋找xxx.rs 檔案
-   * main.rs、lib.rs、mod.rs中的mod xxx; 默認優先尋找同級目錄下的 xxx.rs 檔案；
-   * 其他檔案yyy.rs中的mod xxx;默認優先尋找同級目錄的yyy目錄下的 xxx.rs 檔案；
-2. 如果 xxx.rs 不存在，則尋找 xxx/mod.rs 檔案，即 xxx 目錄下的 mod.rs 檔案。
+   * main.rs、lib.rs、mod.rs中的mod xxx; <mark style="color:red;">預設優先尋找同級目錄下的 xxx.rs 檔案</mark>；
+   * 其他檔案yyy.rs中的mod xxx;<mark style="color:red;">預設優先尋找同級目錄的yyy目錄下的 xxx.rs 檔案</mark>；
+2. 如果 xxx.rs 不存在，則尋找 xxx/mod.rs 檔案，即 xxx 目錄下的 mod.rs 檔案。(如果同時存在xxx.rs與xxx資料夾時，使用mod xxx編譯器會報錯)。
 
 上述兩種情況，載入成模組後，效果是相同的。Rust 就憑這兩條規則，通過迭代使用，結合 pub 關鍵字，實現了對深層目錄下模組的載入；
+
+```bash
+├── Cargo.lock
+├── Cargo.toml
+├── src
+│   ├── a
+│   │   ├── b
+│   │   │   ├── c
+│   │   │   │   ├── d.rs
+│   │   │   │   └── mod.rs
+│   │   │   └── mod.rs
+│   │   └── mod.rs
+│   └── main.rs
+
+```
 
 ```rust
 // a/b/c/d.rs
@@ -205,10 +222,16 @@ pub mod b;
 
 // main.rs
 mod a;
-use a::b::c::d;
+
 fn main() {
-    d::print_ddd();
+    // 使用完整路徑呼叫函數
+    a::b::c::d::print_ddd(); // i am ddd.
+
+    // 使用use縮短路徑
+    use a::b::c::d;
+    d::print_ddd(); // i am ddd.
 }
+
 ```
 
 Rust 要這樣設計，有以下幾個原因：
@@ -311,7 +334,8 @@ mod top_mod {
 
 ## 同一資料夾內有main.rs與lib.rs
 
-<mark style="color:red;">使用crate::function呼叫定義在lib內的函數</mark>。
+* <mark style="color:red;">使用crate::function呼叫定義在lib內的函數</mark>。
+* 也可以用mod lib; lib::function方式呼叫。
 
 ```
 | mod_example
@@ -326,6 +350,8 @@ mod top_mod {
 
 ```rust
 // /mod_example/src/main.rs
+
+// 方法一，使用crate_name::hello方式呼叫在lib.rs中的函數
 mod worker;
 
 fn main() {
@@ -333,6 +359,17 @@ fn main() {
     worker::hello();
     // 呼叫lib.rs內的hello
     mod_example::hello();
+}
+
+// 方法二，和一般mod相同，使用mod lib再呼叫
+mod worker;
+mod lib;
+
+fn main() {
+    // mod的hello
+    worker::hello();
+    // 呼叫lib.rs內的hello
+    lib::hello();
 }
 
 // /mod_example/src/lib.rs
@@ -345,10 +382,6 @@ pub fn hello() {
     println!("worker file");
 }
 ```
-
-
-
-
 
 ## 參考資料
 
