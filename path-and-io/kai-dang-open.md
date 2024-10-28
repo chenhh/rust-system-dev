@@ -1,5 +1,27 @@
 # 開檔(open)
 
+## IO錯誤
+
+[https://rustwiki.org/zh-CN/std/io/type.Result.html](https://rustwiki.org/zh-CN/std/io/type.Result.html)
+
+定義：
+
+```rust
+pub type Result<T> = Result<T, Error>;
+```
+
+在使用 Rust 時，失敗的函數會返回 Result 類型。尤其是檔案系統模組會返回專門的類型 `std::io::Result<T, Error>`。
+
+預設的`Result` 通常為 `std::result::Result`，因此這個IO錯誤通常會使用`io::Result` 用以區別之。
+
+```rust
+fn  main() ->  std::io::Result<()> {
+    /* ...code comes here... */
+}
+```
+
+
+
 ## File結構體
 
 `File` 結構體表示一個被打開的檔案（它包裹了一個檔案描述符），並賦予了對所表示的檔案的讀寫能力。
