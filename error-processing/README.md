@@ -93,11 +93,11 @@ fn main() {
 
 更多的時候，我們可能會想要把錯誤定義為一個 Enum 或者 Struct ，並實現 Error 等相關的 trait 。這是個體力活，如果你還需要處理 std 或者第三方庫拋出來的 Error ，還需要手工實現一大堆 From 來為自己的 Error 實現相應的轉換規則。
 
-
-
 ### 匹配不同的錯誤
 
 如果 File::open 因為檔案不存在而失敗，我們希望創建這個檔案並返回新檔案的控制代碼。如果 File::open 因為任何其他原因失敗，例如沒有打開檔案的權限，我們仍然希望 panic!
+
+[https://rustwiki.org/zh-CN/std/io/enum.ErrorKind.html](https://rustwiki.org/zh-CN/std/io/enum.ErrorKind.html)
 
 ```rust
 use std::fs::File;

@@ -2,7 +2,7 @@
 
 ## Barrier
 
-Barrier是這樣的一個類型，它使用一個整數做初始化，可以使得多個執行緒在某個點上一起等待，然後再繼續執行。
+Barrier是這樣的一個類型，它使用一個整數做初始化，<mark style="color:red;">可以使得多個執行緒在某個點上一起等待，然後再繼續執行</mark>。
 
 ```rust
 use std::sync::{Arc, Barrier};

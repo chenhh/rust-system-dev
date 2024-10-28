@@ -1,10 +1,10 @@
-# 狀態共享：Semaphore
+# 狀態共享Semaphore
 
-在多執行緒中，另一個重要的概念就是訊號量(semaphore)，使用它可以讓我們精準的控制當前正在執行的任務最大數量。
+在多執行緒中，另一個重要的概念就是<mark style="color:red;">訊號量(semaphore)，使用它可以讓我們精準的控制當前正在執行的任務最大數量</mark>。
 
 而在實際使用中，也有很多時候，我們需要通過訊號量來控制最大並發數，防止伺服器資源被撐爆。
 
-本來 Rust 在標准庫中有提供一個訊號量實現, 但是由於各種原因這個庫現在已經不再推薦使用了，推薦使用tokio中提供的Semaphone實現: `tokio::sync::Semaphore`。
+本來 Rust 在標准庫中有提供一個訊號量實現，是由於各種原因這個庫現在已經不再推薦使用了，推薦使用tokio中提供的Semaphone實現: `tokio::sync::Semaphore`。
 
 ```rust
 use std::sync::Arc;

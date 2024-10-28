@@ -55,6 +55,7 @@
   * [Result](error-processing/result.md)
   * [Option與Result互動](error-processing/option-yu-result-hu-dong.md)
   * [panic](error-processing/panic.md)
+  * [自訂錯誤](error-processing/custom\_error.md)
 * [crate與cargo](crate-and-cargo/README.md)
   * [mod](crate-and-cargo/mod.md)
   * [use](crate-and-cargo/use.md)
