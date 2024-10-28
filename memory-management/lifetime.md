@@ -4,8 +4,8 @@
 
 生命週期但它在不同的語境中有不同的側重點。它可以有下面三個語義：
 
-1. 引用必須有效的程式碼區域。&#x20;
-2. 引用的使用區域。&#x20;
+1. 引用必須有效的程式碼區域。
+2. 引用的使用區域。
 3. 值的存活區域。
 
 <mark style="color:red;">生命週期是針對引用的概念。而</mark>有引用就會有被指向的物件，可將「被引用的物件」簡稱為本體。
@@ -307,3 +307,4 @@ fn new<'a>(buf: &'a mut [u8]) -> BufWriter<'a>          // 完整的
 * [\[知乎\] Rust: Lifetime 解惑， 生命週期還在](https://zhuanlan.zhihu.com/p/384151733)
 * [\[知乎\]Rust: PhantomData，#may\_dangle和Drop Check 真真假假](https://zhuanlan.zhihu.com/p/383004091)
 * [\[知乎\] Rust那些難理解的點](https://zhuanlan.zhihu.com/p/360342782)
+* [http://520code.net/index.php/archives/53/](http://520code.net/index.php/archives/53/)
