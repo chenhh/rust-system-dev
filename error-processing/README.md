@@ -2,6 +2,8 @@
 
 ## 簡介
 
+Rust 錯誤處理的手段主要分為兩種，對於不可恢復的錯誤（unrecoverable error），可以通過 panic 來直接中斷程式的執行，而對於可恢復的錯誤（recoverable error），一般會返回 Result 。
+
 在實際開發中，一般程式中的<mark style="color:blue;">錯誤可以分為以下三類</mark>：
 
 * <mark style="color:red;">**失敗**</mark>：違反規則的情況。比如函數參數需要的是字串，你傳入了數字類型，這是一種違反規則
@@ -41,11 +43,11 @@ Rust把錯誤分成了兩大類：
 * <mark style="color:purple;">一類是不可修復錯誤，建議使用panic來處理</mark>。對於不可修復錯誤，本質上沒有辦法在程式執行階段做好處理的，那麼就應該用panic讓程式主動退出，由開發者來修復程式碼，這是唯一合理的方案。
 * <mark style="color:purple;">另外一類錯誤是可修復錯誤，一般使用返回值</mark><mark style="color:purple;">`Option<T>`</mark><mark style="color:purple;">或是</mark><mark style="color:purple;">`Result<T,E>`</mark><mark style="color:purple;">來處理</mark>。比如打開檔案出錯這種問題，應該是設計階段能預計到的，可以在執行階段更好處理的問題，就適合採用這種方案。
 
-### &#x20;正常，以返回值的形式
+### 正常，以返回值的形式
 
 相當於壓縮了上一節中的0、1、2項。沒有什麼情理中的意外，網路連不上、檔案找不到、非法輸入，統統都用返回值的方式。
 
-### &#x20;致命錯誤，不可恢復，非崩潰不可。
+### 致命錯誤，不可恢復，非崩潰不可。
 
 * 一旦存在不可恢復的錯誤，Rust使用`Panic!`巨集來終止程式（執行緒）。一旦`Panic!`巨集出手，基本沒得救（`panic::catch_unwind`是個例外，稍後說）。執行時預設會進行stack unwind（堆疊反解），一層層上去，直到執行緒的頂端。
 * 有些情況`panic!`是你的程式所依賴的函式庫產生的，比如陣列越界存取時的實現。
@@ -84,6 +86,14 @@ fn main() {
 當結果是 Ok 時，返回 Ok 成員中的 file 值，然後將這個檔案控制代碼賦值給變量 f。match 之後，我們可以利用這個檔案控制代碼來進行讀寫。
 
 從 File::open 得到 Err 值的情況。在這種情況下，我們選擇調用 panic! 巨集。
+
+### Error 類型
+
+定義 Error 類型是一個可簡單，可複雜的事情，畢竟在 Result\<T, E> 裡，E 其實可以塞任何東西。甚至可以直接把 String 作為 Error 來使用(不建議)，還能帶上一定的錯誤資訊。
+
+更多的時候，我們可能會想要把錯誤定義為一個 Enum 或者 Struct ，並實現 Error 等相關的 trait 。這是個體力活，如果你還需要處理 std 或者第三方庫拋出來的 Error ，還需要手工實現一大堆 From 來為自己的 Error 實現相應的轉換規則。
+
+
 
 ### 匹配不同的錯誤
 
@@ -168,6 +178,36 @@ Rust用於錯誤處理的最基本的類型就是我們常見的Option\<T>類型
 ```rust
 type Result<T> = Result<T, Error>;
 ```
+
+## 丟失上下文
+
+僅僅只是把 Error 定義出來只不過是剛剛踏入了錯誤處理的門，甚至可以說定義 Error 也只是錯誤處理那一系列 boilerplate code 的一小部分而已。單純見到錯誤就往上拋並不難，而且 Rust 還提供了 ? 運算子來讓你可以更爽地拋出錯誤，但與之相對的，直接上拋錯誤，就意味著丟棄了大部分錯誤的上下文，也會給時候定位問題帶來不便。
+
+```rust
+/*
+eat()/drink()/work()/sleep() 中任意一個都有可能拋出 io::Error 的函數。
+那麼當 daily() 出錯時，你拿到的最終資訊可能只是個 
+"I/O error: failed to fill whole buffer" ，而到底是哪裡出的錯，
+為什麼出錯了呢？不知道，因為錯誤來源丟失了。
+*/
+
+fn daily() -> Result<(), MyError> {
+    eat()?;
+    drink()?;
+    work()?;
+    sleep()?;
+    Ok(())
+}
+```
+
+為了避免出現類似的問題，遇到錯誤時就需要注意儲存一些呼叫資訊以及錯誤的現場，概況下來，就是兩樣東西
+
+* 呼叫堆疊，或者說 backtrace。
+* 錯誤的上下文，如關鍵參數。
+
+光靠 backtrace 其實只能回答哪裡出了錯的問題，而回答不了為什麼出錯的。一些預期內時常會拋錯誤的程式碼路徑也不宜獲取 backtrace。
+
+[https://juejin.cn/post/6940446226786156575](https://juejin.cn/post/6940446226786156575)
 
 ## 參考資料
 

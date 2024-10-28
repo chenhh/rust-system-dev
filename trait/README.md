@@ -673,3 +673,7 @@ trait HttpService =
             Error = http::Error>;
 ```
 
+## 參考資料
+
+* [https://rustmagazine.github.io/rust\_magazine\_2021/chapter\_7/rusts-standard-library-traits.html](https://rustmagazine.github.io/rust\_magazine\_2021/chapter\_7/rusts-standard-library-traits.html)
+*
