@@ -4,6 +4,15 @@
 
 內部可變性（Interior mutability）是 Rust 中的一個設計模式，<mark style="color:red;">它允許你即使在有不可變引用時也可以改變資料</mark>，如不可變引用中的struct中有部份欄位是可變的，這通常是借用規則所不允許的。
 
+```rust
+fn main() {
+    let x = 5;
+    // error
+    // cannot borrow `x` as mutable, as it is not declared as mutable
+    let y = &mut x;
+}
+```
+
 為了改變資料，該模式在資料結構中使用 unsafe 代碼來模糊 Rust 通常的可變性和借用規則。
 
 RefCell 只能用於單執行緒場景;
@@ -28,11 +37,13 @@ RefCell 只能用於單執行緒場景;
 * 你需要動態建立多個可變的 alias。
 * 你想要變更 Rc 多個指標底層的資料狀態。
 
-## Cell(少用)
+## Cell
 
 Cell 和 RefCell 在功能上沒有區別，區別在於 Cell 適用於 `T` 實現 Copy 的情形。
 
 由於 Cell 型別針對的是實現了 Copy trait的值類型，因此在實際開發中，Cell 使用的並不多。
+
+<mark style="color:red;">總之，當非要使用內部可變性時，首選 Cell，只有你的類型沒有實現 Copy 時，才去選擇 RefCell</mark>。
 
 ```rust
 use std::cell::Cell;
@@ -45,6 +56,27 @@ fn main() {
     let two = c.get();
     println!("{one}:{two}"); // hello world:kkkk
 }
+```
+
+```rust
+// Cell 沒有額外的效能損耗，例如以下兩段程式碼的效能其實是一致
+// code snipet 1 (可成功編譯)
+let x = Cell::new(1);
+let y = &x;
+let z = &x;
+x.set(2);
+y.set(3);
+z.set(4);
+println!("{}", x.get());
+
+// code snipet 2 (無法編譯)
+let mut x = 1;
+let y = &mut x;
+let z = &mut x;
+x = 2;
+*y = 3;
+*z = 4;
+println!("{}", x);
 ```
 
 ## 通過 RefCell 在執行時檢查借用規則
@@ -99,7 +131,32 @@ fn main() {
 
 ## 結合 Rc 和 RefCell 來擁有多個可變資料所有者
 
-回憶一下 `Rc` 允許對相同資料有多個所有者，不過只能提供資料的不可變訪問。如果有一個儲存了 `RefCell` 的 `Rc` 的話，就可以得到有多個所有者 並且可以修改的值了！
+回憶一下 `Rc` 允許對相同資料有多個所有者，不過只能提供資料的不可變訪問。如果有一個儲存了 `RefCell` 的 `Rc` 的話，就可以得到有多個所有者並且可以修改的值了。
+
+```rust
+use std::cell::RefCell;
+use std::rc::Rc;
+fn main() {
+    let s = Rc::new(RefCell::new("我很善變，還擁有多個主人".to_string()));
+
+    let s1 = s.clone();
+    let s2 = s.clone();
+    // let mut s2 = s.borrow_mut();
+    // 指向同一物件，因此改變一個全部指標指向內容都會變
+    s2.borrow_mut().push_str(", oh yeah!");
+
+    println!("{:?}\n{:?}\n{:?}", s, s1, s2);
+}
+
+/*
+RefCell { value: "我很善變，還擁有多個主人, oh yeah!" }
+RefCell { value: "我很善變，還擁有多個主人, oh yeah!" }
+RefCell { value: "我很善變，還擁有多個主人, oh yeah!" }
+*/
+
+```
+
+
 
 ```rust
 // Rc<T> 只存放不可變值，所以一旦創建了這些列表值後就不能修改。
