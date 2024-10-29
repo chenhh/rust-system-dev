@@ -47,3 +47,55 @@ fn main() {
 
 ```
 
+[https://theomn.com/rust-error-handling-for-pythonistas/](https://theomn.com/rust-error-handling-for-pythonistas/)
+
+```rust
+use std::error::Error;
+use std::fmt;
+
+#[derive(Debug)]
+enum WhoUnfollowedError {
+    /// Failed to complete an HTTP request.
+    Http { source: reqwest::Error },
+    /// Failed to read the cache file.
+    DiskCacheRead { source: std::io::Error },
+    /// Failed to update the cache file.
+    DiskCacheWrite { source: std::io::Error },
+}
+
+impl fmt::Display for WhoUnfollowedError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            WhoUnfollowedError::Http { .. } => {
+                write!(f, "Fetch failed")
+            }
+            WhoUnfollowedError::DiskCacheRead { .. } => {
+                write!(f, "Disk cache read failed")
+            }
+            WhoUnfollowedError::DiskCacheWrite { .. } => {
+                write!(f, "Disk cache write failed")
+            }
+        }
+    }
+}
+
+impl Error for WhoUnfollowedError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            WhoUnfollowedError::Http { source } => Some(source),
+            // The "disk" variants both have the same type for their source
+            // fields so we can group them up in the same match arm.
+            WhoUnfollowedError::DiskCacheRead { source }
+            | WhoUnfollowedError::DiskCacheWrite { source } => Some(source),
+        }
+    }
+}
+
+impl From<reqwest::Error> for WhoUnfollowedError {
+    fn from(other: reqwest::Error) -> WhoUnfollowedError {
+        WhoUnfollowedError::Http { source: other }
+    }
+}
+```
+
+[https://edgl.dev/blog/wrapping-errors-in-rust/](https://edgl.dev/blog/wrapping-errors-in-rust/)

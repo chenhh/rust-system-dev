@@ -7,3 +7,18 @@
 * [深入RUST標準庫](https://github.com/Warrenren/inside-rust-std-library)
 * [Rust boom(Awesome Rust (Rust 資源 | 學習 | 書 )](https://rust-boom.github.io/rust-boom/)。
 * 簡單英語學 Rust [https://dieterplex.github.io/easy\_rust\_cht/Chapter\_0.html](https://dieterplex.github.io/easy\_rust\_cht/Chapter\_0.html)
+* [https://rustmagazine.github.io/rust\_magazine\_2021/](https://rustmagazine.github.io/rust\_magazine\_2021/)
+* [https://rustmagazine.org/](https://rustmagazine.org/)
+
+
+
+好用套件
+
+* &#x20;[https://github.com/qarmin/czkawka](https://github.com/qarmin/czkawka) ,多平台的空間清理應用，可用於找出系統中的重複的檔案、空資料夾、臨時檔案等。
+* [https://github.com/Vrtgs/thirtyfour](https://github.com/Vrtgs/thirtyfour)，用於Rust的Selenium / WebDriver庫，用於自動化網站UI測試。
+* [https://github.com/mitsuhiko/similar](https://github.com/mitsuhiko/similar)，現代化的 diff 庫，借鑑了 pijul 實現的耐心排序演算法，並結合了 Myer 的 diff 演算法。
+* [https://github.com/quickwit-oss/tantivy](https://github.com/quickwit-oss/tantivy)，全文搜尋引擎庫。
+* [https://github.com/ducaale/xh](https://github.com/ducaale/xh)，是用於發送 HTTP 請求的友好且快速的工具。
+* [https://github.com/lettre/lettre](https://github.com/lettre/lettre)，以用於傳送 email 的庫。
+* [https://github.com/That3Percent/firestorm](https://github.com/That3Percent/firestorm)，“火旋風”分析器能幫助程式碼作者測試Rust程式碼的效能；它能分析項目中的時間敏感部分，輸出到時間軸圖、合併的火焰圖或其它的表現形式。
+* [https://github.com/BurntSushi/ripgrep](https://github.com/BurntSushi/ripgrep)，grep的rust實作。
