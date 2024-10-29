@@ -13,9 +13,21 @@ Rust 所有權機制要求一個值只能有一個所有者，在大多數情況
 
 <mark style="color:blue;">Rc 用於當我們希望在堆積上分配一些記憶體供程式的多個部分讀取，而且無法在編譯時確定程式的哪一部分會最後結束使用它的時候</mark>。如果確實知道哪部分是最後一個結束使用的話，就可以令其成為數據的所有者，正常的所有權規則就可以在編譯時生效。
 
-注意 Rc 只能用於單執行緒場景；
+注意 Rc 只能用於<mark style="color:red;">單執行緒</mark>場景；
+
+### 不可變引用
+
+事實上，Rc 是指向底層資料的不可變的引用，因此你無法通過它來修改資料(即你無法修改 `Rc<T>` 中的物件`T` ，只能讀取；)。這也符合 Rust 的借用規則：要麼存在多個不可變借用，要麼只能存在一個可變借用。
+
+但是實際開發中我們往往需要對資料進行修改，這時單獨使用 Rc 無法滿足我們的需求，需要配合其它資料類型來一起使用，例如內部可變性的 RefCell 類型以及互斥鎖 Mutex。
+
+一旦最後一個擁有者消失，則資源會自動被回收，這個生命週期是在編譯期就確定下來的。
+
+Rc 實際上是一個指標，它不影響包裹對象的方法呼叫形式（即不存在先解開包裹再呼叫值這一說）。
 
 ## Rc (reference counting)
+
+[https://rustwiki.org/zh-CN/std/rc/struct.Rc.html](https://rustwiki.org/zh-CN/std/rc/struct.Rc.html)
 
 單執行緒的引用計數指標，用來共享配置在堆積上的資料。
 
@@ -28,6 +40,8 @@ Rust 所有權機制要求一個值只能有一個所有者，在大多數情況
 
 ![b,c共享a的所有權](../.gitbook/assets/rc-min.PNG)
 
+### clone複製指標
+
 ```rust
 use std::rc::Rc;
 fn main() {
@@ -39,14 +53,17 @@ fn main() {
     
     // 使用 Rc::new 建立了一個新的 Rc<String> 智慧指標並賦給變數 a，
     // 該指標指向底層的字串資料
-    let a = Rc::new(String::from("hello, world"));
+    let a = Rc::new(s);
     // 這裡的 clone 僅僅複製了智慧指標並增加了引用計數，並沒有克隆底層資料
     let b = Rc::clone(&a);
+    // 或者寫為  let b = a.clone();
 
     assert_eq!(2, Rc::strong_count(&a)); // 獲取引用計數
     assert_eq!(Rc::strong_count(&a), Rc::strong_count(&b))
 }
 ```
+
+### strong\_count計算引用次數
 
 ```rust
 use std::rc::Rc;
@@ -63,6 +80,8 @@ fn main() {
         println!("count after c goes out of scope = {}", Rc::strong_count(&a)); // 2
 }
 ```
+
+### 範例：linklist
 
 ```rust
 #[derive(Debug)]
@@ -116,7 +135,43 @@ fn main() {
 }
 ```
 
-### 什麼時候該用 Rc
+## 一個值有多個所有者的場景
+
+考慮有下面的兩個實體: 公司(Company)和員工(Employee)。公司實體有個屬性: 經理。 有一個名為"張三"的員工實體，有兩個公司實體"分公司1"和"分公司2"，張三是這兩個公司的經理。
+
+```rust
+#[derive(Debug)]
+struct Employee {
+    name: String,
+}
+
+#[derive(Debug)]
+struct Company {
+    name: String,
+    manager: Rc<Employee>,
+}
+
+use std::rc::Rc;
+
+fn main() {
+    let employee = Rc::new(Employee {
+        name: String::from("張三"),
+    });
+
+    let company1 = Company {
+        name: String::from("分公司1"),
+        manager: employee.clone(),
+    };
+    let company2 = Company {
+        name: String::from("分公司2"),
+        manager: employee,
+    };
+
+    println!("{:?}, {:?}", company1, company2);
+}
+```
+
+## 什麼時候該用 Rc
 
 * 你需要共享一堆引用，但不確定哪個引用的生命週期會先結束。
 * 你的資源不足，但需要一個 GC（Rc + RefCell = 窮人的 GC）。
@@ -236,4 +291,6 @@ unsafe impl<#[may_dangle] T: ?Sized> Drop for Rc<T> {
 }
 ```
 
-###
+### 參考資料
+
+* [https://blog.frognew.com/2020/07/rust-smart-pointers-rc.html](https://blog.frognew.com/2020/07/rust-smart-pointers-rc.html)
