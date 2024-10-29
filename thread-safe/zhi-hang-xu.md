@@ -20,7 +20,7 @@ description: 線程
 * [pub fn park()](https://doc.rust-lang.org/std/thread/fn.park.html)阻塞，除非或直到當前執行緒的令牌被提供。對park的呼叫並不保證執行緒會永遠停在那裡，呼叫者應該為這種可能性做好準備。
 * [pub fn park\_timeout(dur: Duration)](https://doc.rust-lang.org/std/thread/fn.park\_timeout.html)。
 * [pub fn sleep(dur: Duration)](https://doc.rust-lang.org/std/thread/fn.sleep.html)。
-* [pub fn spawn\<F, T>(f: F) -> JoinHandle](https://doc.rust-lang.org/std/thread/fn.spawn.html)。
+* [pub fn spawn\<F, T>(f: F) -> JoinHandle](https://doc.rust-lang.org/std/thread/fn.spawn.html)\<T>。生成執行緒的常用方法，F表示傳入的參數為可移動所有權的函數(閉包)，T為函數的回傳類型，會傳送給handle的泛型類型。
 * [pub fn yield\_now()](https://doc.rust-lang.org/std/thread/fn.yield\_now.html)：合作放棄時間片給 OS 調度程式。這會調用底層操作系統調度程式的 yield 原語，表示調用線程願意放棄其剩餘的時間片，以便操作系統可以在 CPU 上調度其他線程。
 
 ## 建立執行緒
