@@ -22,3 +22,13 @@
 * [https://github.com/lettre/lettre](https://github.com/lettre/lettre)，以用於傳送 email 的庫。
 * [https://github.com/That3Percent/firestorm](https://github.com/That3Percent/firestorm)，“火旋風”分析器能幫助程式碼作者測試Rust程式碼的效能；它能分析項目中的時間敏感部分，輸出到時間軸圖、合併的火焰圖或其它的表現形式。
 * [https://github.com/BurntSushi/ripgrep](https://github.com/BurntSushi/ripgrep)，grep的rust實作。
+* [https://github.com/donnie4w/tklog](https://github.com/donnie4w/tklog)
+* [https://github.com/tokio-rs/tracing](https://github.com/tokio-rs/tracing)
+* [https://github.com/estk/log4rs](https://github.com/estk/log4rs)
+* [https://github.com/bheisler/criterion.rs](https://github.com/bheisler/criterion.rs)
+
+
+
+* [https://github.com/rust-itertools/itertools](https://github.com/rust-itertools/itertools)
+* [https://github.com/Peternator7/strum](https://github.com/Peternator7/strum)
+* [https://github.com/chronotope/chrono](https://github.com/chronotope/chrono)
