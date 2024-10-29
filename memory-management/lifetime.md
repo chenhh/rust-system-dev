@@ -308,3 +308,4 @@ fn new<'a>(buf: &'a mut [u8]) -> BufWriter<'a>          // 完整的
 * [\[知乎\]Rust: PhantomData，#may\_dangle和Drop Check 真真假假](https://zhuanlan.zhihu.com/p/383004091)
 * [\[知乎\] Rust那些難理解的點](https://zhuanlan.zhihu.com/p/360342782)
 * [http://520code.net/index.php/archives/53/](http://520code.net/index.php/archives/53/)
+* [https://rustmagazine.github.io/rust\_magazine\_2021/chapter\_9/lifetime-smart-ptr.html](https://rustmagazine.github.io/rust\_magazine\_2021/chapter\_9/lifetime-smart-ptr.html)

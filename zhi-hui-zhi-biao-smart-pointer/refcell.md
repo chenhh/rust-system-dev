@@ -16,7 +16,19 @@ RefCell 只能用於單執行緒場景;
 | 多個不可變借用不能和一個可變借用共存 | RefCell實現編譯期可變、不可變引用共存 |
 | 違背規則導致編譯錯誤         | 違背規則導致執行階段panic        |
 
-## Cell
+### 選擇 `Box<T>`、`Rc<T>` 或 `RefCell<T>` 的時機
+
+* `Rc<T>` 讓數個擁有者能共享(唯讀)相同資料；`Box<T>` 與 `RefCell<T>` 只能有一個擁有者。
+* `Box<T>` 能有不可變或可變的借用並在編譯時檢查；`Rc<T>` 則只能有不可變借用並在編譯時檢查：`RefCell<T>` 能有不可變或可變借用但是在執行時檢查。
+* 由於 `RefCell<T>` 允許在執行時檢查可變參考，你可以改變 `RefCell<T>` 內部的數值，就算 `RefCell<T>` 是不可變的。
+
+### 什麼時候該用 Cell 或 RefCell
+
+* 你需要一個對外不可變，但內部狀態可變的資料結構。
+* 你需要動態建立多個可變的 alias。
+* 你想要變更 Rc 多個指標底層的資料狀態。
+
+## Cell(少用)
 
 Cell 和 RefCell 在功能上沒有區別，區別在於 Cell 適用於 `T` 實現 Copy 的情形。
 
@@ -25,21 +37,23 @@ Cell 和 RefCell 在功能上沒有區別，區別在於 Cell 適用於 `T` 實�
 ```rust
 use std::cell::Cell;
 fn main() {
-    // asdf" 是 &str 型別，它實現了 Copy trait，但不可用於String類型
-    let c = Cell::new("asdf");
+    // hello world是 &str 型別，它實現了 Copy trait，但不可用於String類型
+    let c = Cell::new("hello world");
     // c.get 用來取值，c.set 用來設定新值
     let one = c.get();
-    c.set("qwer");
+    c.set("kkkk");
     let two = c.get();
-    println!("{},{}", one, two);
+    println!("{one}:{two}"); // hello world:kkkk
 }
 ```
 
 ## 通過 RefCell 在執行時檢查借用規則
 
-不同於`Rc`，`RefCell` 代表其資料的**唯一**的所有權。
+不同於`Rc`(有一個以上的所有者)，`RefCell` 代表其資料的**唯一**的所有權。
 
-**而**`RefCell`與`Box`都有唯有唯一的擁有權，其不同之處在於<mark style="color:red;">對於引用和 Box，借用規則的不可變性作用於編譯時</mark>。<mark style="color:red;">對於 RefCell，這些不可變性作用於執行時</mark>。對於引用，如果違反這些規則，會得到一個編譯錯誤。而對於 `RefCell`，如果違反這些規則程式會 panic 並退出。
+**而**`RefCell`與`Box`都有唯有唯一的擁有權，其不同之處在於<mark style="color:red;">對於引用和 Box，借用規則的不可變性作用於編譯時</mark>。<mark style="color:red;">對於 RefCell，這些不可變性作用於執行時</mark>。
+
+對於引用，如果違反這些規則，會得到一個編譯錯誤。而對於 `RefCell`，如果違反這些規則程式會 panic 並退出。
 
 RefCell 是會動態檢查 borrow checker rule 的型別，比 Cell 多一個 borrow 的欄位，動態紀錄引用的情形。
 
@@ -81,17 +95,7 @@ fn main() {
 
 在運行時捕獲借用錯誤而不是編譯時意味著將會在開發過程的後期才會發現錯誤，甚至有可能發布到生產環境才發現；還會因為在運行時而不是編譯時記錄借用而導致少量的運行時效能懲罰。
 
-## 選擇 Box，Rc 或 RefCell 的時機
-
-* Rc 允許相同資料有多個所有者；Box 和 RefCell 有單一所有者。
-* Box 允許在編譯時執行不可變或可變借用檢查；Rc僅允許在編譯時執行不可變借用檢查；RefCell 允許在運行時執行不可變或可變借用檢查。
-* 因為 RefCell 允許在運行時執行可變借用檢查，所以我們可以在即便 RefCell 自身是不可變的情況下修改其內部的值。
-
-### 什麼時候該用 Cell 或 RefCell
-
-* 你需要一個對外 immutable，但內部狀態可變的資料結構。
-* 你需要動態建立多個可變的 alias。
-* 你想要變更 Rc 多個指標底層的資料狀態。
+##
 
 ## 結合 Rc 和 RefCell 來擁有多個可變資料所有者
 
