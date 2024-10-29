@@ -73,11 +73,32 @@ fn main() {
 ```rust
 use std::thread;
 
-let thread_join_handle = thread::spawn(move || {
-    // 待處理的工作
-});
-// 在此等待thread完成
-let res = thread_join_handle.join(); 
+fn task() {
+    println!("task function");
+}
+
+fn main() {
+    // 使用closure傳入
+    let handle = thread::spawn(move || {
+        println!("child thread: closure");
+    });
+
+    // 不和環境互動時，也可使用function傳入
+    let handle2 = thread::spawn(task);
+
+    // 在此等待thread完成, 不一定會依照呼叫順序完成
+    // 因為兩個thread均沒有回傳值，所以join可以不用unwrap
+    // 但如果有回傳值時就要unwrap取Ok值
+    let _ = handle.join();
+    let _ = handle2.join();
+    println!("main thread complete");
+}
+
+/*
+task function
+child thread: closure
+main thread complete
+*/
 ```
 
 ```rust
@@ -130,7 +151,13 @@ fn main() {
 
 ## 使用 join 等待所有執行緒結束
 
-可以通過將 thread::spawn 的返回值儲存在變量中來修復新建線程部分沒有執行或者完全沒有執行的問題。thread::spawn 的返回值類型是 JoinHandle。JoinHandle 是一個擁有所有權的值，當對其調用 join 方法時，它會等待其線程結束。
+[https://rustwiki.org/zh-CN/std/thread/struct.JoinHandle.html#method.join](https://rustwiki.org/zh-CN/std/thread/struct.JoinHandle.html#method.join)
+
+```rust
+pub fn join(self) -> Result<T>
+```
+
+可以通過將 thread::spawn 的返回值儲存在變量中來修復新建線程部分沒有執行或者完全沒有執行的問題。thread::spawn 的返回值類型是 JoinHandle。JoinHandle 是一個擁有所有權的值，當對其調用 join 方法時，它會等待該執行緒結束。
 
 ```rust
 use std::thread;
@@ -183,75 +210,11 @@ fn main() {
 }
 ```
 
-## 取得cpu的數量
-
-```rust
-extern crate num_cpus;
-fn main() {
-    let ncpus = num_cpus::get();
-    println!("The number of cpus in this machine is: {}", ncpus);
-}
-```
-
-## threadpool
-
-```rust
-extern crate num_cpus;
-extern crate threadpool;
-
-use std::thread;
-use std::time;
-use threadpool::ThreadPool;
-fn main() {
-    let ncpus = num_cpus::get();
-    let pool = ThreadPool::new(ncpus);
-    for i in 0..ncpus * 5 {
-        pool.execute(move || println!("this is thread number {}", i));
-    }
-    thread::sleep(time::Duration::from_millis(50));
-    println!("finish of main function");
-}
-```
-
-## thread local變數
-
-對於多執行緒編程，執行緒區域性變量在一些場景下非常有用，而 Rust 通過標准庫和三方庫對此進行了支援。
-
-使用標準庫的`thread_local` 巨集可以初始化執行緒區域性變量，然後在執行緒內部使用該變量的 `with` 方法獲取變量值：
-
-```rust
-use std::cell::RefCell;
-use std::thread;
-
-fn main() {
-    thread_local!(static FOO: RefCell<u32> = RefCell::new(1));
-
-    FOO.with(|f| {
-        assert_eq!(*f.borrow(), 1);
-        *f.borrow_mut() = 2;
-    });
-
-    // 每個執行緒開始時都會拿到執行緒區域性變量的FOO的初始值
-    let t = thread::spawn(move || {
-        FOO.with(|f| {
-            assert_eq!(*f.borrow(), 1);
-            *f.borrow_mut() = 3;
-        });
-    });
-
-    // 等待執行緒完成
-    t.join().unwrap();
-
-    // 盡管子執行緒中修改為了3，我們在這裡依然擁有main執行緒中的區域性值：2
-    FOO.with(|f| {
-        assert_eq!(*f.borrow(), 2);
-    });
-}
-```
-
 ## 執行緒panic
 
-當其中一個生成的執行緒陷入恐慌時會發生什麼？沒問題，這些 執行緒之間是相互隔離的，只有恐慌的執行緒在釋放其資源後才會崩潰。釋放其資源後崩潰；父執行緒不受影響。
+當其中一個生成的執行緒陷入恐慌時會發生什麼？
+
+沒問題，這些 執行緒之間是相互隔離的，只有恐慌的執行緒在釋放其資源後才會崩潰。釋放其資源後崩潰；父執行緒不受影響。
 
 ```rust
 use std::thread;
@@ -269,10 +232,55 @@ fn main() {
         });
         pool.push(handle);
     }
+    
+    // 改用iter版本
+    // const N_THREAD: u32 = 10;
+    // let pool: Vec<_> = (0..N_THREAD).
+    //     map(|idx| {thread::spawn(move || {
+    //         if idx % 2 != 0 {
+    //             panic!("thread {idx} have fallen into an unrecoverable trap!");
+    //         } else {
+    //             println!("safe thread {idx}");
+    //         }
+    //     })}).collect();
+    
     for h in pool {
-        h.join();
+        let _ = h.join();
     }
     println!("main thread complete");
+}
+
+/*
+thread '<unnamed>' panicked at src/main.rs:9:17:
+thread 1 have fallen into an unrecoverable trap!
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+thread '<unnamed>' panicked at src/main.rs:9:17:
+thread 3 have fallen into an unrecoverable trap!
+thread '<unnamed>' panicked at src/main.rs:9:17:
+thread 7 have fallen into an unrecoverable trap!
+thread '<unnamed>' panicked at src/main.rs:9:17:
+thread 5 have fallen into an unrecoverable trap!
+thread '<unnamed>' panicked at src/main.rs:9:17:
+thread 9 have fallen into an unrecoverable trap!
+Standard Output
+safe thread 0
+safe thread 2
+safe thread 4
+safe thread 6
+safe thread 8
+main thread complete
+*/
+
+```
+
+## 取得cpu的數量
+
+```rust
+use num_cpus;
+
+fn main() {
+    let ncpus = num_cpus::get();
+    println!("The number of cpus in this machine is: {ncpus}");
 }
 ```
 

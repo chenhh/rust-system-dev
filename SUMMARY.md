@@ -67,6 +67,7 @@
 * [執行緒安全](thread-safe/README.md)
   * [Send/Sync特徵](thread-safe/send-sync-trait.md)
   * [執行緒](thread-safe/zhi-hang-xu.md)
+  * [執行緒池](thread-safe/thread-pool.md)
   * [管道(channel)](thread-safe/channel.md)
   * [狀態變數](thread-safe/zhuang-tai-bian-shu.md)
   * [狀態共享(Arc, Mutex)](thread-safe/state-sharing.md)
