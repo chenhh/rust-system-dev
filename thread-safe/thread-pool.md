@@ -1,10 +1,23 @@
 # 執行緒池
 
-## threadpool
+## 取得cpu的數量
 
 ```rust
-extern crate num_cpus;
-extern crate threadpool;
+use num_cpus;
+
+fn main() {
+    let ncpus = num_cpus::get();
+    println!("The number of cpus in this machine is: {ncpus}");
+}
+```
+
+## threadpool
+
+[https://github.com/rust-threadpool/rust-threadpool](https://github.com/rust-threadpool/rust-threadpool)
+
+```rust
+use num_cpus;
+use threadpool;
 
 use std::thread;
 use std::time;

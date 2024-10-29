@@ -273,16 +273,7 @@ main thread complete
 
 ```
 
-## 取得cpu的數量
 
-```rust
-use num_cpus;
-
-fn main() {
-    let ncpus = num_cpus::get();
-    println!("The number of cpus in this machine is: {ncpus}");
-}
-```
 
 ## 應用：map-reduce
 
