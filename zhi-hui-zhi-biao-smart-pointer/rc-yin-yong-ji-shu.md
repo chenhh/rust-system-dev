@@ -31,6 +31,12 @@ Rust 所有權機制要求一個值只能有一個所有者，在大多數情況
 ```rust
 use std::rc::Rc;
 fn main() {
+     let s = String::from("hello, world");
+    // s在這裡被轉移給a
+    // let a = Box::new(s);
+    // 報錯！此處繼續嘗試將 s 轉移給 b
+    // let b = Box::new(s);
+    
     // 使用 Rc::new 建立了一個新的 Rc<String> 智慧指標並賦給變數 a，
     // 該指標指向底層的字串資料
     let a = Rc::new(String::from("hello, world"));
