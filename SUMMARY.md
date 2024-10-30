@@ -121,4 +121,8 @@
 
 ## GUI
 
-* [slint](gui/slint.md)
+* [slint](gui/slint/README.md)
+  * [內建類型](gui/slint/slint-type.md)
+  * [元件屬性](gui/slint/element-property.md)
+  * [字體處理](gui/slint/font-handling.md)
+  * [相關資源](gui/slint/xiang-guan-zi-yuan.md)
