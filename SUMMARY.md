@@ -118,3 +118,7 @@
 * [release如何去除常數偵錯資訊](tech-tips/release-ru-he-qu-chu-chang-shu-zhen-cuo-zi-xun.md)
 * [use 和 extern crate 的區別](tech-tips/use-he-extern-crate-de-qu-bie.md)
 * [臨時值的使用場景](tech-tips/temp\_var\_usage.md)
+
+## GUI
+
+* [slint](gui/slint.md)
