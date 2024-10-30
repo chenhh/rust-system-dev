@@ -190,17 +190,23 @@ Rust 的記憶體安全性保證使其難以意外地製造永遠也不會被清
 
 另一個解決方案是重新組織資料結構，使得一部分引用擁有所有權而另一部分沒有。換句話說，循環將由一些擁有所有權的關係和一些無所有權的關係組成，只有所有權關系才能影響值是否可以被丟棄。
 
+### 範例：Linklist兩個節點相互引用
+
 ```rust
-use crate::List::{Cons, Nil};
 use std::cell::RefCell;
 use std::rc::Rc;
+// 縮寫使用Cons與Nil
+use crate::List::{Cons, Nil};
 
 #[derive(Debug)]
+// 節點
 enum List {
+    // RefCell<Rc<List>>表示可有多個指標持有該節點，且可以修改持有者
     Cons(i32, RefCell<Rc<List>>),
     Nil,
 }
 
+// 取得節點的下一個元素
 impl List {
     fn tail(&self) -> Option<&RefCell<Rc<List>>> {
         match self {
@@ -211,46 +217,46 @@ impl List {
 }
 
 fn main() {
+    // 建立List元素a
     let a = Rc::new(Cons(5, RefCell::new(Rc::new(Nil))));
 
-    println!("a initial rc count = {}", Rc::strong_count(&a)); // 1
-    println!("a next item = {:?}", a.tail()); // Some(RefCell { value: Nil })
+    println!("a 初始參考計數 = {}", Rc::strong_count(&a));
+    println!("a 下個專案 = {:?}", a.tail());
 
-    // b指向a
-    let b = Rc::new(Cons(10, RefCell::new(Rc::clone(&a)))); 
+    // 建立List元素b, 後面接a
+    let b = Rc::new(Cons(10, RefCell::new(Rc::clone(&a))));
 
-    println!("a rc count after b creation = {}", Rc::strong_count(&a)); // 2
-    println!("b initial rc count = {}", Rc::strong_count(&b)); // 1
-    // Some(RefCell { value: Cons(5, RefCell { value: Nil }) })
-    println!("b next item = {:?}", b.tail()); // 
+    println!("a 在 b 建立後的參考計數 = {}", Rc::strong_count(&a));
+    println!("b 初始參考計數 = {}", Rc::strong_count(&b));
+    println!("b 下個專案 = {:?}", b.tail());
 
-    // 將a指向b
+    // 將a的下一個節點接到b，形成引用迴圈
     if let Some(link) = a.tail() {
         *link.borrow_mut() = Rc::clone(&b);
     }
 
-    println!("b rc count after changing a = {}", Rc::strong_count(&b)); // 2
-    println!("a rc count after changing a = {}", Rc::strong_count(&a)); // 2
+    println!("b 在變更 a 後的參考計數 = {}", Rc::strong_count(&b));
+    println!("a 在變更 a 後的參考計數 = {}", Rc::strong_count(&a));
 
-    // Uncomment the next line to see that we have a cycle;
-    // it will overflow the stack
-    // println!("a next item = {:?}", a.tail());
+    // 取消下一行的註解可以看到迴圈產生
+    // 這會讓堆疊溢位
+    // println!("a 下個專案 = {:?}", a.tail());
 }
 ```
 
 ## 避免引用循環：將 Rc 變為 Weak
 
-們已經展示了呼叫 `Rc::clone` 會增加 `Rc` 實例的 `strong_count`，和只在其 `strong_count` 為 0 時才會被清理的 `Rc` 實例。
+上面展示了呼叫 `Rc::clone` 會增加 `Rc` 實例的 `strong_count`，和只在其 `strong_count` 為 0 時才會被清理的 `Rc` 實例。
 
 ## 升級 `Weak` -> `Rc` ，與降級 `Rc` -> `Weak`
 
-你也可以通過調用 Rc::downgrade 並傳遞 Rc 實例的引用來創建其值的弱引用（weak reference）。調用 Rc::downgrade 時會得到 Weak 類型的智慧指`標`。不同於將 Rc 實例的 strong\_count 加1，調用 Rc::downgrade 會將 weak\_count 加1。
+可以通過使用 Rc::downgrade 並傳遞 Rc 實例的引用來創建其值的弱引用（weak reference）。調用 Rc::downgrade 時會得到 `Weak<T>` 類型的智慧指標。不同於將 Rc 實例的 strong\_count 加1，調用 Rc::downgrade 會將 weak\_count 加1。
 
 Rc 類型使用 weak\_count 來記錄其存在多少個 Weak 引用，類似於 strong\_count。<mark style="color:red;">其區別在於 weak\_count 無需計數為 0 就能使 Rc 實例被清理</mark>。
 
 強引用代表如何共享 Rc 實例的所有權，<mark style="color:red;">但弱引用並不屬於所有權關係</mark>。他們不會造成引用循環，因為任何弱引用的循環會在其相關的強引用計數為 0 時被打斷。
 
-因為 Weak 引用的值可能已經被丟棄了，為了使用 Weak 所指向的值，我們必須確保其值仍然有效。為此可以調用 Weak 實例的 upgrade 方法，這會返回 Option\<Rc>。如果 Rc 值還未被丟棄，則結果是 Some；如果 Rc 已被丟棄，則結果是 None。
+因為 Weak 引用的值可能已經被丟棄了，<mark style="background-color:yellow;">為了使用 Weak 所指向的值，我們必須確保其值仍然有效。為此可以調用 Weak 實例的 upgrade 方法，這會返回 Option\<Rc>。如果 Rc 值還未被丟棄，則結果是 Some；如果 Rc 已被丟棄，則結果是 None</mark>。
 
 ```rust
 use std::rc::Rc;
@@ -268,6 +274,53 @@ fn main() {
     assert!(weak_five.upgrade().is_none());
 }
 ```
+
+### 範例：樹狀結構指向父節點
+
+```rust
+use std::cell::RefCell;
+use std::rc::{Rc, Weak};
+
+/*
+父節點必須擁有它的子節點，如果父節點釋放的話，
+它的子節點也應該要被釋放。但子節點不應該擁有它的父節點，
+如果我們釋放子節點的話，父節點應該要還存在。
+這就是弱參考的使用時機！
+*/
+
+#[derive(Debug)]
+struct Node {
+    value: i32,
+    // 指向父節點
+    parent: RefCell<Weak<Node>>,
+    // vec表示節點可以有多個分支
+    children: RefCell<Vec<Rc<Node>>>,
+}
+
+fn main() {
+    // 建立新節點leaf
+    let leaf = Rc::new(Node {
+        value: 3,
+        parent: RefCell::new(Weak::new()),
+        children: RefCell::new(vec![]),
+    });
+    // leaf 的父節點 None
+    println!("leaf 的父節點 {:?}", leaf.parent.borrow().upgrade());
+
+    // 建立分支節點
+    let branch = Rc::new(Node {
+        value: 5,
+        parent: RefCell::new(Weak::new()),
+        children: RefCell::new(vec![Rc::clone(&leaf)]),
+    });
+
+    *leaf.parent.borrow_mut() = Rc::downgrade(&branch);
+    // leaf 的父節點 Some(Node { value: 5, ...}
+    println!("leaf 的父節點 {:?}", leaf.parent.borrow().upgrade());
+}
+```
+
+
 
 ### Rc 如何管理 weak 與 strong reference
 
