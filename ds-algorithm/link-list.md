@@ -12,6 +12,43 @@
 
 串列最明顯的好處就是，常規陣列排列關聯項目的方式可能不同於這些資料項目在記憶體或磁碟上的順序，資料的存取往往要在不同的排列順序中轉換。串列允許插入和移除表上任意位置上的節點，但是不允許隨機存取。串列有很多種不同的類型：單向串列，雙向串列以及循環串列。
 
+## 標準庫內的LinkList
+
+[Struct std::collections::LinkedList](https://doc.rust-lang.org/std/collections/struct.LinkedList.html)
+
+```rust
+use std::collections::LinkedList;
+
+fn main() {    
+    let mut list1 = LinkedList::new();
+    list1.push_back('a');
+    
+    // list1: ['a']
+    println!("list1: {list1:?}");
+    
+    let mut list2 = LinkedList::new();
+    list2.push_back('b');
+    list2.push_back('c');
+    
+    // list2: ['b', 'c']
+    println!("list2: {list2:?}");
+    
+    list1.append(&mut list2);
+    
+    // list1: ['a', 'b', 'c']
+    println!("list1: {list1:?}");
+    
+    // iter會消耗容器內的元素
+    let mut iter = list1.iter();
+    assert_eq!(iter.next(), Some(&'a'));
+    assert_eq!(iter.next(), Some(&'b'));
+    assert_eq!(iter.next(), Some(&'c'));
+    assert!(iter.next().is_none());
+    
+    assert!(list2.is_empty());
+}
+```
+
 ## 簡單的List結構
 
 ```rust
