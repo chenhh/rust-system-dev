@@ -32,3 +32,12 @@
 * [https://github.com/rust-itertools/itertools](https://github.com/rust-itertools/itertools)
 * [https://github.com/Peternator7/strum](https://github.com/Peternator7/strum)
 * [https://github.com/chronotope/chrono](https://github.com/chronotope/chrono)
+
+優化
+
+* [Improve an algorithm performance step by step\
+  逐步提升演算法效能](https://blog.mapotofu.org/blogs/rabitq-bench/)
+
+遠端連線
+
+* \[ssh] [https://crustc.com/reading-a-remote-file-rust/](https://crustc.com/reading-a-remote-file-rust/)
