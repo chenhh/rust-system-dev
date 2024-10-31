@@ -11,6 +11,7 @@
   * [https://slintpad.com/?load\_demo=examples/slide\_puzzle/slide\_puzzle.slint](https://slintpad.com/?load\_demo=examples/slide\_puzzle/slide\_puzzle.slint)
   * [https://github.com/slint-ui/slint/tree/master/examples](https://github.com/slint-ui/slint/tree/master/examples)
 * [https://github.com/slint-ui/slint-rust-template](https://github.com/slint-ui/slint-rust-template)
+* \[中文文檔] [https://github.com/CvRain/slint-tutorial-cn](https://github.com/CvRain/slint-tutorial-cn)
 
 
 
@@ -19,6 +20,10 @@
 * [https://github.com/syf20020816/slint\_learn](https://github.com/syf20020816/slint\_learn)
 * \[awesome slint] [https://github.com/slint-ui/madewithslint](https://github.com/slint-ui/madewithslint)
 * \[no frame window] [https://github.com/planet0104/slint-noframe-window](https://github.com/planet0104/slint-noframe-window)
+* \[component] [https://github.com/RGAA-Software/slint\_components](https://github.com/RGAA-Software/slint\_components)
+* [https://github.com/crazyjay97/slint-ui-components](https://github.com/crazyjay97/slint-ui-components)
+* [https://github.com/8yteDance/SlintSubMenu](https://github.com/8yteDance/SlintSubMenu)
+* [https://github.com/lifeRobot/jui](https://github.com/lifeRobot/jui)
 
 ## 使用slint的軟體
 
@@ -33,3 +38,5 @@
 * \[music player, neither ok] [https://github.com/Enn3Developer/n\_music](https://github.com/Enn3Developer/n\_music)&#x20;
 * \[天氣播報, both ok] [https://github.com/FelgoSDK/RustyWeather](https://github.com/FelgoSDK/RustyWeather)
 * \[智慧家電, win ok ] [https://github.com/FelgoSDK/HomeAutomation](https://github.com/FelgoSDK/HomeAutomation)
+* \[rss reader, win ok] [https://github.com/heng30/rssbox](https://github.com/heng30/rssbox)
+* \[uefi] [https://github.com/sky5454/slint-uefi-template](https://github.com/sky5454/slint-uefi-template)
