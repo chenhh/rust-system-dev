@@ -9,6 +9,8 @@
 * 簡單英語學 Rust [https://dieterplex.github.io/easy\_rust\_cht/Chapter\_0.html](https://dieterplex.github.io/easy\_rust\_cht/Chapter\_0.html)
 * [https://rustmagazine.github.io/rust\_magazine\_2021/](https://rustmagazine.github.io/rust\_magazine\_2021/)
 * [https://rustmagazine.org/](https://rustmagazine.org/)
+* [https://github.com/fucking-translation](https://github.com/fucking-translation)
+* [https://segmentfault.com/a/1190000038658674?u\_atoken=33dadd1d9228a6832fcc07940612c36d\&u\_asig=2760820a17304570414822872e27e8](https://segmentfault.com/a/1190000038658674?u\_atoken=33dadd1d9228a6832fcc07940612c36d\&u\_asig=2760820a17304570414822872e27e8)
 
 
 

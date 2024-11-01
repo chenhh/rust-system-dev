@@ -181,4 +181,7 @@ Rust的這個設計，優點不在於它“允許你做什麼”，而在於它�
 
 把這些綜合起來，我們可以推理出Arc\<RefCell<\_>>是！Sync。最終，編譯器把其他的路都堵死了，唯一可以編譯通過的就是使用那些滿足Sync條件的類型，比如`Arc<Mutex<_>>`。在使用的時候，我們也不可能忘記調用`lock`方法，因為Mutex把真實資料包裹起來了，只有調用`lock`方法才有機會訪問內部資料。我們也不需要記得調用`unlock`方法，因為`lock`方法返回的是一個`MutexGuard`類型，這個類型在解構的時候會自動調用`unlock`。所以，編譯器在逼著使用者用正確的方式寫程式碼。
 
-##
+## 參考資料
+
+* [https://packetandpine.com/blog/arc-mutex-hashmap-rust/](https://packetandpine.com/blog/arc-mutex-hashmap-rust/)
+*
