@@ -43,3 +43,8 @@
 遠端連線
 
 * \[ssh] [https://crustc.com/reading-a-remote-file-rust/](https://crustc.com/reading-a-remote-file-rust/)
+
+OS開發
+
+* [https://rcore.gitbook.io/rust-os-docs](https://rcore.gitbook.io/rust-os-docs)
+* [https://os.phil-opp.com/](https://os.phil-opp.com/)

@@ -1,0 +1,17 @@
+# 參考資料
+
+* [https://github.com/rustcc/Rust\_Atomics\_and\_Locks?tab=readme-ov-file](https://github.com/rustcc/Rust\_Atomics\_and\_Locks?tab=readme-ov-file)
+* [https://hackmd.io/@sysprog/concurrency-atomics](https://hackmd.io/@sysprog/concurrency-atomics)
+* [https://hackmd.io/@sysprog/concurrency-lockfree](https://hackmd.io/@sysprog/concurrency-lockfree)
+* [https://njiot.blogspot.com/2019/12/linux-kernel-spinlock-atomic-ameba.html](https://njiot.blogspot.com/2019/12/linux-kernel-spinlock-atomic-ameba.html)
+* [https://www.infoq.cn/article/atomic-operation](https://www.infoq.cn/article/atomic-operation)
+* [https://pengrl.com/p/21030/](https://pengrl.com/p/21030/)
+* [https://ithelp.ithome.com.tw/m/articles/10259911](https://ithelp.ithome.com.tw/m/articles/10259911)
+* [https://gfw.go101.org/article/concurrent-atomic-operation.html](https://gfw.go101.org/article/concurrent-atomic-operation.html)
+* [https://www.cnblogs.com/gaochundong/p/lock\_free\_programming.html](https://www.cnblogs.com/gaochundong/p/lock\_free\_programming.html)
+* [https://rickhw.github.io/2020/09/12/ComputerScience/Synchronization/](https://rickhw.github.io/2020/09/12/ComputerScience/Synchronization/)
+* [https://newtoypia.blogspot.com/2017/12/synchronization.html](https://newtoypia.blogspot.com/2017/12/synchronization.html)
+* [https://hackmd.io/@Pl-eQT9CQaS0jhExKqL8\_w/BkhOSR4jW/https%3A%2F%2Fhackmd.io%2Fs%2FSkjm3mVzz](https://hackmd.io/@Pl-eQT9CQaS0jhExKqL8\_w/BkhOSR4jW/https%3A%2F%2Fhackmd.io%2Fs%2FSkjm3mVzz)
+* [**https://twmht.github.io/blog/posts/multithread/readWrite.html**](https://twmht.github.io/blog/posts/multithread/readWrite.html)
+* [https://blog.csdn.net/lihuan680680/article/details/121297945](https://blog.csdn.net/lihuan680680/article/details/121297945)
+* [https://blog.csdn.net/qq\_42861208/article/details/128702317?spm=1001.2101.3001.6650.3\&utm\_medium=distribute.pc\_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7ERate-3-128702317-blog-121297945.235%5Ev43%5Epc\_blog\_bottom\_relevance\_base9\&depth\_1-utm\_source=distribute.pc\_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7ERate-3-128702317-blog-121297945.235%5Ev43%5Epc\_blog\_bottom\_relevance\_base9\&utm\_relevant\_index=6](https://blog.csdn.net/qq\_42861208/article/details/128702317?spm=1001.2101.3001.6650.3\&utm\_medium=distribute.pc\_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7ERate-3-128702317-blog-121297945.235%5Ev43%5Epc\_blog\_bottom\_relevance\_base9\&depth\_1-utm\_source=distribute.pc\_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7ERate-3-128702317-blog-121297945.235%5Ev43%5Epc\_blog\_bottom\_relevance\_base9\&utm\_relevant\_index=6)

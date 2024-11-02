@@ -78,6 +78,7 @@
   * [死結-哲學家問題](thread-safe/si-jie-zhe-xue-jia-wen-ti.md)
   * [crossbeam](thread-safe/crossbeam.md)
   * [rayon](thread-safe/rayon.md)
+  * [參考資料](thread-safe/can-kao-zi-liao.md)
 * [FFI](ffi/README.md)
   * [cffi](ffi/cffi.md)
 * [資料處理polars](zi-liao-chu-li-polars.md)
