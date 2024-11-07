@@ -38,6 +38,7 @@
   * [NLL(non-lexical-lifetime)](memory-management/non-lexical-lifetime.md)
 * [容器與迭代器](container/README.md)
   * [迭代器](container/iterator.md)
+  * [python funcy](container/python-funcy.md)
   * [vec](container/vec.md)
 * [智慧指標(smart pointer)](memory-management/zhi-hui-zhi-biao-smart-pointer.md)
   * [解引用(deref)](memory-management/deref.md)
